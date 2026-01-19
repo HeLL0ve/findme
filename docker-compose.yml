@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: findme_postgres
+    environment:
+      POSTGRES_USER: findme_user
+      POSTGRES_PASSWORD: findme_password
+      POSTGRES_DB: findme_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: findme_backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://findme_user:findme_password@postgres:5432/findme_db
+
+  frontend:
+    build: ./frontend
+    container_name: findme_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

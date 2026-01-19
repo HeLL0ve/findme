@@ -1,0 +1,23 @@
+# Базовый образ
+FROM node:24-alpine
+
+# Рабочая директория внутри контейнера
+WORKDIR /app
+
+# Копируем package.json
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm install
+
+# Копируем весь проект
+COPY . .
+
+# Генерируем Prisma Client
+RUN npx prisma generate
+
+# Открываем порт NestJS
+EXPOSE 3000
+
+# Запуск приложения
+CMD ["npm", "run", "start:dev"]
