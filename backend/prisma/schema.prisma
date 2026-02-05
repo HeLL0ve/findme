@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String @id @default(uuid())
+  email        String @unique
+  passwordHash String
+
+  name             String?
+  phone            String?
+  telegramUsername String?
+
+  role      Role    @default(USER)
+  isBlocked Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ads           Ad[]
+  messages      Message[]
+  chatsAsAuthor Chat[]    @relation("ChatAuthor")
+  chatsAsWriter Chat[]    @relation("ChatWriter")
+
+  notificationSettings NotificationSettings?
+}
+
+model NotificationSettings {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  notifyWeb      Boolean @default(true)
+  notifyTelegram Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model Ad {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type   AdType
+  status AdStatus
+
+  petName     String?
+  animalType  String?
+  breed       String?
+  color       String?
+  description String
+
+  location Location?
+  photos   AdPhoto[]
+  chats    Chat[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Location {
+  id   String @id @default(uuid())
+  adId String @unique
+  ad   Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  address   String?
+  latitude  Float
+  longitude Float
+}
+
+model AdPhoto {
+  id   String @id @default(uuid())
+  adId String
+  ad   Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  photoUrl  String
+  createdAt DateTime @default(now())
+}
+
+model Chat {
+  id   String @id @default(uuid())
+  adId String
+  ad   Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  user1Id String
+  user2Id String
+
+  user1 User @relation("ChatAuthor", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2 User @relation("ChatWriter", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([adId, user1Id, user2Id])
+}
+
+model Message {
+  id     String @id @default(uuid())
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  content String
+  isRead  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AdType {
+  LOST
+  FOUND
+}
+
+enum AdStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
