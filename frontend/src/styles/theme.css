@@ -1,0 +1,11 @@
+:root {
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --bg: #ffffff;
+  --text: #0f172a;
+}
+
+[data-theme='dark'] {
+  --bg: #020617;
+  --text: #e5e7eb;
+}

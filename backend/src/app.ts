@@ -3,8 +3,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import healthRoutes from './modules/health/health.routes';
+import authRoutes from './modules/auth/auth.routes';
 
-const app = express();
+export const app = express();
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -15,7 +16,4 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/health', healthRoutes);
-
-app.listen(env.port, () => {
-  console.log(`🚀 Backend running on http://localhost:${env.port}`);
-});
+app.use('/register', authRoutes);
