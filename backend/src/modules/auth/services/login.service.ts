@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../../../config/prisma';
 import { env } from '../../../config/env';
 import { AuthError } from '../auth.errors';
+import { tokenService } from './token.service';
 
 type LoginInput = {
   email: string;
@@ -39,6 +40,10 @@ export async function loginService(data: LoginInput) {
     env.jwtRefreshSecret,
     { expiresIn: '7d' }
   );
+
+  // Save refresh token in Redis with TTL (7 days)
+  const ttl = 7 * 24 * 60 * 60; // seconds
+  await tokenService.saveRefreshToken(refreshToken, user.id, ttl);
 
   return {
     accessToken,

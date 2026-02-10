@@ -10,7 +10,7 @@ export class registerService {
     });
 
     if (existing) {
-      throw new AuthError('Пользователь с таким email уже существует', 409);
+      throw new AuthError('USER_ALREADY_EXISTS', 'Пользователь с таким email уже существует', 409);
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);

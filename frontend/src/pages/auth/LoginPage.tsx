@@ -2,9 +2,12 @@ import * as Form from '@radix-ui/react-form';
 import { useState } from 'react';
 import { api } from '../../api/axios';
 import { useAuthStore } from '../../shared/authStore';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
   const setAccessToken = useAuthStore((s) => s.setAccessToken);
+  const setUser = useAuthStore((s) => s.setUser);
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -18,16 +21,22 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', { email, password });
       setAccessToken(res.data.accessToken);
+      // fetch profile
+      try {
+        const me = await api.get('/users/me');
+        setUser(me.data);
+      } catch (_) {}
+      navigate('/');
     } catch (e: any) {
       setError(e.response?.data?.message ?? 'Ошибка входа');
     }
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '60px auto' }}>
+    <div className="auth-container card">
       <h1>Вход</h1>
 
-      <Form.Root onSubmit={onSubmit}>
+      <Form.Root onSubmit={onSubmit} className="form-root">
         <Form.Field name="email">
           <Form.Label>Email</Form.Label>
           <Form.Control asChild>
@@ -42,11 +51,16 @@ export default function LoginPage() {
           </Form.Control>
         </Form.Field>
 
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p className="error">{error}</p>}
 
         <Form.Submit asChild>
-          <button>Войти</button>
+          <button className="btn">Войти</button>
         </Form.Submit>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+          <span className="muted">Нет аккаунта? </span>
+          <a style={{ marginLeft: 6 }} href="/register">Зарегистрироваться</a>
+        </div>
       </Form.Root>
     </div>
   );

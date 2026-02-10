@@ -2,10 +2,88 @@
   --green-500: #22c55e;
   --green-600: #16a34a;
   --bg: #ffffff;
+  --surface: #f7fdf8;
+  --muted: #6b7280;
   --text: #0f172a;
+  --accent: var(--green-600);
+  --accent-600: var(--green-600);
+  --accent-500: var(--green-500);
+  --card-shadow: 0 6px 18px rgba(16, 185, 129, 0.06);
 }
 
 [data-theme='dark'] {
-  --bg: #020617;
-  --text: #e5e7eb;
+  --bg: #081018;
+  --surface: #071014;
+  --muted: #9ca3af;
+  --text: #e6f9ef;
+  --accent: #1fbf63;
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.6);
 }
+
+/* utility */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--surface), transparent);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 20px;
+}
+
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.muted { color: var(--muted); }
+
+.form-control input, .form-control textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: transparent;
+}
+
+.auth-container { max-width: 420px; margin: 40px auto; }
+
+.page-hero { padding: 48px 0; display: grid; grid-template-columns: 1fr; gap: 20px; align-items: center; }
+
+.hero-card { display:flex; align-items:center; gap:16px }
+
+.link { color: var(--accent); text-decoration: underline; cursor: pointer }
+
+[data-style='olive'] {
+  --accent: #3aa76d;
+}
+
+[data-style='teal'] {
+  --accent: #0ea5a4;
+}
+
+.header-bar {
+  display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0;
+}
+.header-left { display:flex; gap:12px; align-items:center }
+.header-right { display:flex; gap:12px; align-items:center }
+
+.stat-value { font-size: 28px; font-weight:700; color: var(--accent) }
+
+.card.small { padding:12px }
+
+.btn { border-radius:8px; padding:8px 12px; font-weight:600 }
+
