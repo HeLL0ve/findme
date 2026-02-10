@@ -1,9 +1,9 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { useState } from 'react';
-import axios from '../api/axios';
+import {api} from '../../api/axios';
 
-export function RegisterPage() {
+export default function RegisterPage() {
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -17,7 +17,7 @@ export function RegisterPage() {
     setError(null);
 
     try {
-      await axios.post('/auth/register', form);
+      await api.post('/auth/register', form);
       alert('Регистрация успешна');
     } catch (e: any) {
       setError(e.response?.data?.message || 'Ошибка регистрации');

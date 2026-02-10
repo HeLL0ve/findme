@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
-import { registerSchema } from './auth.schemas';
-import { AuthService } from './auth.service';
+import { registerSchema } from '../schemas/register.schemas';
+import { registerService } from '../services/register.service';
 
-export class AuthController {
-  static async register(req: Request, res: Response) {
+export  async function registerController(req: Request, res: Response) {
     const parsed = registerSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -13,8 +12,7 @@ export class AuthController {
       });
     }
 
-    const user = await AuthService.register(parsed.data);
+    const user = await registerService.register(parsed.data);
 
     return res.status(201).json(user);
-  }
 }

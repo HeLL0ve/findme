@@ -1,0 +1,52 @@
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { prisma } from '../../../config/prisma';
+import { env } from '../../../config/env';
+import { AuthError } from '../auth.errors';
+
+type LoginInput = {
+  email: string;
+  password: string;
+};
+
+export async function loginService(data: LoginInput) {
+  const { email, password } = data;
+
+  if (!email || !password) {
+    throw AuthError.validation('Email и пароль обязательны');
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    throw AuthError.invalidCredentials();
+  }
+
+  const valid = await bcrypt.compare(password, user.passwordHash);
+
+  if (!valid) {
+    throw AuthError.invalidCredentials();
+  }
+
+  const accessToken = jwt.sign(
+    { userId: user.id, role: user.role },
+    env.jwtAccessSecret,
+    { expiresIn: '15m' }
+  );
+
+  const refreshToken = jwt.sign(
+    { userId: user.id },
+    env.jwtRefreshSecret,
+    { expiresIn: '7d' }
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+  };
+}

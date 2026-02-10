@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
-import { prisma } from '../../config/prisma';
-import { AuthError } from './auth.errors';
-import { RegisterDto } from './auth.schemas';
+import { prisma } from '../../../config/prisma';
+import { AuthError } from '../auth.errors';
+import { RegisterDto } from '../schemas/register.schemas';
 
-export class AuthService {
+export class registerService {
   static async register(data: RegisterDto) {
     const existing = await prisma.user.findUnique({
       where: { email: data.email },

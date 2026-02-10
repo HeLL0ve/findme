@@ -16,4 +16,4 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/health', healthRoutes);
-app.use('/register', authRoutes);
+app.use('/auth', authRoutes);
