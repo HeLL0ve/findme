@@ -6,6 +6,10 @@ type User = {
   email: string;
   name?: string | null;
   role: 'USER' | 'ADMIN';
+  notificationSettings?: {
+    notifyWeb: boolean;
+    notifyTelegram: boolean;
+  } | null;
 };
 
 type AuthState = {

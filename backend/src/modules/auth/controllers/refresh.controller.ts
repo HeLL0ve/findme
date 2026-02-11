@@ -1,14 +1,15 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../../../config/env';
 import { tokenService } from '../services/token.service';
 import { prisma } from '../../../config/prisma';
+import { ApiError } from '../../../shared/errors/apiError';
 
-export async function refreshController(req: Request, res: Response) {
+export async function refreshController(req: Request, res: Response, next: NextFunction) {
   const token = req.cookies?.refreshToken;
 
   if (!token) {
-    return res.status(401).json({ code: 'NO_REFRESH_TOKEN' });
+    return next(new ApiError('NO_REFRESH_TOKEN', 'Нет refresh token', 401));
   }
 
   try {
@@ -16,14 +17,15 @@ export async function refreshController(req: Request, res: Response) {
 
     const exists = await tokenService.verifyTokenExists(token);
     if (!exists) {
-      return res.status(401).json({ code: 'INVALID_REFRESH_TOKEN' });
+      return next(new ApiError('INVALID_REFRESH_TOKEN', 'Неверный refresh token', 401));
     }
 
     // rotate tokens
     await tokenService.deleteRefreshToken(token);
 
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return res.status(401).json({ code: 'USER_NOT_FOUND' });
+    if (!user) return next(new ApiError('USER_NOT_FOUND', 'Пользователь не найден', 401));
+    if (user.isBlocked) return next(new ApiError('USER_BLOCKED', 'Пользователь заблокирован', 403));
 
     const accessToken = jwt.sign(
       { userId: user.id, role: user.role },
@@ -51,6 +53,6 @@ export async function refreshController(req: Request, res: Response) {
       },
     });
   } catch (err) {
-    return res.status(401).json({ code: 'INVALID_REFRESH_TOKEN' });
+    return next(new ApiError('INVALID_REFRESH_TOKEN', 'Неверный refresh token', 401));
   }
 }

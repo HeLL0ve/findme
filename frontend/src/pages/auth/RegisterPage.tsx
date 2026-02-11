@@ -2,8 +2,9 @@ import * as Dialog from '@radix-ui/react-dialog';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { useState } from 'react';
 import { api } from '../../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../shared/authStore';
+import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -29,16 +30,12 @@ export default function RegisterPage() {
 
     try {
       await api.post('/auth/register', form);
-
-      // auto-login
       const res = await api.post('/auth/login', { email: form.email, password: form.password });
       setAccessToken(res.data.accessToken);
-
       try {
         const me = await api.get('/users/me');
         setUser(me.data);
       } catch (_) {}
-
       navigate('/');
     } catch (e: any) {
       setError(e.response?.data?.message || 'Ошибка регистрации');
@@ -46,69 +43,71 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="auth-container card">
-      <h1>Создать аккаунт</h1>
+    <Container size="2">
+      <Card>
+        <Heading size="7">Создать аккаунт</Heading>
+        <form onSubmit={submit} className="form-root" style={{ marginTop: 16 }}>
+          <Flex direction="column" gap="3">
+            <TextField.Root
+              placeholder="Имя (необязательно)"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <TextField.Root
+              type="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+            <TextField.Root
+              type="password"
+              placeholder="Пароль"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+              minLength={6}
+            />
 
-      <form onSubmit={submit} className="form-root">
-        <div className="form-control">
-          <label>Имя (необязательно)</label>
-          <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-        </div>
+            <Flex align="center" gap="2">
+              <Checkbox.Root
+                checked={form.acceptTerms}
+                onCheckedChange={(v) => setForm({ ...form, acceptTerms: Boolean(v) })}
+                id="accept"
+                className="checkbox"
+              >
+                <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+              </Checkbox.Root>
+              <label htmlFor="accept">
+                Я принимаю{' '}
+                <Dialog.Root>
+                  <Dialog.Trigger asChild>
+                    <span className="link">пользовательское соглашение</span>
+                  </Dialog.Trigger>
+                  <Dialog.Portal>
+                    <Dialog.Overlay style={{ background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0 }} />
+                    <Dialog.Content style={{ background: 'var(--surface)', padding: 20, borderRadius: 12, position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', maxWidth: 600 }}>
+                      <Heading size="4">Пользовательское соглашение</Heading>
+                      <div style={{ maxHeight: 340, overflow: 'auto', marginTop: 12 }}>
+                        <Text>Тут будет текст соглашения...</Text>
+                      </div>
+                    </Dialog.Content>
+                  </Dialog.Portal>
+                </Dialog.Root>
+              </label>
+            </Flex>
 
-        <div className="form-control">
-          <label>Email</label>
-          <input
-            placeholder="Email"
-            value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
-            required
-            type="email"
-          />
-        </div>
+            {error && <Text color="red">{error}</Text>}
 
-        <div className="form-control">
-          <label>Пароль</label>
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })}
-            required
-            minLength={6}
-          />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Checkbox.Root
-            checked={form.acceptTerms}
-            onCheckedChange={v => setForm({ ...form, acceptTerms: Boolean(v) })}
-            id="accept"
-          />
-          <label htmlFor="accept" style={{ cursor: 'pointer' }}>
-            Я принимаю <Dialog.Root>
-              <Dialog.Trigger asChild>
-                <span className="link">пользовательское соглашение</span>
-              </Dialog.Trigger>
-              <Dialog.Portal>
-                <Dialog.Overlay style={{ background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0 }} />
-                <Dialog.Content style={{ background: 'var(--surface)', padding: 20, borderRadius: 12, position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', maxWidth: 600 }}>
-                  <h2>Пользовательское соглашение</h2>
-                  <div style={{ maxHeight: 340, overflow: 'auto' }}>
-                    <p>Тут будет текст соглашения...</p>
-                  </div>
-                </Dialog.Content>
-              </Dialog.Portal>
-            </Dialog.Root>
-          </label>
-        </div>
-
-        {error && <p className="error">{error}</p>}
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="submit" className="btn">Зарегистрироваться</button>
-          <button type="button" className="btn btn-ghost" onClick={() => navigate('/login')}>Уже есть аккаунт</button>
-        </div>
-      </form>
-    </div>
+            <Flex gap="2">
+              <Button type="submit">Зарегистрироваться</Button>
+              <Button variant="soft" asChild>
+                <Link to="/login">Уже есть аккаунт</Link>
+              </Button>
+            </Flex>
+          </Flex>
+        </form>
+      </Card>
+    </Container>
   );
 }

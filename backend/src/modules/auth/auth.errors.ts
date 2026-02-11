@@ -1,11 +1,8 @@
-export class AuthError extends Error {
-  status: number;
-  code: string;
+import { ApiError } from '../../shared/errors/apiError';
 
+export class AuthError extends ApiError {
   constructor(code: string, message: string, status = 400) {
-    super(message);
-    this.code = code;
-    this.status = status;
+    super(code, message, status);
   }
 
   static invalidCredentials() {
@@ -17,10 +14,6 @@ export class AuthError extends Error {
   }
 
   static validation(message: string) {
-    return new AuthError(
-      'VALIDATION_ERROR',
-      message,
-      400
-    );
+    return new AuthError('VALIDATION_ERROR', message, 400);
   }
 }

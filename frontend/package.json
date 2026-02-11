@@ -10,12 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-checkbox": "^1.1.4",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-form": "^0.1.4",
+    "@radix-ui/react-toggle": "^1.1.4",
     "@radix-ui/themes": "^3.3.0",
     "axios": "^1.13.4",
+    "leaflet": "^1.9.4",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.13.0"
   },
   "devDependencies": {

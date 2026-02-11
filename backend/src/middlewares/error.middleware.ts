@@ -1,9 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthError } from '../modules/auth/auth.errors';
+import { ApiError } from '../shared/errors/apiError';
 
 export function errorHandler(err: any, _req: Request, res: Response, _next: NextFunction) {
-  if (err instanceof AuthError) {
-    return res.status(err.status || 400).json({ code: err.code, message: err.message });
+  if (err instanceof ApiError) {
+    return res.status(err.status || 400).json({
+      code: err.code,
+      message: err.message,
+      ...(err.details !== undefined ? { details: err.details } : {}),
+    });
   }
 
   console.error(err);

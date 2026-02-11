@@ -1,17 +1,28 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/axios';
 import { Link } from 'react-router-dom';
+import { Badge, Button, Card, Container, Flex, Grid, Heading, Text } from '@radix-ui/themes';
+import { useOnlineCount } from '../shared/useOnlineCount';
+
+type Ad = {
+  id: string;
+  petName?: string | null;
+  animalType?: string | null;
+  status: string;
+  type: string;
+};
 
 export default function Home() {
-  const [ads, setAds] = useState<any[]>([]);
+  const [ads, setAds] = useState<Ad[]>([]);
+  const online = useOnlineCount();
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const res = await api.get('/ads');
+        const res = await api.get('/ads', { params: { take: 6 } });
         if (!mounted) return;
-        setAds(res.data.slice(0, 6));
+        setAds(res.data);
       } catch (e) {
         console.error(e);
       }
@@ -20,40 +31,52 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="container">
-      <section className="page-hero">
-        <div className="card hero-card">
-          <div style={{ flex: 1 }}>
-            <h1>FindMe — найди потерянного питомца</h1>
-            <p className="muted">Публикуйте объявления, общайтесь и помогайте находить домашних животных в вашем городе.</p>
-            <div style={{ marginTop: 12 }}>
-              <Link className="btn" to="/create-ad">Создать объявление</Link>
-            </div>
-          </div>
-          <div style={{ width: 280 }}>
-            <div className="card" style={{ padding: 12 }}>
-              <h2>Онлайн участники</h2>
-              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>12</div>
-              <p className="muted">активных участников прямо сейчас</p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <Container size="3">
+      <Flex direction="column" gap="5">
+        <Card>
+          <Flex direction={{ initial: 'column', md: 'row' }} gap="4" align="center" justify="between">
+            <Flex direction="column" gap="3" style={{ flex: 1 }}>
+              <Heading size="9">FindMe — найди потерянного питомца</Heading>
+              <Text color="gray">
+                Публикуйте объявления, общайтесь и помогайте находить домашних животных в вашем городе.
+              </Text>
+              <Flex gap="3">
+                <Button asChild>
+                  <Link to="/create-ad">Создать объявление</Link>
+                </Button>
+                <Button variant="soft" asChild>
+                  <Link to="/search">Поиск</Link>
+                </Button>
+              </Flex>
+            </Flex>
+            <Card style={{ minWidth: 220 }}>
+              <Text color="gray">Онлайн участники</Text>
+              <Heading size="8">{online}</Heading>
+              <Text size="2" color="gray">активных участников прямо сейчас</Text>
+            </Card>
+          </Flex>
+        </Card>
 
-      <section style={{ marginTop: 20 }}>
-        <h2>Последние объявления</h2>
-        <div style={{ display: 'grid', gap: 12 }}>
-          {ads.map(a => (
-            <Link key={a.id} to={`/ads/${a.id}`} className="card" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ width: 120, height: 80, background: '#efefef', borderRadius: 8 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700 }}>{a.petName || 'Без имени'}</div>
-                <div className="muted">{a.animalType} — {a.status}</div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-    </div>
+        <Flex direction="column" gap="3">
+          <Heading size="6">Последние объявления</Heading>
+          <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="3">
+            {ads.map((a) => (
+              <Card key={a.id} asChild>
+                <Link to={`/ads/${a.id}`} style={{ textDecoration: 'none' }}>
+                  <Flex direction="column" gap="2">
+                    <Text weight="bold">{a.petName || 'Без имени'}</Text>
+                    <Text size="2" color="gray">{a.animalType || 'Неизвестно'}</Text>
+                    <Flex gap="2">
+                      <Badge color={a.type === 'LOST' ? 'red' : 'green'}>{a.type}</Badge>
+                      <Badge color="blue">{a.status}</Badge>
+                    </Flex>
+                  </Flex>
+                </Link>
+              </Card>
+            ))}
+          </Grid>
+        </Flex>
+      </Flex>
+    </Container>
   );
 }

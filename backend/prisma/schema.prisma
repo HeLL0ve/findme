@@ -69,6 +69,7 @@ model Location {
   ad   Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
 
   address   String?
+  city      String?
   latitude  Float
   longitude Float
 }

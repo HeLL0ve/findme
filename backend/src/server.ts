@@ -1,6 +1,11 @@
+import { createServer } from 'http';
 import { app } from './app';
 import { env } from './config/env';
+import { initWsServer } from './ws/wsServer';
 
-app.listen(env.port, () => {
-  console.log(`🚀 Server running on http://localhost:${env.port}`);
+const server = createServer(app);
+initWsServer(server);
+
+server.listen(env.port, () => {
+  console.log(`Server running on http://localhost:${env.port}`);
 });

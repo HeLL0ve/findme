@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/axios';
 import { useAuthStore } from '../shared/authStore';
+import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import * as Checkbox from '@radix-ui/react-checkbox';
 
 type ProfileDto = {
   id: string;
@@ -9,6 +11,10 @@ type ProfileDto = {
   phone?: string | null;
   telegramUsername?: string | null;
   role: 'USER' | 'ADMIN';
+  notificationSettings?: {
+    notifyWeb: boolean;
+    notifyTelegram: boolean;
+  } | null;
 };
 
 export default function Profile() {
@@ -16,7 +22,6 @@ export default function Profile() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<ProfileDto>>({});
   const setUser = useAuthStore((s) => s.setUser);
-  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     let mounted = true;
@@ -29,7 +34,7 @@ export default function Profile() {
       } catch (e: any) {
         setError(e.response?.data?.message || 'Ошибка');
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     })();
 
@@ -39,7 +44,13 @@ export default function Profile() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const res = await api.put('/users/me', { name: form.name, phone: form.phone, telegramUsername: form.telegramUsername });
+      const res = await api.put('/users/me', {
+        name: form.name,
+        phone: form.phone,
+        telegramUsername: form.telegramUsername,
+        notifyWeb: form.notificationSettings?.notifyWeb,
+        notifyTelegram: form.notificationSettings?.notifyTelegram,
+      });
       setForm(res.data);
       setUser(res.data as any);
       alert('Сохранено');
@@ -48,41 +59,70 @@ export default function Profile() {
     }
   }
 
-  if (loading) return <div>Загрузка...</div>;
+  if (loading) return <Container size="2"><Text>Загрузка...</Text></Container>;
 
   return (
-    <div className="container">
-      <div className="card">
-        <h1>Профиль</h1>
+    <Container size="2">
+      <Card>
+        <Heading size="7">Профиль</Heading>
 
-        {error && <div className="error">{error}</div>}
+        {error && <Text color="red">{error}</Text>}
 
-        <form onSubmit={save} className="form-root">
-        <div>
-          <label>Email</label>
-          <div>{form.email}</div>
-        </div>
+        <form onSubmit={save} className="form-root" style={{ marginTop: 16 }}>
+          <Flex direction="column" gap="3">
+            <div>
+              <Text size="2" color="gray">Email</Text>
+              <Text>{form.email}</Text>
+            </div>
 
-        <div>
-          <label>Имя</label>
-          <input value={form.name ?? ''} onChange={e => setForm({ ...form, name: e.target.value })} />
-        </div>
+            <TextField.Root placeholder="Имя" value={form.name ?? ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <TextField.Root placeholder="Телефон" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <TextField.Root placeholder="Telegram" value={form.telegramUsername ?? ''} onChange={(e) => setForm({ ...form, telegramUsername: e.target.value })} />
 
-        <div>
-          <label>Телефон</label>
-          <input value={form.phone ?? ''} onChange={e => setForm({ ...form, phone: e.target.value })} />
-        </div>
+            <Flex direction="column" gap="2">
+              <Text size="2" color="gray">Уведомления</Text>
+              <Flex align="center" gap="2">
+                <Checkbox.Root
+                  checked={!!form.notificationSettings?.notifyWeb}
+                  onCheckedChange={(v) => setForm({
+                    ...form,
+                    notificationSettings: {
+                      notifyWeb: Boolean(v),
+                      notifyTelegram: Boolean(form.notificationSettings?.notifyTelegram),
+                    },
+                  })}
+                  id="notifyWeb"
+                  className="checkbox"
+                >
+                  <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+                </Checkbox.Root>
+                <label htmlFor="notifyWeb">Веб-уведомления</label>
+              </Flex>
+              <Flex align="center" gap="2">
+                <Checkbox.Root
+                  checked={!!form.notificationSettings?.notifyTelegram}
+                  onCheckedChange={(v) => setForm({
+                    ...form,
+                    notificationSettings: {
+                      notifyWeb: Boolean(form.notificationSettings?.notifyWeb),
+                      notifyTelegram: Boolean(v),
+                    },
+                  })}
+                  id="notifyTg"
+                  className="checkbox"
+                >
+                  <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+                </Checkbox.Root>
+                <label htmlFor="notifyTg">Telegram-уведомления</label>
+              </Flex>
+            </Flex>
 
-        <div>
-          <label>Telegram</label>
-          <input value={form.telegramUsername ?? ''} onChange={e => setForm({ ...form, telegramUsername: e.target.value })} />
-        </div>
+            <Text size="2">Роль: {form.role}</Text>
 
-        <div>Роль: {form.role}</div>
-
-        <button type="submit" className="btn">Сохранить</button>
-      </form>
-    </div>
-  </div>
+            <Button type="submit">Сохранить</Button>
+          </Flex>
+        </form>
+      </Card>
+    </Container>
   );
 }

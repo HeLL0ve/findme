@@ -22,6 +22,9 @@ export async function loginService(data: LoginInput) {
   if (!user) {
     throw AuthError.invalidCredentials();
   }
+  if (user.isBlocked) {
+    throw new AuthError('USER_BLOCKED', 'Пользователь заблокирован', 403);
+  }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
 
