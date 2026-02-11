@@ -1,0 +1,37 @@
+:root {
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --muted: #5b6b7c;
+  --text: #0b1220;
+  --accent: var(--green-600);
+  --accent-500: var(--green-500);
+  --accent-600: var(--green-600);
+  --card-shadow: 0 8px 24px rgba(16, 185, 129, 0.08);
+}
+
+[data-theme='dark'] {
+  --bg: #0b1118;
+  --surface: #0f172a;
+  --muted: #94a3b8;
+  --text: #e2e8f0;
+  --accent: #22c55e;
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+
+/* layout helpers */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--surface), rgba(255,255,255,0.4));
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 20px;
+}
+
+.link { color: var(--accent); text-decoration: underline; cursor: pointer }

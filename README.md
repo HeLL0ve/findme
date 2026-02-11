@@ -34,4 +34,10 @@ npm run dev
 
 ```bash
 npx prisma studio --config ./prisma.config.ts
+
+## Миграция внутри контейнера
+```
+
+```bash
+docker-compose exec backend npx prisma migrate dev
 ```
