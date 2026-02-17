@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar, Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
-import { useAuthStore } from '../../shared/authStore';
+import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { useAuthStore } from '../../shared/authStore';
 import { config } from '../../shared/config';
 
 type Chat = {
@@ -53,14 +54,15 @@ export default function ChatsPage() {
     if (!value) return chats;
     return chats.filter((chat) => {
       const peer = chat.user1.id === currentUser?.id ? chat.user2 : chat.user1;
-      const haystack = [peer.name, peer.email, chat.ad.petName, chat.messages?.[0]?.content].filter(Boolean).join(' ').toLowerCase();
+      const haystack = [peer.name, peer.email, chat.ad.petName, chat.messages?.[0]?.content]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
       return haystack.includes(value);
     });
   }, [chats, currentUser?.id, query]);
 
   async function deleteChat(chatId: string) {
-    if (!window.confirm('Удалить чат для обоих участников?')) return;
-
     try {
       await api.delete(`/chats/${chatId}`);
       setChats((prev) => prev.filter((chat) => chat.id !== chatId));
@@ -75,7 +77,13 @@ export default function ChatsPage() {
         <Heading size="8">Чаты</Heading>
         <Card className="chat-shell" style={{ padding: 0 }}>
           <Flex direction="column" style={{ height: '72vh' }}>
-            <BoxHeader query={query} setQuery={setQuery} />
+            <Flex align="center" justify="between" gap="2" style={{ padding: 12, borderBottom: '1px solid var(--gray-a5)' }}>
+              <TextField.Root
+                placeholder="Поиск по чатам"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </Flex>
 
             <div style={{ overflowY: 'auto', padding: 10 }}>
               {loading && <Text>Загрузка...</Text>}
@@ -92,32 +100,45 @@ export default function ChatsPage() {
                   return (
                     <Card key={chat.id} style={{ padding: 10 }}>
                       <Flex align="center" justify="between" gap="2">
-                        <Link to={`/chats/${chat.id}`} style={{ flex: 1, minWidth: 0 }}>
-                          <Flex align="center" gap="2" style={{ minWidth: 0 }}>
+                        <Flex align="center" gap="2" style={{ flex: 1, minWidth: 0 }}>
+                          <Link to={`/users/${peer.id}`} style={{ flexShrink: 0 }}>
                             <Avatar
                               src={resolveAvatarSrc(peer.avatarUrl)}
                               fallback={(peer.name || peer.email).slice(0, 1).toUpperCase()}
                               radius="full"
                             />
+                          </Link>
+
+                          <Link to={`/chats/${chat.id}`} style={{ minWidth: 0, flex: 1, textDecoration: 'none' }}>
                             <Flex direction="column" style={{ minWidth: 0, flex: 1 }}>
-                              <Text weight="bold" className="truncate">{peer.name || peer.email}</Text>
+                              <Text weight="bold" className="truncate">
+                                {peer.name || peer.email}
+                              </Text>
                               <Text size="2" color="gray" className="truncate">
                                 {chat.ad.petName ? `Объявление: ${chat.ad.petName}` : 'Объявление без клички'}
                               </Text>
                               <Text size="2" color="gray" className="truncate">
-                                {last?.sender?.name ? `${last.sender.name}: ` : ''}{last?.content || 'Сообщений пока нет'}
+                                {last?.sender?.name ? `${last.sender.name}: ` : ''}
+                                {last?.content || 'Сообщений пока нет'}
                               </Text>
                             </Flex>
-                            {last && (
-                              <Text size="1" color="gray">
-                                {new Date(last.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </Text>
-                            )}
-                          </Flex>
-                        </Link>
-                        <Button size="1" variant="soft" color="red" onClick={() => void deleteChat(chat.id)}>
-                          Удалить
-                        </Button>
+                          </Link>
+
+                          {last && (
+                            <Text size="1" color="gray">
+                              {new Date(last.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </Text>
+                          )}
+                        </Flex>
+
+                        <ConfirmActionDialog
+                          title="Удалить чат?"
+                          description="Чат удалится у обоих участников."
+                          confirmText="Удалить"
+                          color="red"
+                          onConfirm={() => deleteChat(chat.id)}
+                          trigger={<Button size="1" variant="soft" color="red">Удалить</Button>}
+                        />
                       </Flex>
                     </Card>
                   );
@@ -128,17 +149,5 @@ export default function ChatsPage() {
         </Card>
       </Flex>
     </Container>
-  );
-}
-
-function BoxHeader({ query, setQuery }: { query: string; setQuery: (value: string) => void }) {
-  return (
-    <Flex align="center" justify="between" gap="2" style={{ padding: 12, borderBottom: '1px solid var(--gray-a5)' }}>
-      <TextField.Root
-        placeholder="Поиск по чатам"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-      />
-    </Flex>
   );
 }

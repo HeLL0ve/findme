@@ -318,13 +318,40 @@ export async function markFoundController(req: Request<AdParams>, res: Response,
 export async function moderateAdController(req: Request<AdParams>, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    const { status } = req.body as { status?: 'APPROVED' | 'REJECTED' | 'ARCHIVED' };
+    const { status, reason } = req.body as { status?: 'APPROVED' | 'REJECTED' | 'ARCHIVED'; reason?: string };
 
     if (!status || !['APPROVED', 'REJECTED', 'ARCHIVED'].includes(status)) {
       return next(ApiError.validation({ status: 'Неверный статус' }));
     }
 
-    const ad = await prisma.ad.update({
+    if (status === 'REJECTED' && (!reason || !reason.trim())) {
+      return next(ApiError.validation({ reason: 'Укажите причину отклонения' }));
+    }
+
+    const ad = await prisma.ad.findUnique({
+      where: { id },
+      include: {
+        photos: true,
+        location: true,
+        user: { select: { id: true, name: true, phone: true, email: true, avatarUrl: true } },
+      },
+    });
+
+    if (!ad) return next(ApiError.notFound('Объявление не найдено'));
+
+    if (status === 'REJECTED') {
+      await createNotification({
+        userId: ad.userId,
+        type: 'AD_REJECTED',
+        title: 'Объявление отклонено',
+        message: `Объявление ${ad.petName ? `«${ad.petName}» ` : ''}отклонено. Причина: ${reason!.trim()}`,
+      });
+
+      await prisma.ad.delete({ where: { id: ad.id } });
+      return res.json({ deleted: true, id: ad.id });
+    }
+
+    const updatedAd = await prisma.ad.update({
       where: { id },
       data: { status },
       include: {
@@ -335,27 +362,17 @@ export async function moderateAdController(req: Request<AdParams>, res: Response
     });
 
     if (status === 'APPROVED') {
-      await sendAdApprovedToTelegram(ad);
+      await sendAdApprovedToTelegram(updatedAd);
       await createNotification({
-        userId: ad.userId,
+        userId: updatedAd.userId,
         type: 'AD_APPROVED',
         title: 'Объявление одобрено',
-        message: `Ваше объявление ${ad.petName ? `«${ad.petName}»` : ''} опубликовано.`,
-        link: `/ads/${ad.id}`,
+        message: `Ваше объявление ${updatedAd.petName ? `«${updatedAd.petName}»` : ''} опубликовано.`,
+        link: `/ads/${updatedAd.id}`,
       });
     }
 
-    if (status === 'REJECTED') {
-      await createNotification({
-        userId: ad.userId,
-        type: 'AD_REJECTED',
-        title: 'Объявление отклонено',
-        message: `Объявление ${ad.petName ? `«${ad.petName}»` : ''} отклонено модератором.`,
-        link: `/ads/${ad.id}`,
-      });
-    }
-
-    return res.json(ad);
+    return res.json(updatedAd);
   } catch (err) {
     return next(err);
   }

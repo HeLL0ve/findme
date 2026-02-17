@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../../../config/prisma';
 import { ApiError } from '../../../shared/errors/apiError';
+import { createNotification } from '../../notifications/notifications.service';
 import { reviewComplaintSchema } from '../../complaints/schemas/complaint.schemas';
 
 type ComplaintQuery = {
   status?: string | string[];
+  kind?: string | string[];
 };
 
 function getSingleQueryValue(value: string | string[] | undefined) {
@@ -18,8 +20,13 @@ export async function listComplaintsController(
 ) {
   try {
     const status = getSingleQueryValue(req.query.status);
+    const kind = getSingleQueryValue(req.query.kind);
+
     if (status && !['PENDING', 'RESOLVED', 'REJECTED'].includes(status)) {
       return next(ApiError.validation({ status: 'Недопустимый статус' }));
+    }
+    if (kind && !['REPORT', 'SUPPORT'].includes(kind)) {
+      return next(ApiError.validation({ kind: 'Недопустимый тип обращения' }));
     }
 
     const query: Parameters<typeof prisma.complaint.findMany>[0] = {
@@ -31,12 +38,13 @@ export async function listComplaintsController(
       },
       orderBy: { createdAt: 'desc' },
     };
-    if (status) {
-      query.where = { status: status as 'PENDING' | 'RESOLVED' | 'REJECTED' };
-    }
+
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+    if (kind) where.kind = kind;
+    if (Object.keys(where).length > 0) query.where = where;
 
     const complaints = await prisma.complaint.findMany(query);
-
     return res.json(complaints);
   } catch (err) {
     return next(err);
@@ -47,14 +55,10 @@ export async function reviewComplaintController(req: Request<{ id: string }>, re
   try {
     const { id } = req.params;
     const parsed = reviewComplaintSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return next(ApiError.validation(parsed.error.flatten()));
-    }
+    if (!parsed.success) return next(ApiError.validation(parsed.error.flatten()));
 
     const complaint = await prisma.complaint.findUnique({ where: { id } });
-    if (!complaint) {
-      return next(ApiError.notFound('Жалоба не найдена'));
-    }
+    if (!complaint) return next(ApiError.notFound('Обращение не найдено'));
 
     const reviewed = await prisma.complaint.update({
       where: { id },
@@ -70,6 +74,18 @@ export async function reviewComplaintController(req: Request<{ id: string }>, re
         targetUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
         reviewedBy: { select: { id: true, name: true, email: true } },
       },
+    });
+
+    await createNotification({
+      userId: reviewed.reporterId,
+      type: 'COMPLAINT_SUBMITTED',
+      title: reviewed.kind === 'SUPPORT' ? 'Ответ от поддержки' : 'Жалоба рассмотрена',
+      message: parsed.data.reviewComment?.trim()
+        ? parsed.data.reviewComment.trim()
+        : reviewed.status === 'RESOLVED'
+          ? 'Ваше обращение отмечено как решенное.'
+          : 'Ваше обращение отклонено.',
+      link: '/notifications',
     });
 
     return res.json(reviewed);

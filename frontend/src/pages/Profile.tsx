@@ -154,6 +154,24 @@ export default function Profile() {
     }
   }
 
+  async function handleNotifyWebChange(value: boolean) {
+    if (value && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch {
+        // ignore browser permission errors
+      }
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      notificationSettings: {
+        notifyWeb: value,
+        notifyTelegram: Boolean(prev.notificationSettings?.notifyTelegram),
+      },
+    }));
+  }
+
   if (loading) return <Container size="2"><Text>Загрузка...</Text></Container>;
 
   return (
@@ -196,13 +214,8 @@ export default function Profile() {
                 <Checkbox.Root
                   checked={!!form.notificationSettings?.notifyWeb}
                   onCheckedChange={(value) =>
-                    setForm({
-                      ...form,
-                      notificationSettings: {
-                        notifyWeb: Boolean(value),
-                        notifyTelegram: Boolean(form.notificationSettings?.notifyTelegram),
-                      },
-                    })}
+                    void handleNotifyWebChange(Boolean(value))
+                  }
                   id="notifyWeb"
                   className="checkbox"
                 >

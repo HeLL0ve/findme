@@ -75,6 +75,7 @@ model Complaint {
   reporterId String
   reporter   User   @relation("ComplaintReporter", fields: [reporterId], references: [id], onDelete: Cascade)
 
+  kind ComplaintKind @default(REPORT)
   targetType ComplaintTargetType
 
   adId String?
@@ -191,12 +192,18 @@ enum AdStatus {
 enum ComplaintTargetType {
   AD
   USER
+  NONE
 }
 
 enum ComplaintStatus {
   PENDING
   RESOLVED
   REJECTED
+}
+
+enum ComplaintKind {
+  REPORT
+  SUPPORT
 }
 
 enum NotificationType {

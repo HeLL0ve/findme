@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/axios';
 import { useAuthStore } from '../shared/authStore';
 import { useWsConnection } from '../shared/useWsConnection';
+import { useBrowserNotifications } from '../shared/useBrowserNotifications';
 import Header from './Header';
 import Footer from './Footer';
 import ProtectedRoute from '../shared/ProtectedRoute';
@@ -24,6 +25,8 @@ import AdminUsers from '../pages/admin/Users';
 import AdminAdsPage from '../pages/admin/Ads';
 import AdminComplaintsPage from '../pages/admin/Complaints';
 import NotificationsPage from '../pages/Notifications';
+import SupportPage from '../pages/Support';
+import UserProfilePage from '../pages/UserProfile';
 
 export default function App() {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
@@ -35,6 +38,7 @@ export default function App() {
   );
 
   useWsConnection();
+  useBrowserNotifications();
 
   useEffect(() => {
     document.documentElement.dataset.theme = appearance;
@@ -85,6 +89,7 @@ export default function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/ads" element={<AdsList />} />
           <Route path="/ads/:id" element={<AdDetail />} />
+          <Route path="/users/:id" element={<UserProfilePage />} />
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -94,6 +99,7 @@ export default function App() {
           <Route path="/my-ads/:id/edit" element={<ProtectedRoute><EditAd /></ProtectedRoute>} />
           <Route path="/create-ad" element={<ProtectedRoute><CreateAd /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
           <Route path="/chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
           <Route path="/chats/:id" element={<ProtectedRoute><ChatDetailPage /></ProtectedRoute>} />
 

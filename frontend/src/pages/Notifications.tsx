@@ -19,6 +19,9 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<NotificationItem[]>([]);
+  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(
+    typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
+  );
 
   async function load() {
     setLoading(true);
@@ -57,13 +60,24 @@ export default function NotificationsPage() {
     }
   }
 
+  async function requestPushPermission() {
+    if (typeof Notification === 'undefined') return;
+    const value = await Notification.requestPermission();
+    setPermission(value);
+  }
+
   return (
     <Container size="3">
       <Flex direction="column" gap="4">
         <Flex justify="between" align="center" wrap="wrap" gap="2">
           <Heading size="8">Уведомления</Heading>
-          <Flex gap="2">
-            <Badge color={unread > 0 ? 'red' : 'gray'}>Непрочитанные: {unread}</Badge>
+          <Flex gap="2" align="center" wrap="wrap">
+            <Badge color={unread > 0 ? 'violet' : 'gray'}>Непрочитанные: {unread}</Badge>
+            {permission !== 'unsupported' && permission !== 'granted' && (
+              <Button variant="soft" onClick={() => void requestPushPermission()}>
+                Включить push
+              </Button>
+            )}
             <Button variant="soft" onClick={() => void markAllRead()} disabled={unread === 0}>
               Прочитать все
             </Button>
@@ -76,12 +90,12 @@ export default function NotificationsPage() {
 
         <Flex direction="column" gap="2">
           {items.map((item) => (
-            <Card key={item.id} style={{ border: item.isRead ? undefined : '1px solid var(--red-8)' }}>
+            <Card key={item.id} style={{ border: item.isRead ? undefined : '1px solid var(--violet-8)' }}>
               <Flex justify="between" align="start" gap="2">
                 <Flex direction="column" gap="1" style={{ minWidth: 0 }}>
                   <Flex align="center" gap="2" wrap="wrap">
                     <Badge variant="soft">{notificationTypeLabel(item.type)}</Badge>
-                    {!item.isRead && <Badge color="red">Новое</Badge>}
+                    {!item.isRead && <Badge color="violet">Новое</Badge>}
                   </Flex>
                   <Text weight="bold" className="truncate">{item.title}</Text>
                   <Text size="2">{item.message}</Text>

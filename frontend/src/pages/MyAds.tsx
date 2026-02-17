@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, Container, Flex, Grid, Heading, Text } from '@radix-ui/themes';
 import { api } from '../api/axios';
+import ConfirmActionDialog from '../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../shared/apiError';
 import { adStatusLabel, adTypeLabel } from '../shared/labels';
 import { config } from '../shared/config';
@@ -64,7 +65,11 @@ export default function MyAdsPage() {
         <Grid columns={{ initial: '1', md: '2' }} gap="3">
           {ads.map((ad) => {
             const preview = ad.photos?.[0]?.photoUrl;
-            const previewSrc = preview ? (preview.startsWith('http') ? preview : `${config.apiUrl || ''}${preview}`) : null;
+            const previewSrc = preview
+              ? preview.startsWith('http')
+                ? preview
+                : `${config.apiUrl || ''}${preview}`
+              : null;
 
             return (
               <Card key={ad.id}>
@@ -104,14 +109,14 @@ export default function MyAdsPage() {
                         <Link to={`/my-ads/${ad.id}/edit`}>Редактировать</Link>
                       </Button>
                       {ad.status !== 'ARCHIVED' && (
-                        <Button
-                          size="1"
-                          variant="soft"
-                          color="gray"
-                          onClick={() => void moveToArchive(ad.id)}
-                        >
-                          В архив
-                        </Button>
+                        <ConfirmActionDialog
+                          title="Переместить объявление в архив?"
+                          description="Объявление перестанет отображаться в активном поиске."
+                          confirmText="В архив"
+                          color="orange"
+                          onConfirm={() => moveToArchive(ad.id)}
+                          trigger={<Button size="1" variant="soft" color="gray">В архив</Button>}
+                        />
                       )}
                     </Flex>
                   </Flex>

@@ -151,6 +151,45 @@ h4 {
   border-top-left-radius: 6px;
 }
 
+.photo-picker-btn {
+  border: 1px solid var(--violet-a7);
+  background: color-mix(in oklab, var(--violet-3) 55%, white);
+  color: var(--violet-11);
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.photo-picker-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.photo-card {
+  position: relative;
+  padding: 8px;
+}
+
+.photo-card-image {
+  width: 100%;
+  height: 95px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.photo-card-remove {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
 @media (min-width: 768px) {
   #root {
     padding: 0 0 32px;

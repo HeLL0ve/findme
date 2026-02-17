@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Badge, Button, Card, Container, Dialog, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
-import { config } from '../../shared/config';
-import { useAuthStore } from '../../shared/authStore';
+import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
+import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { useAuthStore } from '../../shared/authStore';
+import { config } from '../../shared/config';
 import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 
 type Ad = {
@@ -153,15 +155,30 @@ export default function AdDetail() {
 
             <Flex direction="column" gap="3" style={{ minWidth: 270 }}>
               <Card>
-                <Text color="gray">Контакты</Text>
-                <Text weight="bold" className="truncate">{ad.user?.name || ad.user?.email}</Text>
-                {ad.user?.phone && <Text size="2">{ad.user.phone}</Text>}
+                <Text color="gray">Автор объявления</Text>
+                {ad.user?.id ? (
+                  <UserAvatarLink
+                    userId={ad.user.id}
+                    name={ad.user.name}
+                    email={ad.user.email}
+                    avatarUrl={ad.user.avatarUrl}
+                  />
+                ) : (
+                  <Text>Пользователь</Text>
+                )}
               </Card>
 
               <Flex direction="column" gap="2">
                 {!isOwner && user && <Button onClick={() => void startChat()}>Написать</Button>}
                 {isOwner && ad.status !== 'ARCHIVED' && (
-                  <Button variant="outline" onClick={() => void moveToArchive()}>Переместить в архив</Button>
+                  <ConfirmActionDialog
+                    title="Переместить объявление в архив?"
+                    description="Объявление перестанет отображаться в активном поиске."
+                    confirmText="В архив"
+                    color="orange"
+                    onConfirm={moveToArchive}
+                    trigger={<Button variant="outline">Переместить в архив</Button>}
+                  />
                 )}
                 {!user && <Button onClick={() => navigate('/login')}>Войти для связи</Button>}
 

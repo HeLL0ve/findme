@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Avatar, Button, Card, Container, Flex, Heading, Text } from '@radix-ui/themes';
+import { Button, Card, Container, Flex, Heading, Text } from '@radix-ui/themes';
 import { api } from '../../api/axios';
+import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
+import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { useAuthStore } from '../../shared/authStore';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { roleLabel } from '../../shared/labels';
-import { config } from '../../shared/config';
 
 type User = {
   id: string;
@@ -14,12 +15,6 @@ type User = {
   role: 'USER' | 'ADMIN';
   isBlocked: boolean;
 };
-
-function resolveAvatarSrc(avatarUrl?: string | null) {
-  if (!avatarUrl) return undefined;
-  if (avatarUrl.startsWith('http')) return avatarUrl;
-  return `${config.apiUrl}${avatarUrl}`;
-}
 
 export default function AdminUsers() {
   const currentUser = useAuthStore((state) => state.user);
@@ -54,21 +49,13 @@ export default function AdminUsers() {
   }, [currentUser]);
 
   async function toggleBlock(user: User) {
-    try {
-      await api.post(`/users/${user.id}/block`, { block: !user.isBlocked });
-      setUsers((prev) => prev.map((current) => (current.id === user.id ? { ...current, isBlocked: !current.isBlocked } : current)));
-    } catch (err) {
-      setError(extractApiErrorMessage(err, 'Не удалось изменить блокировку'));
-    }
+    await api.post(`/users/${user.id}/block`, { block: !user.isBlocked });
+    setUsers((prev) => prev.map((current) => (current.id === user.id ? { ...current, isBlocked: !current.isBlocked } : current)));
   }
 
   async function changeRole(user: User, role: 'USER' | 'ADMIN') {
-    try {
-      await api.post(`/users/${user.id}/role`, { role });
-      setUsers((prev) => prev.map((current) => (current.id === user.id ? { ...current, role } : current)));
-    } catch (err) {
-      setError(extractApiErrorMessage(err, 'Не удалось изменить роль'));
-    }
+    await api.post(`/users/${user.id}/role`, { role });
+    setUsers((prev) => prev.map((current) => (current.id === user.id ? { ...current, role } : current)));
   }
 
   if (loading) return <Container size="3"><Text>Загрузка...</Text></Container>;
@@ -82,33 +69,44 @@ export default function AdminUsers() {
           {users.map((user) => (
             <Card key={user.id}>
               <Flex justify="between" align="center" wrap="wrap" gap="3">
-                <Flex align="center" gap="3">
-                  <Avatar
-                    src={resolveAvatarSrc(user.avatarUrl)}
-                    fallback={(user.name || user.email).slice(0, 1).toUpperCase()}
-                    radius="full"
+                <Flex align="center" gap="3" style={{ minWidth: 0 }}>
+                  <UserAvatarLink
+                    userId={user.id}
+                    name={user.name}
+                    email={user.email}
+                    avatarUrl={user.avatarUrl}
+                    subtitle={`${user.email} · ${roleLabel(user.role)}${user.isBlocked ? ' · заблокирован' : ''}`}
                   />
-                  <div>
-                    <Text weight="bold">{user.name || user.email}</Text>
-                    <Text as="div" size="2" color="gray">
-                      {user.email} · {roleLabel(user.role)}
-                      {user.isBlocked ? ' · заблокирован' : ''}
-                    </Text>
-                  </div>
                 </Flex>
 
                 <Flex gap="2" wrap="wrap">
-                  <Button variant="outline" onClick={() => void toggleBlock(user)}>
-                    {user.isBlocked ? 'Разблокировать' : 'Заблокировать'}
-                  </Button>
+                  <ConfirmActionDialog
+                    title={user.isBlocked ? 'Разблокировать пользователя?' : 'Заблокировать пользователя?'}
+                    description={user.isBlocked ? 'Пользователь снова получит доступ к платформе.' : 'Пользователь не сможет пользоваться платформой.'}
+                    confirmText={user.isBlocked ? 'Разблокировать' : 'Заблокировать'}
+                    color={user.isBlocked ? 'violet' : 'red'}
+                    onConfirm={() => toggleBlock(user)}
+                    trigger={<Button variant="outline">{user.isBlocked ? 'Разблокировать' : 'Заблокировать'}</Button>}
+                  />
+
                   {user.role === 'ADMIN' ? (
-                    <Button variant="soft" onClick={() => void changeRole(user, 'USER')}>
-                      Сделать пользователем
-                    </Button>
+                    <ConfirmActionDialog
+                      title="Снять роль администратора?"
+                      description="Пользователь будет переведен в обычную роль."
+                      confirmText="Сделать пользователем"
+                      color="orange"
+                      onConfirm={() => changeRole(user, 'USER')}
+                      trigger={<Button variant="soft">Сделать пользователем</Button>}
+                    />
                   ) : (
-                    <Button onClick={() => void changeRole(user, 'ADMIN')}>
-                      Сделать админом
-                    </Button>
+                    <ConfirmActionDialog
+                      title="Назначить администратором?"
+                      description="Пользователь получит права модерации и управления."
+                      confirmText="Назначить"
+                      color="violet"
+                      onConfirm={() => changeRole(user, 'ADMIN')}
+                      trigger={<Button>Сделать админом</Button>}
+                    />
                   )}
                 </Flex>
               </Flex>

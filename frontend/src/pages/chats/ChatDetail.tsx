@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Avatar, Button, Card, Container, Dialog, DropdownMenu, Flex, Text, TextArea, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
-import { sendWs, subscribeWs } from '../../shared/wsClient';
-import { useWsConnection } from '../../shared/useWsConnection';
+import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { useAuthStore } from '../../shared/authStore';
 import { config } from '../../shared/config';
+import { useWsConnection } from '../../shared/useWsConnection';
+import { sendWs, subscribeWs } from '../../shared/wsClient';
 
 type Message = {
   id: string;
@@ -52,7 +53,7 @@ export default function ChatDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<Message | null>(null);
   const [editText, setEditText] = useState('');
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
 
   useWsConnection();
 
@@ -137,6 +138,7 @@ export default function ChatDetailPage() {
     try {
       await api.delete(`/chats/${id}/messages/${messageId}`);
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+      setDeleteMessageId(null);
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось удалить сообщение'));
     }
@@ -173,24 +175,34 @@ export default function ChatDetailPage() {
         <Flex direction="column" style={{ height: '78vh' }}>
           <Flex align="center" justify="between" gap="2" style={{ padding: 12, borderBottom: '1px solid var(--gray-a5)' }}>
             <Flex align="center" gap="2" style={{ minWidth: 0 }}>
-              <Avatar
-                src={resolveAvatarSrc(peer?.avatarUrl)}
-                fallback={(peer?.name || peer?.email || 'U').slice(0, 1).toUpperCase()}
-                radius="full"
-              />
-              <Flex direction="column" style={{ minWidth: 0 }}>
-                <Text weight="bold" className="truncate">{peer?.name || peer?.email || 'Пользователь'}</Text>
-                <Text size="2" color="gray" className="truncate">
-                  {chat.ad.petName ? `По объявлению: ${chat.ad.petName}` : 'Чат по объявлению'}
-                </Text>
-              </Flex>
+              <Button variant="ghost" size="1" onClick={() => navigate('/chats')} aria-label="Назад к чатам">
+                &lt;
+              </Button>
+              <Link to={peer?.id ? `/users/${peer.id}` : '#'} style={{ textDecoration: 'none', minWidth: 0 }}>
+                <Flex align="center" gap="2" style={{ minWidth: 0 }}>
+                  <Avatar
+                    src={resolveAvatarSrc(peer?.avatarUrl)}
+                    fallback={(peer?.name || peer?.email || 'U').slice(0, 1).toUpperCase()}
+                    radius="full"
+                  />
+                  <Flex direction="column" style={{ minWidth: 0 }}>
+                    <Text weight="bold" className="truncate">{peer?.name || peer?.email || 'Пользователь'}</Text>
+                    <Text size="2" color="gray" className="truncate">
+                      {chat.ad.petName ? `По объявлению: ${chat.ad.petName}` : 'Чат по объявлению'}
+                    </Text>
+                  </Flex>
+                </Flex>
+              </Link>
             </Flex>
 
-            <Flex gap="2">
-              <Button variant="soft" color="gray" onClick={() => setDeleteDialogOpen(true)}>
-                Удалить чат
-              </Button>
-            </Flex>
+            <ConfirmActionDialog
+              title="Удалить чат?"
+              description="Чат будет удален у обоих участников. Действие нельзя отменить."
+              confirmText="Удалить чат"
+              color="red"
+              onConfirm={deleteChat}
+              trigger={<Button variant="soft" color="gray">Удалить чат</Button>}
+            />
           </Flex>
 
           {error && (
@@ -214,7 +226,7 @@ export default function ChatDetailPage() {
                     )}
                     <Text style={{ whiteSpace: 'pre-wrap' }}>{message.content}</Text>
                     <Flex align="center" justify="between" gap="2" mt="1">
-                      <Text size="1" color={mine ? 'gray' : 'gray'}>
+                      <Text size="1" color="gray">
                         {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         {message.editedAt ? ' · изменено' : ''}
                       </Text>
@@ -230,7 +242,7 @@ export default function ChatDetailPage() {
                                 Редактировать
                               </DropdownMenu.Item>
                             )}
-                            <DropdownMenu.Item color="red" onClick={() => void deleteMessage(message.id)}>
+                            <DropdownMenu.Item color="red" onClick={() => setDeleteMessageId(message.id)}>
                               Удалить
                             </DropdownMenu.Item>
                           </DropdownMenu.Content>
@@ -282,17 +294,17 @@ export default function ChatDetailPage() {
         </Dialog.Content>
       </Dialog.Root>
 
-      <Dialog.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <Dialog.Root open={!!deleteMessageId} onOpenChange={(open) => !open && setDeleteMessageId(null)}>
         <Dialog.Content maxWidth="420px">
-          <Dialog.Title>Удалить чат</Dialog.Title>
-          <Dialog.Description>
-            Чат будет удален у обоих участников. Действие нельзя отменить.
-          </Dialog.Description>
+          <Dialog.Title>Удалить сообщение?</Dialog.Title>
+          <Dialog.Description>Действие нельзя отменить.</Dialog.Description>
           <Flex justify="end" gap="2" mt="3">
             <Dialog.Close>
               <Button variant="soft" type="button">Отмена</Button>
             </Dialog.Close>
-            <Button color="red" type="button" onClick={() => void deleteChat()}>Удалить</Button>
+            <Button color="red" type="button" onClick={() => deleteMessageId && void deleteMessage(deleteMessageId)}>
+              Удалить
+            </Button>
           </Flex>
         </Dialog.Content>
       </Dialog.Root>

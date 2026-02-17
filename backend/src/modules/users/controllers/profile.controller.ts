@@ -31,10 +31,7 @@ export async function getProfileController(req: Request, res: Response, next: Ne
       select: mapProfileSelect(),
     });
 
-    if (!user) {
-      return next(ApiError.notFound('Пользователь не найден'));
-    }
-
+    if (!user) return next(ApiError.notFound('Пользователь не найден'));
     return res.json(user);
   } catch (err) {
     return next(err);
@@ -110,19 +107,15 @@ export async function changePasswordController(req: Request, res: Response, next
     if (!currentPassword || !newPassword) {
       return next(ApiError.validation({ currentPassword: 'required', newPassword: 'required' }));
     }
-
     if (newPassword.length < 6) {
       return next(ApiError.validation({ newPassword: 'Пароль должен быть не менее 6 символов' }));
     }
-
     if (newPassword === currentPassword) {
       return next(ApiError.validation({ newPassword: 'Новый пароль должен отличаться от текущего' }));
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { passwordHash: true } });
-    if (!user) {
-      return next(ApiError.notFound('Пользователь не найден'));
-    }
+    if (!user) return next(ApiError.notFound('Пользователь не найден'));
 
     const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isValidPassword) {
@@ -130,11 +123,7 @@ export async function changePasswordController(req: Request, res: Response, next
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    await prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash },
-    });
-
+    await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
     return res.json({ success: true });
   } catch (err) {
     return next(err);

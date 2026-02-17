@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Container, Flex, Grid, Heading, Select, Text, TextArea, TextField } from '@radix-ui/themes';
+import { Button, Card, Container, Flex, Heading, Select, Text, TextArea, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
+import AdPhotoPicker from '../../components/ads/AdPhotoPicker';
 import { extractApiErrorMessage } from '../../shared/apiError';
 
 type CreateAdFormState = {
@@ -33,7 +34,6 @@ function validateFiles(files: File[]) {
 
 export default function CreateAd() {
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -52,31 +52,30 @@ export default function CreateAd() {
     },
   });
 
-  const previews = useMemo(
-    () =>
-      files.map((file) => ({
-        name: file.name,
-        url: URL.createObjectURL(file),
-      })),
-    [files],
-  );
+  function addFiles(newFiles: File[]) {
+    const next = [...files, ...newFiles];
+    const unique = next.filter(
+      (file, index, arr) =>
+        arr.findIndex(
+          (candidate) =>
+            candidate.name === file.name &&
+            candidate.size === file.size &&
+            candidate.lastModified === file.lastModified,
+        ) === index,
+    );
 
-  useEffect(
-    () => () => {
-      previews.forEach((preview) => URL.revokeObjectURL(preview.url));
-    },
-    [previews],
-  );
-
-  function handleFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const selected = Array.from(event.target.files || []);
-    const validationError = validateFiles(selected);
+    const validationError = validateFiles(unique);
     if (validationError) {
       setError(validationError);
       return;
     }
+
     setError(null);
-    setFiles(selected);
+    setFiles(unique);
+  }
+
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -139,7 +138,9 @@ export default function CreateAd() {
         <Heading size="8">Создать объявление</Heading>
         <form onSubmit={submit} className="form-root" style={{ marginTop: 16 }}>
           <Flex direction="column" gap="3">
-            <Text size="2" color="gray">Тип</Text>
+            <Text size="2" color="gray">
+              Тип
+            </Text>
             <Select.Root value={form.type} onValueChange={(value) => setForm({ ...form, type: value as 'LOST' | 'FOUND' })}>
               <Select.Trigger />
               <Select.Content>
@@ -159,7 +160,9 @@ export default function CreateAd() {
               onChange={(event) => setForm({ ...form, description: event.target.value })}
             />
 
-            <Text size="2" color="gray">Адрес и город</Text>
+            <Text size="2" color="gray">
+              Адрес и город
+            </Text>
             <TextField.Root placeholder="Город" value={form.location.city} onChange={(event) => setForm({ ...form, location: { ...form.location, city: event.target.value } })} />
             <TextField.Root placeholder="Адрес" value={form.location.address} onChange={(event) => setForm({ ...form, location: { ...form.location, address: event.target.value } })} />
             <Flex gap="2">
@@ -177,19 +180,10 @@ export default function CreateAd() {
               />
             </Flex>
 
-            <Text size="2" color="gray">Фотографии (до 8, до 5 МБ)</Text>
-            <input type="file" multiple accept="image/*" onChange={handleFilesChange} />
-
-            {previews.length > 0 && (
-              <Grid columns={{ initial: '2', sm: '3', md: '4' }} gap="2">
-                {previews.map((preview) => (
-                  <Card key={preview.url} style={{ padding: 8 }}>
-                    <img src={preview.url} alt={preview.name} style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 10 }} />
-                    <Text size="1" color="gray">{preview.name}</Text>
-                  </Card>
-                ))}
-              </Grid>
-            )}
+            <Text size="2" color="gray">
+              Фотографии (до 8, до 5 МБ)
+            </Text>
+            <AdPhotoPicker files={files} onAddFiles={addFiles} onRemoveFile={removeFile} />
 
             {error && <Text color="red">{error}</Text>}
 

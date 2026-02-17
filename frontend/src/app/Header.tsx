@@ -79,6 +79,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
   const privateLinks = [
     { to: '/my-ads', label: 'Мои объявления' },
     { to: '/chats', label: 'Чаты' },
+    { to: '/support', label: 'Поддержка' },
     { to: '/create-ad', label: 'Добавить объявление' },
   ];
 
@@ -144,7 +145,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                         width: 8,
                         height: 8,
                         borderRadius: '50%',
-                        background: 'var(--red-9)',
+                        background: 'var(--violet-9)',
                       }}
                     />
                   )}
@@ -170,6 +171,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                         <DropdownMenu.Item asChild><Link to="/profile">Профиль</Link></DropdownMenu.Item>
                         <DropdownMenu.Item asChild><Link to="/notifications">Уведомления</Link></DropdownMenu.Item>
                         <DropdownMenu.Item asChild><Link to="/my-ads">Мои объявления</Link></DropdownMenu.Item>
+                        <DropdownMenu.Item asChild><Link to="/support">Поддержка</Link></DropdownMenu.Item>
                         {user.role === 'ADMIN' && (
                           <DropdownMenu.Item asChild><Link to="/admin">Админ-панель</Link></DropdownMenu.Item>
                         )}
