@@ -93,6 +93,7 @@ export function initWsServer(server: HttpServer) {
 
           const message = await prisma.message.create({
             data: { chatId, senderId: userId, content: content.trim() },
+            include: { sender: { select: { id: true, name: true } } },
           });
 
           const payload = { type: 'chat:new', chatId, message };

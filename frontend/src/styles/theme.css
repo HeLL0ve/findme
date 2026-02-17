@@ -1,26 +1,23 @@
 :root {
-  --green-500: #22c55e;
-  --green-600: #16a34a;
-  --bg: #f7f8fb;
+  --bg: #f6f4ff;
   --surface: #ffffff;
-  --muted: #5b6b7c;
-  --text: #0b1220;
-  --accent: var(--green-600);
-  --accent-500: var(--green-500);
-  --accent-600: var(--green-600);
-  --card-shadow: 0 8px 24px rgba(16, 185, 129, 0.08);
+  --muted: #5f5a76;
+  --text: #1b1730;
+  --accent: #7056ff;
+  --accent-soft: #ede8ff;
+  --card-shadow: 0 14px 40px rgba(89, 65, 212, 0.14);
 }
 
 [data-theme='dark'] {
-  --bg: #0b1118;
-  --surface: #0f172a;
-  --muted: #94a3b8;
-  --text: #e2e8f0;
-  --accent: #22c55e;
-  --card-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  --bg: #0f1022;
+  --surface: #17182d;
+  --muted: #b8b4d3;
+  --text: #efecff;
+  --accent: #b7a8ff;
+  --accent-soft: #2a2548;
+  --card-shadow: 0 14px 40px rgba(3, 5, 15, 0.55);
 }
 
-/* layout helpers */
 .container {
   max-width: 1100px;
   margin: 0 auto;
@@ -28,10 +25,14 @@
 }
 
 .card {
-  background: linear-gradient(180deg, var(--surface), rgba(255,255,255,0.4));
+  background: linear-gradient(180deg, var(--surface), color-mix(in oklab, var(--surface) 80%, var(--accent-soft)));
   border-radius: 12px;
   box-shadow: var(--card-shadow);
   padding: 20px;
 }
 
-.link { color: var(--accent); text-decoration: underline; cursor: pointer }
+.link {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}

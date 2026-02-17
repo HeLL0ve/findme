@@ -22,31 +22,26 @@ export async function loginService(data: LoginInput) {
   if (!user) {
     throw AuthError.invalidCredentials();
   }
+
   if (user.isBlocked) {
     throw new AuthError('USER_BLOCKED', 'Пользователь заблокирован', 403);
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
-
   if (!valid) {
     throw AuthError.invalidCredentials();
   }
 
-  const accessToken = jwt.sign(
-    { userId: user.id, role: user.role },
-    env.jwtAccessSecret,
-    { expiresIn: '15m' }
-  );
+  const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.jwtAccessSecret, {
+    expiresIn: '15m',
+  });
 
-  const refreshToken = jwt.sign(
-    { userId: user.id },
-    env.jwtRefreshSecret,
-    { expiresIn: '7d' }
-  );
+  const refreshToken = jwt.sign({ userId: user.id }, env.jwtRefreshSecret, {
+    expiresIn: '7d',
+  });
 
-  // Save refresh token in Redis with TTL (7 days)
-  const ttl = 7 * 24 * 60 * 60; // seconds
-  await tokenService.saveRefreshToken(refreshToken, user.id, ttl);
+  const ttlSeconds = 7 * 24 * 60 * 60;
+  await tokenService.saveRefreshToken(refreshToken, user.id, ttlSeconds);
 
   return {
     accessToken,
@@ -55,6 +50,8 @@ export async function loginService(data: LoginInput) {
       id: user.id,
       email: user.email,
       role: user.role,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
     },
   };
 }

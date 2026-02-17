@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../../../config/prisma';
 import { ApiError } from '../../../shared/errors/apiError';
 
+type ChatParams = { id: string };
+
 export async function listChatsController(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
@@ -25,6 +27,7 @@ export async function listChatsController(req: Request, res: Response, next: Nex
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1,
+          include: { sender: { select: { id: true, name: true } } },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -36,7 +39,7 @@ export async function listChatsController(req: Request, res: Response, next: Nex
   }
 }
 
-export async function getChatController(req: Request, res: Response, next: NextFunction) {
+export async function getChatController(req: Request<ChatParams>, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
     const { id } = req.params;
@@ -105,7 +108,7 @@ export async function createChatController(req: Request, res: Response, next: Ne
   }
 }
 
-export async function listMessagesController(req: Request, res: Response, next: NextFunction) {
+export async function listMessagesController(req: Request<ChatParams>, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
     const { id } = req.params;
@@ -118,6 +121,7 @@ export async function listMessagesController(req: Request, res: Response, next: 
       where: { chatId: id },
       orderBy: { createdAt: 'asc' },
       take: 200,
+      include: { sender: { select: { id: true, name: true } } },
     });
 
     return res.json(messages);
@@ -126,7 +130,7 @@ export async function listMessagesController(req: Request, res: Response, next: 
   }
 }
 
-export async function sendMessageController(req: Request, res: Response, next: NextFunction) {
+export async function sendMessageController(req: Request<ChatParams>, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
     const { id } = req.params;
@@ -144,6 +148,7 @@ export async function sendMessageController(req: Request, res: Response, next: N
         senderId: userId,
         content: content.trim(),
       },
+      include: { sender: { select: { id: true, name: true } } },
     });
 
     return res.status(201).json(message);

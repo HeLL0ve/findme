@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../../../config/env';
 import { tokenService } from '../services/token.service';
@@ -14,24 +14,24 @@ export async function refreshController(req: Request, res: Response, next: NextF
 
   try {
     const payload = jwt.verify(token, env.jwtRefreshSecret) as { userId: string };
-
     const exists = await tokenService.verifyTokenExists(token);
     if (!exists) {
       return next(new ApiError('INVALID_REFRESH_TOKEN', 'Неверный refresh token', 401));
     }
 
-    // rotate tokens
     await tokenService.deleteRefreshToken(token);
 
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return next(new ApiError('USER_NOT_FOUND', 'Пользователь не найден', 401));
-    if (user.isBlocked) return next(new ApiError('USER_BLOCKED', 'Пользователь заблокирован', 403));
+    if (!user) {
+      return next(new ApiError('USER_NOT_FOUND', 'Пользователь не найден', 401));
+    }
+    if (user.isBlocked) {
+      return next(new ApiError('USER_BLOCKED', 'Пользователь заблокирован', 403));
+    }
 
-    const accessToken = jwt.sign(
-      { userId: user.id, role: user.role },
-      env.jwtAccessSecret,
-      { expiresIn: '15m' }
-    );
+    const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.jwtAccessSecret, {
+      expiresIn: '15m',
+    });
 
     const newRefresh = jwt.sign({ userId: user.id }, env.jwtRefreshSecret, { expiresIn: '7d' });
     const ttl = 7 * 24 * 60 * 60;
@@ -50,9 +50,11 @@ export async function refreshController(req: Request, res: Response, next: NextF
         id: user.id,
         email: user.email,
         role: user.role,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
       },
     });
-  } catch (err) {
+  } catch (_err) {
     return next(new ApiError('INVALID_REFRESH_TOKEN', 'Неверный refresh token', 401));
   }
 }

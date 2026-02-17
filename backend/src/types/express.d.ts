@@ -6,5 +6,7 @@ declare module 'express-serve-static-core' {
       userId: string;
       role: 'USER' | 'ADMIN';
     };
+    file?: Express.Multer.File;
+    files?: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] };
   }
 }

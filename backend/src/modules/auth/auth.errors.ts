@@ -6,11 +6,7 @@ export class AuthError extends ApiError {
   }
 
   static invalidCredentials() {
-    return new AuthError(
-      'INVALID_CREDENTIALS',
-      'Неверный email или пароль',
-      401
-    );
+    return new AuthError('INVALID_CREDENTIALS', 'Неверный email или пароль', 401);
   }
 
   static validation(message: string) {

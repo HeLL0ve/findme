@@ -1,30 +1,39 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { useAuthStore } from '../../shared/authStore';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { extractApiErrorMessage } from '../../shared/apiError';
 
 export default function LoginPage() {
-  const setAccessToken = useAuthStore((s) => s.setAccessToken);
-  const setUser = useAuthStore((s) => s.setUser);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError(null);
+    setSubmitting(true);
 
     try {
-      const res = await api.post('/auth/login', form);
-      setAccessToken(res.data.accessToken);
+      const response = await api.post('/auth/login', form);
+      setAccessToken(response.data.accessToken);
+
       try {
         const me = await api.get('/users/me');
         setUser(me.data);
-      } catch (_) {}
+      } catch (_ignored) {
+        setUser(response.data.user ?? null);
+      }
+
       navigate('/');
-    } catch (e: any) {
-      setError(e.response?.data?.message ?? 'Ошибка входа');
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Ошибка входа'));
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -38,20 +47,22 @@ export default function LoginPage() {
               type="email"
               placeholder="Email"
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onChange={(event) => setForm({ ...form, email: event.target.value })}
               required
             />
             <TextField.Root
               type="password"
               placeholder="Пароль"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={(event) => setForm({ ...form, password: event.target.value })}
               required
             />
 
             {error && <Text color="red">{error}</Text>}
 
-            <Button type="submit">Войти</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? 'Вход...' : 'Войти'}
+            </Button>
             <Text size="2" color="gray">
               Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
             </Text>

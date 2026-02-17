@@ -47,7 +47,9 @@ export function connectWs(token: string | null) {
 export function subscribeWs(listener: Listener) {
   listeners.add(listener);
   if (lastOnlineCount !== null) listener({ type: 'online:count', count: lastOnlineCount });
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function sendWs(payload: any) {

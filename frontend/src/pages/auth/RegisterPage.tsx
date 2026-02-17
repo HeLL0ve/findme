@@ -1,12 +1,18 @@
-import * as Dialog from '@radix-ui/react-dialog';
-import * as Checkbox from '@radix-ui/react-checkbox';
 import { useState } from 'react';
-import { api } from '../../api/axios';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '../../shared/authStore';
+import * as Checkbox from '@radix-ui/react-checkbox';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { api } from '../../api/axios';
+import { useAuthStore } from '../../shared/authStore';
+import { extractApiErrorMessage } from '../../shared/apiError';
 
 export default function RegisterPage() {
+  const navigate = useNavigate();
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setUser = useAuthStore((state) => state.setUser);
+
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -14,31 +20,35 @@ export default function RegisterPage() {
     acceptTerms: false,
   });
 
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const setAccessToken = useAuthStore((s) => s.setAccessToken);
-  const setUser = useAuthStore((s) => s.setUser);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError(null);
 
     if (!form.acceptTerms) {
-      setError('Нужно принять пользовательское соглашение');
+      setError('Необходимо принять пользовательское соглашение');
       return;
     }
 
+    setSubmitting(true);
     try {
       await api.post('/auth/register', form);
-      const res = await api.post('/auth/login', { email: form.email, password: form.password });
-      setAccessToken(res.data.accessToken);
+      const loginResponse = await api.post('/auth/login', {
+        email: form.email,
+        password: form.password,
+      });
+
+      setAccessToken(loginResponse.data.accessToken);
       try {
         const me = await api.get('/users/me');
         setUser(me.data);
-      } catch (_) {}
+      } catch (_ignored) {
+        setUser(loginResponse.data.user ?? null);
+      }
       navigate('/');
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'Ошибка регистрации');
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Ошибка регистрации'));
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -51,60 +61,44 @@ export default function RegisterPage() {
             <TextField.Root
               placeholder="Имя (необязательно)"
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
             />
             <TextField.Root
               type="email"
               placeholder="Email"
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onChange={(event) => setForm({ ...form, email: event.target.value })}
               required
             />
             <TextField.Root
               type="password"
               placeholder="Пароль"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={(event) => setForm({ ...form, password: event.target.value })}
               required
               minLength={6}
             />
 
             <Flex align="center" gap="2">
               <Checkbox.Root
-                checked={form.acceptTerms}
-                onCheckedChange={(v) => setForm({ ...form, acceptTerms: Boolean(v) })}
-                id="accept"
+                id="acceptTerms"
                 className="checkbox"
+                checked={form.acceptTerms}
+                onCheckedChange={(value) => setForm({ ...form, acceptTerms: Boolean(value) })}
               >
                 <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
               </Checkbox.Root>
-              <label htmlFor="accept">
-                Я принимаю{' '}
-                <Dialog.Root>
-                  <Dialog.Trigger asChild>
-                    <span className="link">пользовательское соглашение</span>
-                  </Dialog.Trigger>
-                  <Dialog.Portal>
-                    <Dialog.Overlay style={{ background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0 }} />
-                    <Dialog.Content style={{ background: 'var(--surface)', padding: 20, borderRadius: 12, position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', maxWidth: 600 }}>
-                      <Heading size="4">Пользовательское соглашение</Heading>
-                      <div style={{ maxHeight: 340, overflow: 'auto', marginTop: 12 }}>
-                        <Text>Тут будет текст соглашения...</Text>
-                      </div>
-                    </Dialog.Content>
-                  </Dialog.Portal>
-                </Dialog.Root>
-              </label>
+              <label htmlFor="acceptTerms">Я принимаю пользовательское соглашение</label>
             </Flex>
 
             {error && <Text color="red">{error}</Text>}
 
-            <Flex gap="2">
-              <Button type="submit">Зарегистрироваться</Button>
-              <Button variant="soft" asChild>
-                <Link to="/login">Уже есть аккаунт</Link>
-              </Button>
-            </Flex>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? 'Регистрация...' : 'Зарегистрироваться'}
+            </Button>
+            <Text size="2" color="gray">
+              Уже есть аккаунт? <Link to="/login">Войти</Link>
+            </Text>
           </Flex>
         </form>
       </Card>
