@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
-import { Link } from 'react-router-dom';
-import { Avatar, Badge, Button, Card, Container, Dialog, Flex, Grid, Heading, Text, TextField } from '@radix-ui/themes';
+import { Avatar, Button, Card, Container, Dialog, Flex, Grid, Heading, Text, TextField } from '@radix-ui/themes';
 import { api } from '../api/axios';
+import AdCard, { type AdCardData } from '../components/ads/AdCard';
 import { extractApiErrorMessage } from '../shared/apiError';
 import { useAuthStore } from '../shared/authStore';
 import { config } from '../shared/config';
-import { adStatusLabel, adTypeLabel, roleLabel } from '../shared/labels';
+import { roleLabel } from '../shared/labels';
 
 type ProfileDto = {
   id: string;
@@ -22,16 +22,7 @@ type ProfileDto = {
   } | null;
 };
 
-type MyAd = {
-  id: string;
-  petName?: string | null;
-  animalType?: string | null;
-  breed?: string | null;
-  color?: string | null;
-  type: 'LOST' | 'FOUND';
-  status: string;
-  photos?: Array<{ photoUrl: string }>;
-};
+type MyAd = AdCardData;
 
 type PasswordForm = {
   currentPassword: string;
@@ -44,12 +35,6 @@ function resolveAvatarSrc(avatarUrl?: string | null) {
   if (avatarUrl.startsWith('http')) return avatarUrl;
   if (!config.apiUrl) return avatarUrl;
   return `${config.apiUrl}${avatarUrl}`;
-}
-
-function resolvePhotoSrc(photoUrl?: string | null) {
-  if (!photoUrl) return null;
-  if (photoUrl.startsWith('http')) return photoUrl;
-  return `${config.apiUrl || ''}${photoUrl}`;
 }
 
 export default function Profile() {
@@ -319,46 +304,9 @@ export default function Profile() {
           <Heading size="6">Мои объявления</Heading>
           {myAds.length === 0 && <Text color="gray">У вас пока нет объявлений.</Text>}
           <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="3">
-            {myAds.map((ad) => {
-              const photoSrc = resolvePhotoSrc(ad.photos?.[0]?.photoUrl);
-              return (
-                <Card key={ad.id} asChild>
-                  <Link to={`/ads/${ad.id}`} style={{ textDecoration: 'none' }}>
-                    <Flex direction="column" gap="3">
-                      <div
-                        style={{
-                          width: '100%',
-                          height: 220,
-                          borderRadius: 12,
-                          background: 'var(--accent-soft)',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {photoSrc && (
-                          <img
-                            src={photoSrc}
-                            alt={ad.petName || 'Фото объявления'}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        )}
-                      </div>
-                      <Flex direction="column" gap="1" style={{ minWidth: 0 }}>
-                        <Text weight="bold" className="truncate">{ad.petName || 'Без клички'}</Text>
-                        <Text size="2" color="gray" className="truncate">
-                          {[ad.animalType || 'Не указано', ad.breed || null, ad.color ? `окрас: ${ad.color}` : null]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </Text>
-                        <Flex gap="2" wrap="wrap">
-                          <Badge color={ad.type === 'LOST' ? 'orange' : 'green'}>{adTypeLabel(ad.type)}</Badge>
-                          <Badge color={ad.status === 'APPROVED' ? 'blue' : 'gray'}>{adStatusLabel(ad.status)}</Badge>
-                        </Flex>
-                      </Flex>
-                    </Flex>
-                  </Link>
-                </Card>
-              );
-            })}
+            {myAds.map((ad) => (
+              <AdCard key={ad.id} ad={ad} showDescription />
+            ))}
           </Grid>
         </Flex>
       </Flex>

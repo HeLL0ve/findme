@@ -1,22 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Badge, Button, Card, Container, Flex, Grid, Heading, Select, Text, TextField } from '@radix-ui/themes';
+import { Button, Card, Container, Flex, Grid, Heading, Select, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
+import AdCard, { type AdCardData } from '../../components/ads/AdCard';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import AdsMap from '../../shared/AdsMap';
-import { config } from '../../shared/config';
-import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 
-type Ad = {
-  id: string;
-  petName?: string | null;
-  animalType?: string | null;
-  breed?: string | null;
-  color?: string | null;
-  description: string;
-  status: string;
-  type: 'LOST' | 'FOUND';
-  photos?: Array<{ photoUrl: string }>;
+type Ad = AdCardData & {
   location?: {
     latitude?: number | null;
     longitude?: number | null;
@@ -31,12 +20,6 @@ type Filters = {
   type: 'ALL' | 'LOST' | 'FOUND';
   status: 'APPROVED' | 'ARCHIVED';
 };
-
-function resolvePhotoSrc(photoUrl?: string | null) {
-  if (!photoUrl) return null;
-  if (photoUrl.startsWith('http')) return photoUrl;
-  return `${config.apiUrl || ''}${photoUrl}`;
-}
 
 export default function AdsList() {
   const [ads, setAds] = useState<Ad[]>([]);
@@ -117,51 +100,9 @@ export default function AdsList() {
         )}
 
         <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="3">
-          {ads.map((ad) => {
-            const photoSrc = resolvePhotoSrc(ad.photos?.[0]?.photoUrl);
-
-            return (
-              <Card key={ad.id} asChild>
-                <Link to={`/ads/${ad.id}`} style={{ textDecoration: 'none' }}>
-                  <Flex direction="column" gap="3">
-                    <div
-                      style={{
-                        width: '100%',
-                        height: 230,
-                        borderRadius: 12,
-                        background: 'var(--accent-soft)',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {photoSrc ? (
-                        <img
-                          src={photoSrc}
-                          alt={ad.petName || 'Фото объявления'}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : null}
-                    </div>
-
-                    <Flex direction="column" gap="1" style={{ minWidth: 0 }}>
-                      <Text weight="bold" className="truncate">{ad.petName || 'Без клички'}</Text>
-                      <Text size="2" color="gray" className="truncate">
-                        {[ad.animalType || 'Не указано', ad.breed || null, ad.color ? `окрас: ${ad.color}` : null]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </Text>
-                      <Text size="2" color="gray" className="truncate-2">
-                        {ad.description}
-                      </Text>
-                      <Flex gap="2" wrap="wrap">
-                        <Badge color={ad.type === 'LOST' ? 'orange' : 'green'}>{adTypeLabel(ad.type)}</Badge>
-                        <Badge color={ad.status === 'APPROVED' ? 'blue' : 'gray'}>{adStatusLabel(ad.status)}</Badge>
-                      </Flex>
-                    </Flex>
-                  </Flex>
-                </Link>
-              </Card>
-            );
-          })}
+          {ads.map((ad) => (
+            <AdCard key={ad.id} ad={ad} showDescription />
+          ))}
         </Grid>
 
         <Flex direction="column" gap="2">

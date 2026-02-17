@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Badge, Button, Card, Container, Dialog, Flex, Grid, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Button, Card, Container, Dialog, Flex, Grid, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
 import { api } from '../api/axios';
+import AdCard, { type AdCardData } from '../components/ads/AdCard';
 import UserAvatarLink from '../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../shared/apiError';
 import { useAuthStore } from '../shared/authStore';
-import { config } from '../shared/config';
-import { adStatusLabel, adTypeLabel } from '../shared/labels';
 
 type PublicUser = {
   id: string;
@@ -18,16 +17,7 @@ type PublicUser = {
   createdAt: string;
 };
 
-type PublicAd = {
-  id: string;
-  petName?: string | null;
-  animalType?: string | null;
-  breed?: string | null;
-  color?: string | null;
-  type: 'LOST' | 'FOUND';
-  status: string;
-  photos?: Array<{ photoUrl: string }>;
-};
+type PublicAd = AdCardData;
 
 export default function UserProfilePage() {
   const { id } = useParams();
@@ -163,45 +153,10 @@ export default function UserProfilePage() {
         <Flex direction="column" gap="2">
           <Heading size="6">Объявления пользователя</Heading>
           {ads.length === 0 && <Text color="gray">Публичных объявлений пока нет.</Text>}
-          <Grid columns={{ initial: '1', md: '2' }} gap="3">
-            {ads.map((ad) => {
-              const preview = ad.photos?.[0]?.photoUrl;
-              const previewSrc = preview ? (preview.startsWith('http') ? preview : `${config.apiUrl || ''}${preview}`) : null;
-              return (
-                <Card key={ad.id} asChild>
-                  <Link to={`/ads/${ad.id}`} style={{ textDecoration: 'none' }}>
-                    <Flex gap="3" align="center">
-                      <div
-                        style={{
-                          width: 120,
-                          height: 80,
-                          borderRadius: 12,
-                          background: 'var(--accent-soft)',
-                          overflow: 'hidden',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {previewSrc && (
-                          <img src={previewSrc} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        )}
-                      </div>
-                      <Flex direction="column" gap="1" style={{ flex: 1, minWidth: 0 }}>
-                        <Text weight="bold" className="truncate">{ad.petName || 'Без клички'}</Text>
-                        <Text size="2" color="gray" className="truncate">
-                          {[ad.animalType || 'Не указано', ad.breed || null, ad.color ? `окрас: ${ad.color}` : null]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </Text>
-                        <Flex gap="2" wrap="wrap">
-                          <Badge color={ad.type === 'LOST' ? 'orange' : 'green'}>{adTypeLabel(ad.type)}</Badge>
-                          <Badge color={ad.status === 'APPROVED' ? 'blue' : 'gray'}>{adStatusLabel(ad.status)}</Badge>
-                        </Flex>
-                      </Flex>
-                    </Flex>
-                  </Link>
-                </Card>
-              );
-            })}
+          <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="3">
+            {ads.map((ad) => (
+              <AdCard key={ad.id} ad={ad} showDescription />
+            ))}
           </Grid>
         </Flex>
       </Flex>
