@@ -35,7 +35,7 @@ export default function Home() {
   }, []);
 
   return (
-    <Container size="3">
+    <Container size="4">
       <Flex direction="column" gap="5">
         <Card>
           <Flex direction={{ initial: 'column', md: 'row' }} gap="4" align="center" justify="between">
@@ -44,17 +44,17 @@ export default function Home() {
               <Text color="gray">
                 Публикуйте объявления, общайтесь с участниками поиска и помогайте возвращать домашних животных.
               </Text>
-              <Flex gap="3">
+              <Flex gap="3" wrap="wrap">
                 <Button asChild>
                   <Link to="/create-ad">Создать объявление</Link>
                 </Button>
                 <Button variant="soft" asChild>
-                  <Link to="/search">Поиск</Link>
+                  <Link to="/ads">Поиск</Link>
                 </Button>
               </Flex>
             </Flex>
             <Card style={{ minWidth: 220 }}>
-              <Text color="gray">Онлайн участники</Text>
+              <Text color="gray">Онлайн-участники</Text>
               <Heading size="8">{online}</Heading>
               <Text size="2" color="gray">сейчас подключено к платформе</Text>
             </Card>

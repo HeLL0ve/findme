@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card, Container, Flex, Grid, Heading, Text } from '@radix-ui/themes';
+import { Badge, Button, Card, Container, Flex, Grid, Heading, Text } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 
 type AdminStats = {
@@ -20,8 +20,8 @@ export default function AdminDashboard() {
         const response = await api.get('/admin/stats');
         if (!mounted) return;
         setStats(response.data);
-      } catch (_error) {
-        // silent: page still usable via section links
+      } catch {
+        // оставляем панель доступной по ссылкам даже без статистики
       }
     })();
     return () => {
@@ -30,7 +30,7 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <Container size="3">
+    <Container size="4">
       <Flex direction="column" gap="4">
         <Heading size="8">Админ-панель</Heading>
 
@@ -52,17 +52,17 @@ export default function AdminDashboard() {
             <Text size="2" color="gray">Сообщений: {stats?.chats?.messages ?? '—'}</Text>
           </Card>
           <Card>
-            <Text weight="bold">Жалобы</Text>
+            <Text weight="bold">Жалобы и обращения</Text>
             <Text size="2" color="gray">Всего: {stats?.complaints?.total ?? '—'}</Text>
             <Text size="2" color="gray">Новые: {stats?.complaints?.pending ?? '—'}</Text>
           </Card>
         </Grid>
 
-        <Grid columns={{ initial: '1', md: '3' }} gap="3">
+        <Grid columns={{ initial: '1', md: '2', lg: '4' }} gap="3">
           <Card>
             <Flex direction="column" gap="2">
               <Text weight="bold">Пользователи</Text>
-              <Text size="2" color="gray">Блокировка и роли</Text>
+              <Text size="2" color="gray">Блокировка, восстановление и роли</Text>
               <Button asChild variant="soft">
                 <Link to="/admin/users">Открыть</Link>
               </Button>
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           <Card>
             <Flex direction="column" gap="2">
               <Text weight="bold">Объявления</Text>
-              <Text size="2" color="gray">Модерация, архив, восстановление</Text>
+              <Text size="2" color="gray">Модерация, архивирование, возврат</Text>
               <Button asChild variant="soft">
                 <Link to="/admin/ads">Открыть</Link>
               </Button>
@@ -79,10 +79,22 @@ export default function AdminDashboard() {
           </Card>
           <Card>
             <Flex direction="column" gap="2">
-              <Text weight="bold">Жалобы</Text>
-              <Text size="2" color="gray">Рассмотрение жалоб пользователей</Text>
+              <Text weight="bold">Жалобы и поддержка</Text>
+              <Text size="2" color="gray">Рассмотрение обращений пользователей</Text>
               <Button asChild variant="soft">
                 <Link to="/admin/complaints">Открыть</Link>
+              </Button>
+            </Flex>
+          </Card>
+          <Card>
+            <Flex direction="column" gap="2">
+              <Text weight="bold">Админ статистика</Text>
+              <Text size="2" color="gray">Графики и динамика по системе</Text>
+              <Flex align="center" gap="2" wrap="wrap">
+                <Badge color="violet">Новая вкладка</Badge>
+              </Flex>
+              <Button asChild variant="soft">
+                <Link to="/admin/stats">Открыть</Link>
               </Button>
             </Flex>
           </Card>

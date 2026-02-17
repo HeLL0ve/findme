@@ -73,19 +73,17 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
 
   const publicLinks = [
     { to: '/', label: 'Главная' },
-    { to: '/search', label: 'Поиск' },
     { to: '/ads', label: 'Объявления' },
   ];
   const privateLinks = [
     { to: '/my-ads', label: 'Мои объявления' },
     { to: '/chats', label: 'Чаты' },
-    { to: '/support', label: 'Поддержка' },
     { to: '/create-ad', label: 'Добавить объявление' },
   ];
 
   return (
     <Box style={{ position: 'sticky', top: 0, zIndex: 20, backdropFilter: 'blur(10px)' }}>
-      <Container size="4">
+      <Container size="4" style={{ maxWidth: 1600, width: '100%', marginInline: 'auto' }}>
         <Card style={{ marginTop: 10, marginBottom: 12, padding: 0 }}>
           <Flex align="center" justify="between" gap="3" style={{ padding: '10px 14px' }}>
             <Flex align="center" gap="3" style={{ minWidth: 0 }}>
@@ -113,7 +111,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                 </Flex>
               </Link>
 
-              <Flex gap="3" display={{ initial: 'none', md: 'flex' }} style={{ minWidth: 0 }}>
+              <Flex gap="2" display={{ initial: 'none', lg: 'flex' }} style={{ minWidth: 0 }}>
                 {publicLinks.map((link) => (
                   <NavLink key={link.to} to={link.to} className="truncate">{link.label}</NavLink>
                 ))}
@@ -154,9 +152,11 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
 
               {token && user ? (
                 <>
-                  <Badge color="violet" variant="soft" className="truncate" style={{ maxWidth: 140 }}>
-                    {displayRole}
-                  </Badge>
+                  <Box display={{ initial: 'none', md: 'block' }}>
+                    <Badge color="violet" variant="soft" className="truncate" style={{ maxWidth: 140 }}>
+                      {displayRole}
+                    </Badge>
+                  </Box>
 
                   <Box onMouseEnter={() => setProfileOpen(true)} onMouseLeave={() => setProfileOpen(false)}>
                     <DropdownMenu.Root open={profileOpen} onOpenChange={setProfileOpen}>
@@ -171,9 +171,11 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                         <DropdownMenu.Item asChild><Link to="/profile">Профиль</Link></DropdownMenu.Item>
                         <DropdownMenu.Item asChild><Link to="/notifications">Уведомления</Link></DropdownMenu.Item>
                         <DropdownMenu.Item asChild><Link to="/my-ads">Мои объявления</Link></DropdownMenu.Item>
-                        <DropdownMenu.Item asChild><Link to="/support">Поддержка</Link></DropdownMenu.Item>
                         {user.role === 'ADMIN' && (
-                          <DropdownMenu.Item asChild><Link to="/admin">Админ-панель</Link></DropdownMenu.Item>
+                          <>
+                            <DropdownMenu.Item asChild><Link to="/admin">Админ-панель</Link></DropdownMenu.Item>
+                            <DropdownMenu.Item asChild><Link to="/admin/stats">Статистика</Link></DropdownMenu.Item>
+                          </>
                         )}
                         <DropdownMenu.Separator />
                         <DropdownMenu.Item color="red" onClick={() => void logout()}>Выйти</DropdownMenu.Item>
@@ -182,13 +184,13 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                   </Box>
                 </>
               ) : (
-                <Flex gap="2" display={{ initial: 'none', md: 'flex' }}>
+                <Flex gap="2" display={{ initial: 'none', lg: 'flex' }}>
                   <Button variant="soft" asChild><Link to="/login">Вход</Link></Button>
                   <Button asChild><Link to="/register">Регистрация</Link></Button>
                 </Flex>
               )}
 
-              <Box display={{ initial: 'block', md: 'none' }}>
+              <Box display={{ initial: 'block', lg: 'none' }}>
                 <IconButton variant="soft" onClick={() => setMobileOpen((v) => !v)} aria-label="Открыть меню">
                   {mobileOpen ? <CloseIcon /> : <MenuIcon />}
                 </IconButton>
@@ -197,7 +199,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
           </Flex>
 
           {mobileOpen && (
-            <Box display={{ initial: 'block', md: 'none' }} style={{ borderTop: '1px solid var(--gray-a5)', padding: 12 }}>
+            <Box display={{ initial: 'block', lg: 'none' }} style={{ borderTop: '1px solid var(--gray-a5)', padding: 12 }}>
               <Flex direction="column" gap="2">
                 {publicLinks.map((link) => (
                   <Button key={link.to} variant="soft" asChild onClick={() => setMobileOpen(false)}>

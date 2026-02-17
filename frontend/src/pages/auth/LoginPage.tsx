@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
-import { useAuthStore } from '../../shared/authStore';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { useAuthStore } from '../../shared/authStore';
 
 export default function LoginPage() {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate();
+
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
@@ -25,7 +26,7 @@ export default function LoginPage() {
       try {
         const me = await api.get('/users/me');
         setUser(me.data);
-      } catch (_ignored) {
+      } catch {
         setUser(response.data.user ?? null);
       }
 

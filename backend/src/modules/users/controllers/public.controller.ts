@@ -15,6 +15,8 @@ export async function getPublicUserProfileController(
       select: {
         id: true,
         name: true,
+        email: true,
+        phone: true,
         avatarUrl: true,
         telegramUsername: true,
         createdAt: true,

@@ -41,6 +41,7 @@ export function complaintStatusLabel(status?: string | null) {
 export function complaintTargetLabel(targetType?: string | null) {
   if (targetType === 'AD') return 'Объявление';
   if (targetType === 'USER') return 'Пользователь';
+  if (targetType === 'NONE') return 'Обращение в поддержку';
   return targetType || '—';
 }
 
@@ -55,7 +56,7 @@ export function notificationTypeLabel(type?: string | null) {
     case 'AD_REJECTED':
       return 'Отклонение';
     case 'COMPLAINT_SUBMITTED':
-      return 'Жалоба';
+      return 'Обращение';
     default:
       return type || 'Уведомление';
   }

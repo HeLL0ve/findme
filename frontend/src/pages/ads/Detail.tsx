@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Badge, Button, Card, Container, Dialog, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
@@ -36,10 +36,15 @@ type Ad = {
 };
 
 type ComplaintTarget = {
-  type: 'AD' | 'USER';
+  type: 'AD';
   targetId: string;
   title: string;
 } | null;
+
+function resolvePhotoSrc(photoUrl: string) {
+  if (photoUrl.startsWith('http')) return photoUrl;
+  return `${config.apiUrl || ''}${photoUrl}`;
+}
 
 export default function AdDetail() {
   const { id } = useParams();
@@ -52,6 +57,8 @@ export default function AdDetail() {
   const [complaintReason, setComplaintReason] = useState('');
   const [complaintDescription, setComplaintDescription] = useState('');
   const [complaintSubmitting, setComplaintSubmitting] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -61,6 +68,7 @@ export default function AdDetail() {
         const response = await api.get(`/ads/${id}`);
         if (!mounted) return;
         setAd(response.data);
+        setSelectedPhotoIndex(0);
       } catch (err) {
         if (!mounted) return;
         setError(extractApiErrorMessage(err, 'Ошибка загрузки объявления'));
@@ -70,6 +78,13 @@ export default function AdDetail() {
       mounted = false;
     };
   }, [id]);
+
+  const photos = useMemo(
+    () => (ad?.photos || []).map((photo) => resolvePhotoSrc(photo.photoUrl)),
+    [ad?.photos],
+  );
+
+  const selectedPhoto = photos[selectedPhotoIndex] || null;
 
   async function startChat() {
     if (!id) return;
@@ -117,16 +132,64 @@ export default function AdDetail() {
     }
   }
 
-  if (error && !ad) return <Container size="3"><Text color="red">{error}</Text></Container>;
-  if (!ad) return <Container size="3"><Text>Загрузка...</Text></Container>;
+  if (error && !ad) return <Container size="4"><Text color="red">{error}</Text></Container>;
+  if (!ad) return <Container size="4"><Text>Загрузка...</Text></Container>;
 
   const isOwner = user?.id === ad.userId;
   const canComplain = !!user && !isOwner;
 
   return (
-    <Container size="3">
+    <Container size="4">
       <Flex direction="column" gap="4">
         {error && <Text color="red">{error}</Text>}
+
+        {selectedPhoto && (
+          <Card>
+            <div
+              style={{
+                width: '100%',
+                height: 420,
+                borderRadius: 14,
+                overflow: 'hidden',
+                background: 'var(--accent-soft)',
+                cursor: 'zoom-in',
+              }}
+              onClick={() => setLightboxOpen(true)}
+            >
+              <img
+                src={selectedPhoto}
+                alt={ad.petName || 'Фото объявления'}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+            {photos.length > 1 && (
+              <Flex gap="2" wrap="wrap" mt="3">
+                {photos.map((photo, index) => (
+                  <button
+                    key={photo}
+                    type="button"
+                    onClick={() => setSelectedPhotoIndex(index)}
+                    style={{
+                      border: index === selectedPhotoIndex ? '2px solid var(--violet-8)' : '1px solid var(--gray-a6)',
+                      borderRadius: 10,
+                      padding: 0,
+                      overflow: 'hidden',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <img
+                      src={photo}
+                      alt={`Фото ${index + 1}`}
+                      style={{ width: 92, height: 72, objectFit: 'cover', display: 'block' }}
+                    />
+                  </button>
+                ))}
+              </Flex>
+            )}
+          </Card>
+        )}
+
         <Card>
           <Flex direction={{ initial: 'column', md: 'row' }} gap="4">
             <Flex direction="column" gap="3" style={{ flex: 1 }}>
@@ -183,50 +246,18 @@ export default function AdDetail() {
                 {!user && <Button onClick={() => navigate('/login')}>Войти для связи</Button>}
 
                 {canComplain && (
-                  <>
-                    <Button
-                      color="orange"
-                      variant="soft"
-                      onClick={() => setComplaintTarget({ type: 'AD', targetId: ad.id, title: 'Жалоба на объявление' })}
-                    >
-                      Пожаловаться на объявление
-                    </Button>
-                    {ad.user?.id && (
-                      <Button
-                        color="orange"
-                        variant="outline"
-                        onClick={() =>
-                          setComplaintTarget({ type: 'USER', targetId: ad.user!.id, title: 'Жалоба на пользователя' })
-                        }
-                      >
-                        Пожаловаться на пользователя
-                      </Button>
-                    )}
-                  </>
+                  <Button
+                    color="orange"
+                    variant="soft"
+                    onClick={() => setComplaintTarget({ type: 'AD', targetId: ad.id, title: 'Жалоба на объявление' })}
+                  >
+                    Пожаловаться на объявление
+                  </Button>
                 )}
               </Flex>
             </Flex>
           </Flex>
         </Card>
-
-        {ad.photos && ad.photos.length > 0 && (
-          <Card>
-            <Heading size="5">Фотографии</Heading>
-            <Flex gap="2" wrap="wrap" style={{ marginTop: 8 }}>
-              {ad.photos.map((photo, index) => {
-                const src = photo.photoUrl.startsWith('http') ? photo.photoUrl : `${config.apiUrl || ''}${photo.photoUrl}`;
-                return (
-                  <img
-                    key={`${photo.photoUrl}-${index}`}
-                    src={src}
-                    alt={`photo-${index}`}
-                    style={{ width: 140, height: 100, objectFit: 'cover', borderRadius: 10 }}
-                  />
-                );
-              })}
-            </Flex>
-          </Card>
-        )}
       </Flex>
 
       <Dialog.Root open={!!complaintTarget} onOpenChange={(open) => !open && setComplaintTarget(null)}>
@@ -257,6 +288,29 @@ export default function AdDetail() {
               {complaintSubmitting ? 'Отправка...' : 'Отправить'}
             </Button>
           </Flex>
+        </Dialog.Content>
+      </Dialog.Root>
+
+      <Dialog.Root open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <Dialog.Content maxWidth="980px" style={{ padding: 10 }}>
+          <Dialog.Title>Просмотр фото</Dialog.Title>
+          {selectedPhoto && (
+            <div
+              style={{
+                width: '100%',
+                height: 'min(78vh, 760px)',
+                borderRadius: 12,
+                overflow: 'hidden',
+                background: 'var(--gray-a3)',
+              }}
+            >
+              <img
+                src={selectedPhoto}
+                alt="Увеличенное фото"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            </div>
+          )}
         </Dialog.Content>
       </Dialog.Root>
     </Container>

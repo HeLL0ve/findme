@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Theme } from '@radix-ui/themes';
 import { useEffect, useState } from 'react';
 import { api } from '../api/axios';
@@ -9,7 +9,6 @@ import Header from './Header';
 import Footer from './Footer';
 import ProtectedRoute from '../shared/ProtectedRoute';
 import Home from '../pages/Home';
-import SearchPage from '../pages/Search';
 import AdsList from '../pages/ads/List';
 import AdDetail from '../pages/ads/Detail';
 import CreateAd from '../pages/ads/Create';
@@ -24,6 +23,7 @@ import AdminDashboard from '../pages/admin/Dashboard';
 import AdminUsers from '../pages/admin/Users';
 import AdminAdsPage from '../pages/admin/Ads';
 import AdminComplaintsPage from '../pages/admin/Complaints';
+import AdminStatsPage from '../pages/admin/Stats';
 import NotificationsPage from '../pages/Notifications';
 import SupportPage from '../pages/Support';
 import UserProfilePage from '../pages/UserProfile';
@@ -86,7 +86,7 @@ export default function App() {
         />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/search" element={<SearchPage />} />
+          <Route path="/search" element={<Navigate to="/ads" replace />} />
           <Route path="/ads" element={<AdsList />} />
           <Route path="/ads/:id" element={<AdDetail />} />
           <Route path="/users/:id" element={<UserProfilePage />} />
@@ -107,6 +107,7 @@ export default function App() {
           <Route path="/admin/users" element={<ProtectedRoute requiredRole="ADMIN"><AdminUsers /></ProtectedRoute>} />
           <Route path="/admin/ads" element={<ProtectedRoute requiredRole="ADMIN"><AdminAdsPage /></ProtectedRoute>} />
           <Route path="/admin/complaints" element={<ProtectedRoute requiredRole="ADMIN"><AdminComplaintsPage /></ProtectedRoute>} />
+          <Route path="/admin/stats" element={<ProtectedRoute requiredRole="ADMIN"><AdminStatsPage /></ProtectedRoute>} />
         </Routes>
         <Footer />
       </BrowserRouter>
