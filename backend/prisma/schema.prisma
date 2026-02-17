@@ -30,6 +30,7 @@ model User {
   complaintsCreated  Complaint[] @relation("ComplaintReporter")
   complaintsAbout    Complaint[] @relation("ComplaintTargetUser")
   complaintsReviewed Complaint[] @relation("ComplaintReviewer")
+  notifications      Notification[]
 
   notificationSettings NotificationSettings?
   refreshTokens        RefreshToken[]
@@ -147,8 +148,27 @@ model Message {
 
   content String
   isRead  Boolean @default(false)
+  editedAt DateTime?
 
   createdAt DateTime @default(now())
+}
+
+model Notification {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  title   String
+  message String
+  link    String?
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@index([userId, isRead, createdAt])
 }
 
 enum Role {
@@ -177,6 +197,14 @@ enum ComplaintStatus {
   PENDING
   RESOLVED
   REJECTED
+}
+
+enum NotificationType {
+  CHAT_MESSAGE
+  AD_MODERATION_SUBMITTED
+  AD_APPROVED
+  AD_REJECTED
+  COMPLAINT_SUBMITTED
 }
 
 model RefreshToken {

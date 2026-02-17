@@ -23,6 +23,7 @@ import AdminDashboard from '../pages/admin/Dashboard';
 import AdminUsers from '../pages/admin/Users';
 import AdminAdsPage from '../pages/admin/Ads';
 import AdminComplaintsPage from '../pages/admin/Complaints';
+import NotificationsPage from '../pages/Notifications';
 
 export default function App() {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
@@ -92,6 +93,7 @@ export default function App() {
           <Route path="/my-ads" element={<ProtectedRoute><MyAdsPage /></ProtectedRoute>} />
           <Route path="/my-ads/:id/edit" element={<ProtectedRoute><EditAd /></ProtectedRoute>} />
           <Route path="/create-ad" element={<ProtectedRoute><CreateAd /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="/chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
           <Route path="/chats/:id" element={<ProtectedRoute><ChatDetailPage /></ProtectedRoute>} />
 

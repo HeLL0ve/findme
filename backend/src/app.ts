@@ -9,6 +9,7 @@ import adsRoutes from './modules/ads/ad.routes';
 import chatsRoutes from './modules/chats/chat.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import complaintsRoutes from './modules/complaints/complaints.routes';
+import notificationsRoutes from './modules/notifications/notifications.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import path from 'path';
 
@@ -29,6 +30,7 @@ app.use('/ads', adsRoutes);
 app.use('/chats', chatsRoutes);
 app.use('/admin', adminRoutes);
 app.use('/complaints', complaintsRoutes);
+app.use('/notifications', notificationsRoutes);
 
 // serve uploads
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));

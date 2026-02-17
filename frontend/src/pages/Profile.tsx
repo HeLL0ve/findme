@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
-import { Avatar, Button, Card, Container, Flex, Grid, Heading, Text, TextField } from '@radix-ui/themes';
+import { Avatar, Button, Card, Container, Dialog, Flex, Heading, Text, TextField } from '@radix-ui/themes';
 import { api } from '../api/axios';
 import { useAuthStore } from '../shared/authStore';
 import { extractApiErrorMessage } from '../shared/apiError';
@@ -41,6 +41,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [form, setForm] = useState<Partial<ProfileDto>>({});
   const [passwordForm, setPasswordForm] = useState<PasswordForm>({
     currentPassword: '',
@@ -48,7 +49,10 @@ export default function Profile() {
     repeatPassword: '',
   });
 
-  const initials = useMemo(() => (form.name || form.email || 'U').slice(0, 1).toUpperCase(), [form.email, form.name]);
+  const initials = useMemo(
+    () => (form.name || form.email || 'U').slice(0, 1).toUpperCase(),
+    [form.email, form.name],
+  );
   const avatarSrc = resolveAvatarSrc(form.avatarUrl);
 
   useEffect(() => {
@@ -111,9 +115,7 @@ export default function Profile() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setForm((prev) => ({ ...prev, avatarUrl: response.data.avatarUrl }));
-      if (authUser) {
-        setUser({ ...authUser, avatarUrl: response.data.avatarUrl });
-      }
+      if (authUser) setUser({ ...authUser, avatarUrl: response.data.avatarUrl });
       setSuccess('Аватар обновлен');
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось обновить аватар'));
@@ -143,7 +145,9 @@ export default function Profile() {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });
+
       setPasswordForm({ currentPassword: '', newPassword: '', repeatPassword: '' });
+      setChangePasswordOpen(false);
       setSuccess('Пароль обновлен');
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось изменить пароль'));
@@ -154,109 +158,127 @@ export default function Profile() {
 
   return (
     <Container size="3">
-      <Grid columns={{ initial: '1', md: '2' }} gap="4">
-        <Card>
-          <Heading size="7">Профиль</Heading>
-          <form onSubmit={saveProfile} className="form-root" style={{ marginTop: 16 }}>
-            <Flex direction="column" gap="3">
-              <Flex align="center" gap="3" wrap="wrap">
-                <Avatar src={avatarSrc} fallback={initials} size="6" radius="full" />
-                <Flex direction="column" gap="1">
-                  <Text size="2" color="gray">Аватар</Text>
-                  <input type="file" accept="image/*" onChange={uploadAvatar} />
-                </Flex>
+      <Card>
+        <Heading size="7">Профиль</Heading>
+        <form onSubmit={saveProfile} className="form-root" style={{ marginTop: 16 }}>
+          <Flex direction="column" gap="3">
+            <Flex align="center" gap="3" wrap="wrap">
+              <Avatar src={avatarSrc} fallback={initials} size="6" radius="full" />
+              <Flex direction="column" gap="1">
+                <Text size="2" color="gray">Аватар</Text>
+                <input type="file" accept="image/*" onChange={uploadAvatar} />
+              </Flex>
+            </Flex>
+
+            <Text size="2" color="gray">Email</Text>
+            <Text>{form.email}</Text>
+
+            <TextField.Root
+              placeholder="Имя"
+              value={form.name ?? ''}
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
+            />
+            <TextField.Root
+              placeholder="Телефон (+375XXXXXXXXX)"
+              value={form.phone ?? ''}
+              onChange={(event) => setForm({ ...form, phone: event.target.value })}
+              pattern="\+375(25|29|33|44)\d{7}"
+            />
+            <TextField.Root
+              placeholder="Telegram username"
+              value={form.telegramUsername ?? ''}
+              onChange={(event) => setForm({ ...form, telegramUsername: event.target.value })}
+            />
+
+            <Flex direction="column" gap="2">
+              <Text size="2" color="gray">Уведомления</Text>
+              <Flex align="center" gap="2">
+                <Checkbox.Root
+                  checked={!!form.notificationSettings?.notifyWeb}
+                  onCheckedChange={(value) =>
+                    setForm({
+                      ...form,
+                      notificationSettings: {
+                        notifyWeb: Boolean(value),
+                        notifyTelegram: Boolean(form.notificationSettings?.notifyTelegram),
+                      },
+                    })}
+                  id="notifyWeb"
+                  className="checkbox"
+                >
+                  <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+                </Checkbox.Root>
+                <label htmlFor="notifyWeb">Web-уведомления</label>
               </Flex>
 
-              <Text size="2" color="gray">Email</Text>
-              <Text>{form.email}</Text>
-
-              <TextField.Root placeholder="Имя" value={form.name ?? ''} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-              <TextField.Root
-                placeholder="Телефон (+375XXXXXXXXX)"
-                value={form.phone ?? ''}
-                onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                pattern="\+375(25|29|33|44)\d{7}"
-              />
-              <TextField.Root placeholder="Telegram username" value={form.telegramUsername ?? ''} onChange={(event) => setForm({ ...form, telegramUsername: event.target.value })} />
-
-              <Flex direction="column" gap="2">
-                <Text size="2" color="gray">Уведомления</Text>
-                <Flex align="center" gap="2">
-                  <Checkbox.Root
-                    checked={!!form.notificationSettings?.notifyWeb}
-                    onCheckedChange={(value) =>
-                      setForm({
-                        ...form,
-                        notificationSettings: {
-                          notifyWeb: Boolean(value),
-                          notifyTelegram: Boolean(form.notificationSettings?.notifyTelegram),
-                        },
-                      })}
-                    id="notifyWeb"
-                    className="checkbox"
-                  >
-                    <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
-                  </Checkbox.Root>
-                  <label htmlFor="notifyWeb">Web-уведомления</label>
-                </Flex>
-
-                <Flex align="center" gap="2">
-                  <Checkbox.Root
-                    checked={!!form.notificationSettings?.notifyTelegram}
-                    onCheckedChange={(value) =>
-                      setForm({
-                        ...form,
-                        notificationSettings: {
-                          notifyWeb: Boolean(form.notificationSettings?.notifyWeb),
-                          notifyTelegram: Boolean(value),
-                        },
-                      })}
-                    id="notifyTelegram"
-                    className="checkbox"
-                  >
-                    <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
-                  </Checkbox.Root>
-                  <label htmlFor="notifyTelegram">Telegram-уведомления</label>
-                </Flex>
+              <Flex align="center" gap="2">
+                <Checkbox.Root
+                  checked={!!form.notificationSettings?.notifyTelegram}
+                  onCheckedChange={(value) =>
+                    setForm({
+                      ...form,
+                      notificationSettings: {
+                        notifyWeb: Boolean(form.notificationSettings?.notifyWeb),
+                        notifyTelegram: Boolean(value),
+                      },
+                    })}
+                  id="notifyTelegram"
+                  className="checkbox"
+                >
+                  <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+                </Checkbox.Root>
+                <label htmlFor="notifyTelegram">Telegram-уведомления</label>
               </Flex>
+            </Flex>
 
-              <Text size="2">Роль: {roleLabel(form.role)}</Text>
+            <Text size="2">Роль: {roleLabel(form.role)}</Text>
 
-              {error && <Text color="red">{error}</Text>}
-              {success && <Text color="green">{success}</Text>}
-
+            <Flex gap="2" wrap="wrap">
               <Button type="submit">Сохранить профиль</Button>
+              <Dialog.Root open={changePasswordOpen} onOpenChange={setChangePasswordOpen}>
+                <Dialog.Trigger>
+                  <Button type="button" variant="soft">Сменить пароль</Button>
+                </Dialog.Trigger>
+                <Dialog.Content maxWidth="440px">
+                  <Dialog.Title>Смена пароля</Dialog.Title>
+                  <form onSubmit={changePassword} className="form-root" style={{ marginTop: 12 }}>
+                    <TextField.Root
+                      type="password"
+                      placeholder="Текущий пароль"
+                      value={passwordForm.currentPassword}
+                      onChange={(event) =>
+                        setPasswordForm({ ...passwordForm, currentPassword: event.target.value })}
+                    />
+                    <TextField.Root
+                      type="password"
+                      placeholder="Новый пароль"
+                      value={passwordForm.newPassword}
+                      onChange={(event) =>
+                        setPasswordForm({ ...passwordForm, newPassword: event.target.value })}
+                    />
+                    <TextField.Root
+                      type="password"
+                      placeholder="Повторите новый пароль"
+                      value={passwordForm.repeatPassword}
+                      onChange={(event) =>
+                        setPasswordForm({ ...passwordForm, repeatPassword: event.target.value })}
+                    />
+                    <Flex justify="end" gap="2">
+                      <Dialog.Close>
+                        <Button type="button" variant="soft">Отмена</Button>
+                      </Dialog.Close>
+                      <Button type="submit">Обновить</Button>
+                    </Flex>
+                  </form>
+                </Dialog.Content>
+              </Dialog.Root>
             </Flex>
-          </form>
-        </Card>
 
-        <Card>
-          <Heading size="6">Смена пароля</Heading>
-          <form onSubmit={changePassword} className="form-root" style={{ marginTop: 16 }}>
-            <Flex direction="column" gap="3">
-              <TextField.Root
-                type="password"
-                placeholder="Текущий пароль"
-                value={passwordForm.currentPassword}
-                onChange={(event) => setPasswordForm({ ...passwordForm, currentPassword: event.target.value })}
-              />
-              <TextField.Root
-                type="password"
-                placeholder="Новый пароль"
-                value={passwordForm.newPassword}
-                onChange={(event) => setPasswordForm({ ...passwordForm, newPassword: event.target.value })}
-              />
-              <TextField.Root
-                type="password"
-                placeholder="Повторите новый пароль"
-                value={passwordForm.repeatPassword}
-                onChange={(event) => setPasswordForm({ ...passwordForm, repeatPassword: event.target.value })}
-              />
-              <Button type="submit">Обновить пароль</Button>
-            </Flex>
-          </form>
-        </Card>
-      </Grid>
+            {error && <Text color="red">{error}</Text>}
+            {success && <Text color="green">{success}</Text>}
+          </Flex>
+        </form>
+      </Card>
     </Container>
   );
 }

@@ -79,7 +79,7 @@ export default function AdDetail() {
     }
   }
 
-  async function markFound() {
+  async function moveToArchive() {
     if (!id) return;
     try {
       await api.post(`/ads/${id}/found`);
@@ -128,14 +128,14 @@ export default function AdDetail() {
         <Card>
           <Flex direction={{ initial: 'column', md: 'row' }} gap="4">
             <Flex direction="column" gap="3" style={{ flex: 1 }}>
-              <Heading size="8">{ad.petName || 'Питомец'}</Heading>
-              <Text color="gray">
+              <Heading size="8" className="truncate">{ad.petName || 'Питомец'}</Heading>
+              <Text color="gray" className="truncate">
                 {[ad.animalType || 'Не указано', ad.breed || null, ad.color ? `окрас: ${ad.color}` : null]
                   .filter(Boolean)
                   .join(' · ')}
               </Text>
 
-              <Flex gap="2">
+              <Flex gap="2" wrap="wrap">
                 <Badge color={ad.type === 'LOST' ? 'orange' : 'green'}>{adTypeLabel(ad.type)}</Badge>
                 <Badge color={ad.status === 'APPROVED' ? 'blue' : 'gray'}>{adStatusLabel(ad.status)}</Badge>
               </Flex>
@@ -154,19 +154,15 @@ export default function AdDetail() {
             <Flex direction="column" gap="3" style={{ minWidth: 270 }}>
               <Card>
                 <Text color="gray">Контакты</Text>
-                <Text weight="bold">{ad.user?.name || ad.user?.email}</Text>
+                <Text weight="bold" className="truncate">{ad.user?.name || ad.user?.email}</Text>
                 {ad.user?.phone && <Text size="2">{ad.user.phone}</Text>}
               </Card>
 
               <Flex direction="column" gap="2">
                 {!isOwner && user && <Button onClick={() => void startChat()}>Написать</Button>}
-
                 {isOwner && ad.status !== 'ARCHIVED' && (
-                  <Button variant="outline" onClick={() => void markFound()}>
-                    Переместить в архив
-                  </Button>
+                  <Button variant="outline" onClick={() => void moveToArchive()}>Переместить в архив</Button>
                 )}
-
                 {!user && <Button onClick={() => navigate('/login')}>Войти для связи</Button>}
 
                 {canComplain && (
@@ -182,7 +178,9 @@ export default function AdDetail() {
                       <Button
                         color="orange"
                         variant="outline"
-                        onClick={() => setComplaintTarget({ type: 'USER', targetId: ad.user!.id, title: 'Жалоба на пользователя' })}
+                        onClick={() =>
+                          setComplaintTarget({ type: 'USER', targetId: ad.user!.id, title: 'Жалоба на пользователя' })
+                        }
                       >
                         Пожаловаться на пользователя
                       </Button>

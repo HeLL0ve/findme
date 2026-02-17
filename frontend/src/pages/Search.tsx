@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, Container, Flex, Grid, Heading, Select, Text, TextField } from '@radix-ui/themes';
 import { api } from '../api/axios';
+import { extractApiErrorMessage } from '../shared/apiError';
 import AdsMap from '../shared/AdsMap';
 import { adStatusLabel, adTypeLabel } from '../shared/labels';
-import { extractApiErrorMessage } from '../shared/apiError';
 
 type Ad = {
   id: string;
@@ -13,13 +13,7 @@ type Ad = {
   breed?: string | null;
   status: string;
   type: 'LOST' | 'FOUND';
-  photos?: Array<{ photoUrl: string }>;
-  location?: {
-    latitude?: number | null;
-    longitude?: number | null;
-    address?: string | null;
-    city?: string | null;
-  } | null;
+  location?: { latitude?: number | null; longitude?: number | null; address?: string | null; city?: string | null } | null;
 };
 
 export default function SearchPage() {
@@ -60,6 +54,7 @@ export default function SearchPage() {
     <Container size="3">
       <Flex direction="column" gap="4">
         <Heading size="8">Поиск объявлений</Heading>
+
         <Card>
           <Grid columns={{ initial: '1', md: '5' }} gap="3" align="center">
             <TextField.Root
@@ -101,9 +96,9 @@ export default function SearchPage() {
               <Link to={`/ads/${ad.id}`} style={{ textDecoration: 'none' }}>
                 <Flex gap="3" align="center">
                   <div style={{ width: 120, height: 80, borderRadius: 12, background: 'var(--accent-soft)' }} />
-                  <Flex direction="column" gap="1" style={{ flex: 1 }}>
-                    <Text weight="bold">{ad.petName || 'Без клички'}</Text>
-                    <Text size="2" color="gray">
+                  <Flex direction="column" gap="1" style={{ flex: 1, minWidth: 0 }}>
+                    <Text weight="bold" className="truncate">{ad.petName || 'Без клички'}</Text>
+                    <Text size="2" color="gray" className="truncate">
                       {[ad.animalType || 'Не указано', ad.breed || null].filter(Boolean).join(' · ')}
                     </Text>
                     <Flex gap="2">

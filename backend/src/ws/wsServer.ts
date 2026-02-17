@@ -3,6 +3,7 @@ import type { Server as HttpServer } from 'http';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { prisma } from '../config/prisma';
+import { createNotification } from '../modules/notifications/notifications.service';
 
 type WsData = {
   userId?: string;
@@ -87,7 +88,10 @@ export function initWsServer(server: HttpServer) {
           if (!userId) return send(ws, { type: 'error', code: 'UNAUTHORIZED' });
           if (!chatId || !content || !content.trim()) return send(ws, { type: 'error', code: 'INVALID_MESSAGE' });
 
-          const chat = await prisma.chat.findUnique({ where: { id: chatId } });
+          const chat = await prisma.chat.findUnique({
+            where: { id: chatId },
+            include: { ad: { select: { petName: true } } },
+          });
           if (!chat) return send(ws, { type: 'error', code: 'CHAT_NOT_FOUND' });
           if (chat.user1Id !== userId && chat.user2Id !== userId) return send(ws, { type: 'error', code: 'FORBIDDEN' });
 
@@ -104,6 +108,15 @@ export function initWsServer(server: HttpServer) {
             if (!sockets) continue;
             for (const s of sockets) send(s, payload);
           }
+
+          const recipientId = chat.user1Id === userId ? chat.user2Id : chat.user1Id;
+          await createNotification({
+            userId: recipientId,
+            type: 'CHAT_MESSAGE',
+            title: 'Новое сообщение',
+            message: chat.ad.petName ? `В чате по «${chat.ad.petName}» новое сообщение.` : 'Вам пришло новое сообщение в чате.',
+            link: `/chats/${chatId}`,
+          });
 
           return;
         }

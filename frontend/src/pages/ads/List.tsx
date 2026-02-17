@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, Container, Flex, Grid, Heading, Select, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
-import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 
 type Ad = {
   id: string;
@@ -75,9 +75,9 @@ export default function AdsList() {
               <Link to={`/ads/${ad.id}`} style={{ textDecoration: 'none' }}>
                 <Flex gap="3" align="center">
                   <div style={{ width: 120, height: 80, borderRadius: 12, background: 'var(--accent-soft)' }} />
-                  <Flex direction="column" gap="1" style={{ flex: 1 }}>
-                    <Text weight="bold">{ad.petName || 'Без клички'}</Text>
-                    <Text size="2" color="gray">
+                  <Flex direction="column" gap="1" style={{ flex: 1, minWidth: 0 }}>
+                    <Text weight="bold" className="truncate">{ad.petName || 'Без клички'}</Text>
+                    <Text size="2" color="gray" className="truncate">
                       {[ad.animalType || 'Не указано', ad.breed || null].filter(Boolean).join(' · ')}
                     </Text>
                     <Flex gap="2">

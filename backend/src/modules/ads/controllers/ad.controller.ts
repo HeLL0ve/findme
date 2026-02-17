@@ -1,8 +1,9 @@
-import { NextFunction, Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
+import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../../../config/prisma';
-import { createAdSchema, updateAdSchema } from '../schemas/ad.schemas';
 import { ApiError } from '../../../shared/errors/apiError';
+import { createNotification } from '../../notifications/notifications.service';
+import { createAdSchema, updateAdSchema } from '../schemas/ad.schemas';
 import { sendAdApprovedToTelegram } from '../services/telegram.service';
 
 const PUBLIC_STATUSES = new Set(['APPROVED', 'ARCHIVED']);
@@ -59,21 +60,11 @@ export async function listAdsController(
 
     const where: Prisma.AdWhereInput = {};
 
-    if (type && (type === 'LOST' || type === 'FOUND')) {
-      where.type = type;
-    }
-    if (animalType) {
-      where.animalType = { contains: animalType, mode: 'insensitive' };
-    }
-    if (breed) {
-      where.breed = { contains: breed, mode: 'insensitive' };
-    }
-    if (color) {
-      where.color = { contains: color, mode: 'insensitive' };
-    }
-    if (city) {
-      where.location = { city: { contains: city, mode: 'insensitive' } };
-    }
+    if (type && (type === 'LOST' || type === 'FOUND')) where.type = type;
+    if (animalType) where.animalType = { contains: animalType, mode: 'insensitive' };
+    if (breed) where.breed = { contains: breed, mode: 'insensitive' };
+    if (color) where.color = { contains: color, mode: 'insensitive' };
+    if (city) where.location = { city: { contains: city, mode: 'insensitive' } };
 
     if (q) {
       where.OR = [
@@ -88,9 +79,7 @@ export async function listAdsController(
     }
 
     if (isMy) {
-      if (!req.user) {
-        return next(ApiError.unauthorized());
-      }
+      if (!req.user) return next(ApiError.unauthorized());
       where.userId = req.user.userId;
     } else if (userId && isAdmin) {
       where.userId = userId;
@@ -172,9 +161,7 @@ export async function getAdController(req: Request<AdParams>, res: Response, nex
       },
     });
 
-    if (!ad) {
-      return next(ApiError.notFound('Объявление не найдено'));
-    }
+    if (!ad) return next(ApiError.notFound('Объявление не найдено'));
 
     const isOwner = req.user?.userId === ad.userId;
     const isAdmin = req.user?.role === 'ADMIN';
@@ -193,9 +180,7 @@ export async function createAdController(req: Request, res: Response, next: Next
     const userId = req.user!.userId;
 
     const parsed = createAdSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return next(ApiError.validation(parsed.error.flatten()));
-    }
+    if (!parsed.success) return next(ApiError.validation(parsed.error.flatten()));
 
     const data = parsed.data;
     const createData: Prisma.AdCreateInput = {
@@ -205,18 +190,10 @@ export async function createAdController(req: Request, res: Response, next: Next
       description: data.description.trim(),
     };
 
-    if (data.petName !== undefined) {
-      createData.petName = normalizeNullable(data.petName);
-    }
-    if (data.animalType !== undefined) {
-      createData.animalType = normalizeNullable(data.animalType);
-    }
-    if (data.breed !== undefined) {
-      createData.breed = normalizeNullable(data.breed);
-    }
-    if (data.color !== undefined) {
-      createData.color = normalizeNullable(data.color);
-    }
+    if (data.petName !== undefined) createData.petName = normalizeNullable(data.petName);
+    if (data.animalType !== undefined) createData.animalType = normalizeNullable(data.animalType);
+    if (data.breed !== undefined) createData.breed = normalizeNullable(data.breed);
+    if (data.color !== undefined) createData.color = normalizeNullable(data.color);
 
     if (data.location) {
       createData.location = {
@@ -238,6 +215,14 @@ export async function createAdController(req: Request, res: Response, next: Next
       include: { photos: true, location: true },
     });
 
+    await createNotification({
+      userId,
+      type: 'AD_MODERATION_SUBMITTED',
+      title: 'Объявление отправлено на модерацию',
+      message: `Объявление ${ad.petName ? `«${ad.petName}»` : ''} принято и ожидает проверки.`,
+      link: `/ads/${ad.id}`,
+    });
+
     return res.status(201).json(ad);
   } catch (err) {
     return next(err);
@@ -248,20 +233,14 @@ export async function updateAdController(req: Request<AdParams>, res: Response, 
   try {
     const { id } = req.params;
     const parsed = updateAdSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return next(ApiError.validation(parsed.error.flatten()));
-    }
+    if (!parsed.success) return next(ApiError.validation(parsed.error.flatten()));
 
     const existing = await prisma.ad.findUnique({ where: { id } });
-    if (!existing) {
-      return next(ApiError.notFound('Объявление не найдено'));
-    }
+    if (!existing) return next(ApiError.notFound('Объявление не найдено'));
 
     const isOwner = req.user?.userId === existing.userId;
     const isAdmin = req.user?.role === 'ADMIN';
-    if (!isOwner && !isAdmin) {
-      return next(ApiError.forbidden('Недостаточно прав'));
-    }
+    if (!isOwner && !isAdmin) return next(ApiError.forbidden('Недостаточно прав'));
 
     const data = parsed.data;
     if (data.status && !isAdmin && data.status !== 'ARCHIVED') {
@@ -269,43 +248,20 @@ export async function updateAdController(req: Request<AdParams>, res: Response, 
     }
 
     const updateData: Prisma.AdUpdateInput = {};
-
-    if (data.type !== undefined) {
-      updateData.type = data.type;
-    }
-    if (data.petName !== undefined) {
-      updateData.petName = normalizeNullable(data.petName);
-    }
-    if (data.animalType !== undefined) {
-      updateData.animalType = normalizeNullable(data.animalType);
-    }
-    if (data.breed !== undefined) {
-      updateData.breed = normalizeNullable(data.breed);
-    }
-    if (data.color !== undefined) {
-      updateData.color = normalizeNullable(data.color);
-    }
-    if (data.description !== undefined) {
-      updateData.description = data.description.trim();
-    }
-    if (data.status !== undefined) {
-      updateData.status = data.status;
-    }
+    if (data.type !== undefined) updateData.type = data.type;
+    if (data.petName !== undefined) updateData.petName = normalizeNullable(data.petName);
+    if (data.animalType !== undefined) updateData.animalType = normalizeNullable(data.animalType);
+    if (data.breed !== undefined) updateData.breed = normalizeNullable(data.breed);
+    if (data.color !== undefined) updateData.color = normalizeNullable(data.color);
+    if (data.description !== undefined) updateData.description = data.description.trim();
+    if (data.status !== undefined) updateData.status = data.status;
 
     if (data.location) {
       const locationUpdate: Prisma.LocationUpdateWithoutAdInput = {};
-      if (data.location.address !== undefined) {
-        locationUpdate.address = normalizeNullable(data.location.address);
-      }
-      if (data.location.city !== undefined) {
-        locationUpdate.city = normalizeNullable(data.location.city);
-      }
-      if (data.location.latitude !== undefined) {
-        locationUpdate.latitude = data.location.latitude;
-      }
-      if (data.location.longitude !== undefined) {
-        locationUpdate.longitude = data.location.longitude;
-      }
+      if (data.location.address !== undefined) locationUpdate.address = normalizeNullable(data.location.address);
+      if (data.location.city !== undefined) locationUpdate.city = normalizeNullable(data.location.city);
+      if (data.location.latitude !== undefined) locationUpdate.latitude = data.location.latitude;
+      if (data.location.longitude !== undefined) locationUpdate.longitude = data.location.longitude;
 
       updateData.location = {
         upsert: {
@@ -343,15 +299,11 @@ export async function markFoundController(req: Request<AdParams>, res: Response,
   try {
     const { id } = req.params;
     const ad = await prisma.ad.findUnique({ where: { id } });
-    if (!ad) {
-      return next(ApiError.notFound('Объявление не найдено'));
-    }
+    if (!ad) return next(ApiError.notFound('Объявление не найдено'));
 
     const isOwner = req.user?.userId === ad.userId;
     const isAdmin = req.user?.role === 'ADMIN';
-    if (!isOwner && !isAdmin) {
-      return next(ApiError.forbidden('Недостаточно прав'));
-    }
+    if (!isOwner && !isAdmin) return next(ApiError.forbidden('Недостаточно прав'));
 
     const updated = await prisma.ad.update({
       where: { id },
@@ -384,6 +336,23 @@ export async function moderateAdController(req: Request<AdParams>, res: Response
 
     if (status === 'APPROVED') {
       await sendAdApprovedToTelegram(ad);
+      await createNotification({
+        userId: ad.userId,
+        type: 'AD_APPROVED',
+        title: 'Объявление одобрено',
+        message: `Ваше объявление ${ad.petName ? `«${ad.petName}»` : ''} опубликовано.`,
+        link: `/ads/${ad.id}`,
+      });
+    }
+
+    if (status === 'REJECTED') {
+      await createNotification({
+        userId: ad.userId,
+        type: 'AD_REJECTED',
+        title: 'Объявление отклонено',
+        message: `Объявление ${ad.petName ? `«${ad.petName}»` : ''} отклонено модератором.`,
+        link: `/ads/${ad.id}`,
+      });
     }
 
     return res.json(ad);

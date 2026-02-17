@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { Button, Card, Container, Dialog, Flex, Heading, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { useAuthStore } from '../../shared/authStore';
 import { extractApiErrorMessage } from '../../shared/apiError';
@@ -13,6 +13,7 @@ export default function RegisterPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -44,6 +45,7 @@ export default function RegisterPage() {
       } catch (_ignored) {
         setUser(loginResponse.data.user ?? null);
       }
+
       navigate('/');
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Ошибка регистрации'));
@@ -79,7 +81,7 @@ export default function RegisterPage() {
               minLength={6}
             />
 
-            <Flex align="center" gap="2">
+            <Flex align="start" gap="2">
               <Checkbox.Root
                 id="acceptTerms"
                 className="checkbox"
@@ -88,7 +90,25 @@ export default function RegisterPage() {
               >
                 <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
               </Checkbox.Root>
-              <label htmlFor="acceptTerms">Я принимаю пользовательское соглашение</label>
+              <label htmlFor="acceptTerms" style={{ lineHeight: 1.4 }}>
+                Я принимаю{' '}
+                <button
+                  type="button"
+                  onClick={() => setTermsOpen(true)}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    color: 'var(--accent)',
+                    padding: 0,
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                  }}
+                >
+                  условия использования
+                </button>{' '}
+                и политику обработки персональных данных.
+              </label>
             </Flex>
 
             {error && <Text color="red">{error}</Text>}
@@ -102,6 +122,48 @@ export default function RegisterPage() {
           </Flex>
         </form>
       </Card>
+
+      <Dialog.Root open={termsOpen} onOpenChange={setTermsOpen}>
+        <Dialog.Content maxWidth="720px">
+          <Dialog.Title>Условия использования FindMe</Dialog.Title>
+          <Dialog.Description size="2">
+            Пожалуйста, внимательно прочитайте основные условия перед регистрацией.
+          </Dialog.Description>
+
+          <div style={{ maxHeight: 420, overflow: 'auto', marginTop: 12, paddingRight: 6 }}>
+            <Text as="p" size="2">
+              1. Сервис FindMe предназначен для публикации объявлений о потерянных и найденных домашних животных, общения пользователей и координации поиска.
+            </Text>
+            <Text as="p" size="2">
+              2. Пользователь обязуется указывать достоверную информацию в объявлениях, не размещать заведомо ложные данные, оскорбительный контент, спам и материалы, нарушающие законодательство.
+            </Text>
+            <Text as="p" size="2">
+              3. Загружаемые фотографии и тексты должны принадлежать пользователю или использоваться им на законных основаниях. Пользователь несет ответственность за содержание публикаций.
+            </Text>
+            <Text as="p" size="2">
+              4. Администрация имеет право модерировать объявления, отклонять публикации, ограничивать доступ к сервису при нарушении правил и рассматривать жалобы пользователей.
+            </Text>
+            <Text as="p" size="2">
+              5. Пользователь соглашается на обработку персональных данных (email, имя, контактный номер, username Telegram и иные данные профиля) для обеспечения работы сервиса и уведомлений.
+            </Text>
+            <Text as="p" size="2">
+              6. Сервис не гарантирует обязательного результата поиска животного, но предоставляет технические инструменты для поиска и взаимодействия участников.
+            </Text>
+            <Text as="p" size="2">
+              7. Пользователь обязан соблюдать правила уважительного общения в чатах. Запрещены угрозы, дискриминация, мошеннические действия и распространение вредоносных ссылок.
+            </Text>
+            <Text as="p" size="2">
+              8. При регистрации пользователь подтверждает, что ознакомился с этими условиями, понимает их и принимает полностью.
+            </Text>
+          </div>
+
+          <Flex justify="end" mt="4">
+            <Dialog.Close>
+              <Button type="button">Понятно</Button>
+            </Dialog.Close>
+          </Flex>
+        </Dialog.Content>
+      </Dialog.Root>
     </Container>
   );
 }

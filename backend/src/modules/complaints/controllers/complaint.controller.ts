@@ -1,14 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../../../config/prisma';
 import { ApiError } from '../../../shared/errors/apiError';
+import { createNotification } from '../../notifications/notifications.service';
 import { createComplaintSchema } from '../schemas/complaint.schemas';
 
 export async function createComplaintController(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = createComplaintSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return next(ApiError.validation(parsed.error.flatten()));
-    }
+    if (!parsed.success) return next(ApiError.validation(parsed.error.flatten()));
 
     const reporterId = req.user!.userId;
     const data = parsed.data;
@@ -22,9 +21,7 @@ export async function createComplaintController(req: Request, res: Response, nex
         select: { id: true, userId: true },
       });
 
-      if (!ad) {
-        return next(ApiError.notFound('Объявление не найдено'));
-      }
+      if (!ad) return next(ApiError.notFound('Объявление не найдено'));
       if (ad.userId === reporterId) {
         return next(ApiError.validation({ targetId: 'Нельзя пожаловаться на собственное объявление' }));
       }
@@ -35,9 +32,7 @@ export async function createComplaintController(req: Request, res: Response, nex
         where: { id: data.targetId },
         select: { id: true },
       });
-      if (!user) {
-        return next(ApiError.notFound('Пользователь не найден'));
-      }
+      if (!user) return next(ApiError.notFound('Пользователь не найден'));
       if (user.id === reporterId) {
         return next(ApiError.validation({ targetId: 'Нельзя пожаловаться на самого себя' }));
       }
@@ -71,6 +66,14 @@ export async function createComplaintController(req: Request, res: Response, nex
         ad: { select: { id: true, petName: true, status: true } },
         targetUser: { select: { id: true, name: true, email: true } },
       },
+    });
+
+    await createNotification({
+      userId: reporterId,
+      type: 'COMPLAINT_SUBMITTED',
+      title: 'Жалоба отправлена',
+      message: 'Ваша жалоба принята и отправлена на рассмотрение администрации.',
+      link: '/notifications',
     });
 
     return res.status(201).json(complaint);

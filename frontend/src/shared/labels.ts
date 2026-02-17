@@ -43,3 +43,20 @@ export function complaintTargetLabel(targetType?: string | null) {
   if (targetType === 'USER') return 'Пользователь';
   return targetType || '—';
 }
+
+export function notificationTypeLabel(type?: string | null) {
+  switch (type) {
+    case 'CHAT_MESSAGE':
+      return 'Сообщение';
+    case 'AD_MODERATION_SUBMITTED':
+      return 'Модерация';
+    case 'AD_APPROVED':
+      return 'Одобрение';
+    case 'AD_REJECTED':
+      return 'Отклонение';
+    case 'COMPLAINT_SUBMITTED':
+      return 'Жалоба';
+    default:
+      return type || 'Уведомление';
+  }
+}

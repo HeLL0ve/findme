@@ -68,8 +68,8 @@ export default function Home() {
               <Card key={ad.id} asChild>
                 <Link to={`/ads/${ad.id}`} style={{ textDecoration: 'none' }}>
                   <Flex direction="column" gap="2">
-                    <Text weight="bold">{ad.petName || 'Без клички'}</Text>
-                    <Text size="2" color="gray">{ad.animalType || 'Не указано'}</Text>
+                    <Text weight="bold" className="truncate">{ad.petName || 'Без клички'}</Text>
+                    <Text size="2" color="gray" className="truncate">{ad.animalType || 'Не указано'}</Text>
                     <Flex gap="2">
                       <Badge color={ad.type === 'LOST' ? 'orange' : 'green'}>{adTypeLabel(ad.type)}</Badge>
                       <Badge color="blue">{adStatusLabel(ad.status)}</Badge>
