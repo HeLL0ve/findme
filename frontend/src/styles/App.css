@@ -1,9 +1,16 @@
-#root { max-width: 1200px; margin: 0 auto }
+#root {
+  margin: 0 auto;
+}
 
-.hero { padding: 36px 0 }
+.hero {
+  padding: 36px 0;
+}
 
-.hero .card { padding: 28px; border-radius: 12px }
+.main-grid {
+  display: grid;
+  gap: 20px;
+}
 
-.main-grid { display: grid; gap: 20px }
-
-.center { text-align: center }
+.center {
+  text-align: center;
+}

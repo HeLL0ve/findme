@@ -15,6 +15,7 @@ model User {
   name             String?
   phone            String?
   telegramUsername String?
+  avatarUrl        String?
 
   role      Role    @default(USER)
   isBlocked Boolean @default(false)
@@ -26,6 +27,10 @@ model User {
   messages      Message[]
   chatsAsAuthor Chat[]    @relation("ChatAuthor")
   chatsAsWriter Chat[]    @relation("ChatWriter")
+  complaintsCreated  Complaint[] @relation("ComplaintReporter")
+  complaintsAbout    Complaint[] @relation("ComplaintTargetUser")
+  complaintsReviewed Complaint[] @relation("ComplaintReviewer")
+  notifications      Notification[]
 
   notificationSettings NotificationSettings?
   refreshTokens        RefreshToken[]
@@ -58,9 +63,41 @@ model Ad {
   location Location?
   photos   AdPhoto[]
   chats    Chat[]
+  complaints Complaint[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Complaint {
+  id String @id @default(uuid())
+
+  reporterId String
+  reporter   User   @relation("ComplaintReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  targetType ComplaintTargetType
+
+  adId String?
+  ad   Ad?    @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  targetUserId String?
+  targetUser   User?   @relation("ComplaintTargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  reason      String
+  description String?
+
+  status        ComplaintStatus @default(PENDING)
+  reviewComment String?
+  reviewedById  String?
+  reviewedBy    User? @relation("ComplaintReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([adId])
+  @@index([targetUserId])
 }
 
 model Location {
@@ -111,8 +148,27 @@ model Message {
 
   content String
   isRead  Boolean @default(false)
+  editedAt DateTime?
 
   createdAt DateTime @default(now())
+}
+
+model Notification {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  title   String
+  message String
+  link    String?
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@index([userId, isRead, createdAt])
 }
 
 enum Role {
@@ -130,6 +186,25 @@ enum AdStatus {
   APPROVED
   REJECTED
   ARCHIVED
+}
+
+enum ComplaintTargetType {
+  AD
+  USER
+}
+
+enum ComplaintStatus {
+  PENDING
+  RESOLVED
+  REJECTED
+}
+
+enum NotificationType {
+  CHAT_MESSAGE
+  AD_MODERATION_SUBMITTED
+  AD_APPROVED
+  AD_REJECTED
+  COMPLAINT_SUBMITTED
 }
 
 model RefreshToken {

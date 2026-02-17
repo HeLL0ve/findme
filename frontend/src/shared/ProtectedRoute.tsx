@@ -1,6 +1,6 @@
+import type { JSX } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from './authStore';
-import type { JSX } from 'react';
 
 type Props = {
   children: JSX.Element;
@@ -8,13 +8,21 @@ type Props = {
 };
 
 export default function ProtectedRoute({ children, requiredRole }: Props) {
-  const token = useAuthStore((s) => s.accessToken);
-  const initialized = useAuthStore((s) => s.initialized);
-  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((state) => state.accessToken);
+  const initialized = useAuthStore((state) => state.initialized);
+  const user = useAuthStore((state) => state.user);
 
-  if (!initialized) return <div style={{ padding: 24 }}>Загрузка...</div>;
+  if (!initialized) {
+    return <div style={{ padding: 24 }}>Загрузка...</div>;
+  }
 
-  if (!token) return <Navigate to="/login" replace />;
-  if (requiredRole && user?.role !== requiredRole) return <Navigate to="/" replace />;
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 }

@@ -5,9 +5,7 @@ import { RegisterDto } from '../schemas/register.schemas';
 
 export class registerService {
   static async register(data: RegisterDto) {
-    const existing = await prisma.user.findUnique({
-      where: { email: data.email },
-    });
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
 
     if (existing) {
       throw new AuthError('USER_ALREADY_EXISTS', 'Пользователь с таким email уже существует', 409);
@@ -19,7 +17,7 @@ export class registerService {
       data: {
         email: data.email,
         passwordHash,
-        ...(data.name && { name: data.name }),
+        ...(data.name ? { name: data.name.trim() } : {}),
         notificationSettings: {
           create: {},
         },
@@ -28,6 +26,7 @@ export class registerService {
         id: true,
         email: true,
         name: true,
+        avatarUrl: true,
         createdAt: true,
       },
     });

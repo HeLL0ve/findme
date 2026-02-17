@@ -13,6 +13,8 @@ export async function adminStatsController(_req: Request, res: Response, next: N
       adsArchived,
       chatsTotal,
       messagesTotal,
+      complaintsTotal,
+      complaintsPending,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { isBlocked: true } }),
@@ -23,6 +25,8 @@ export async function adminStatsController(_req: Request, res: Response, next: N
       prisma.ad.count({ where: { status: 'ARCHIVED' } }),
       prisma.chat.count(),
       prisma.message.count(),
+      prisma.complaint.count(),
+      prisma.complaint.count({ where: { status: 'PENDING' } }),
     ]);
 
     return res.json({
@@ -35,6 +39,7 @@ export async function adminStatsController(_req: Request, res: Response, next: N
         archived: adsArchived,
       },
       chats: { total: chatsTotal, messages: messagesTotal },
+      complaints: { total: complaintsTotal, pending: complaintsPending },
     });
   } catch (err) {
     return next(err);

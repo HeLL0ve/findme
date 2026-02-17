@@ -3,7 +3,7 @@ export type ApiErrorDetails = Record<string, unknown> | string | string[] | null
 export class ApiError extends Error {
   status: number;
   code: string;
-  details?: ApiErrorDetails;
+  details: ApiErrorDetails | undefined;
 
   constructor(code: string, message: string, status = 400, details?: ApiErrorDetails) {
     super(message);
@@ -20,7 +20,15 @@ export class ApiError extends Error {
     return new ApiError('NOT_FOUND', message, 404);
   }
 
-  static forbidden(message = 'Доступ запрещён') {
+  static forbidden(message = 'Доступ запрещен') {
     return new ApiError('FORBIDDEN', message, 403);
+  }
+
+  static unauthorized(message = 'Требуется авторизация') {
+    return new ApiError('UNAUTHORIZED', message, 401);
+  }
+
+  static conflict(message = 'Конфликт данных') {
+    return new ApiError('CONFLICT', message, 409);
   }
 }

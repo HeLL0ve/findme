@@ -29,16 +29,19 @@ api.interceptors.request.use((cfg) => {
    failedQueue = [];
  };
  
- api.interceptors.response.use(
-   (r) => r,
-   async (err) => {
-     const originalRequest = err.config;
-     if (err.response?.status === 401 && !originalRequest._retry) {
-       if (isRefreshing) {
-         return new Promise((resolve, reject) => {
-           failedQueue.push({ resolve, reject, config: originalRequest });
-         })
-           .then((token) => {
+api.interceptors.response.use(
+  (r) => r,
+  async (err) => {
+    const originalRequest = err.config;
+    const requestUrl = String(originalRequest?.url ?? '');
+    const isRefreshRequest = requestUrl.includes('/auth/refresh');
+
+    if (err.response?.status === 401 && originalRequest && !originalRequest._retry && !isRefreshRequest) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject, config: originalRequest });
+        })
+          .then((token) => {
              originalRequest.headers.Authorization = `Bearer ${token}`;
              return api(originalRequest);
            })
