@@ -41,3 +41,5 @@ npx prisma studio --config ./prisma.config.ts
 ```bash
 docker-compose exec backend npx prisma migrate dev
 ```
+
+npx prisma migrate deploy

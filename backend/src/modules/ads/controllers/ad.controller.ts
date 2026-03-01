@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../../../config/prisma';
 import { ApiError } from '../../../shared/errors/apiError';
@@ -138,11 +139,37 @@ export async function listPendingAdsController(_req: Request, res: Response, nex
 
 export async function listMyAdsController(req: Request, res: Response, next: NextFunction) {
   try {
-    const ads = await prisma.ad.findMany({
-      where: { userId: req.user!.userId },
-      include: { photos: true, location: true },
-      orderBy: { createdAt: 'desc' },
+    const userId = req.user!.userId;
+
+    const rows = await prisma.$transaction(async (tx) => {
+      const cursorName = 'sp_user_ads_cursor';
+
+      await tx.$executeRaw`
+        CALL sp_select_user_ads(
+          ${userId},
+          ${100},
+          ${cursorName}::refcursor
+        )
+      `;
+
+      const cursorRows = await tx.$queryRawUnsafe<Array<{ id: string }>>(`FETCH ALL FROM "${cursorName}"`);
+      await tx.$executeRawUnsafe(`CLOSE "${cursorName}"`);
+
+      return cursorRows;
     });
+
+    if (rows.length === 0) return res.json([]);
+
+    const ids = rows.map((row) => row.id);
+    const order = new Map(ids.map((id, index) => [id, index]));
+
+    const ads = await prisma.ad.findMany({
+      where: { id: { in: ids } },
+      include: { photos: true, location: true },
+    });
+
+    ads.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+
     return res.json(ads);
   } catch (err) {
     return next(err);
@@ -183,37 +210,54 @@ export async function createAdController(req: Request, res: Response, next: Next
     if (!parsed.success) return next(ApiError.validation(parsed.error.flatten()));
 
     const data = parsed.data;
-    const createData: Prisma.AdCreateInput = {
-      user: { connect: { id: userId } },
-      type: data.type,
-      status: 'PENDING',
-      description: data.description.trim(),
-    };
+    const adId = randomUUID();
+    const description = data.description.trim();
 
-    if (data.petName !== undefined) createData.petName = normalizeNullable(data.petName);
-    if (data.animalType !== undefined) createData.animalType = normalizeNullable(data.animalType);
-    if (data.breed !== undefined) createData.breed = normalizeNullable(data.breed);
-    if (data.color !== undefined) createData.color = normalizeNullable(data.color);
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        CALL sp_create_ad(
+          ${adId},
+          ${userId},
+          ${data.type}::"AdType",
+          ${description},
+          ${data.petName ?? null},
+          ${data.animalType ?? null},
+          ${data.breed ?? null},
+          ${data.color ?? null}
+        )
+      `;
 
-    if (data.location) {
-      createData.location = {
-        create: {
-          address: data.location.address !== undefined ? normalizeNullable(data.location.address) : null,
-          city: data.location.city !== undefined ? normalizeNullable(data.location.city) : null,
-          latitude: data.location.latitude ?? 0,
-          longitude: data.location.longitude ?? 0,
-        },
-      };
-    }
+      const updateData: Prisma.AdUpdateInput = {};
 
-    if (data.photos && data.photos.length > 0) {
-      createData.photos = { create: data.photos.map((photoUrl) => ({ photoUrl })) };
-    }
+      if (data.location) {
+        updateData.location = {
+          create: {
+            address: data.location.address !== undefined ? normalizeNullable(data.location.address) : null,
+            city: data.location.city !== undefined ? normalizeNullable(data.location.city) : null,
+            latitude: data.location.latitude ?? 0,
+            longitude: data.location.longitude ?? 0,
+          },
+        };
+      }
 
-    const ad = await prisma.ad.create({
-      data: createData,
+      if (data.photos && data.photos.length > 0) {
+        updateData.photos = { create: data.photos.map((photoUrl) => ({ photoUrl })) };
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await tx.ad.update({
+          where: { id: adId },
+          data: updateData,
+        });
+      }
+    });
+
+    const ad = await prisma.ad.findUnique({
+      where: { id: adId },
       include: { photos: true, location: true },
     });
+
+    if (!ad) return next(ApiError.notFound('Объявление не найдено'));
 
     await createNotification({
       userId,

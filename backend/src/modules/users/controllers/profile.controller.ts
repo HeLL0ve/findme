@@ -26,13 +26,23 @@ function mapProfileSelect() {
 export async function getProfileController(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: mapProfileSelect(),
-    });
+    const [user, summaryRows] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: mapProfileSelect(),
+      }),
+      prisma.$queryRaw<
+        Array<{ total: number; pending: number; approved: number; rejected: number; archived: number }>
+      >`SELECT * FROM fn_user_ads_summary(${userId})`,
+    ]);
 
     if (!user) return next(ApiError.notFound('Пользователь не найден'));
-    return res.json(user);
+
+    const summary = summaryRows[0] ?? { total: 0, pending: 0, approved: 0, rejected: 0, archived: 0 };
+    return res.json({
+      ...user,
+      adsSummary: summary,
+    });
   } catch (err) {
     return next(err);
   }
@@ -48,6 +58,8 @@ export async function updateProfileController(req: Request, res: Response, next:
       notifyWeb?: boolean;
       notifyTelegram?: boolean;
     };
+    const normalizedName = name !== undefined ? String(name).trim() : undefined;
+    const normalizedTelegramUsername = telegramUsername !== undefined ? String(telegramUsername).trim() : undefined;
 
     let nextPhone: string | null | undefined;
     if (phone !== undefined) {
@@ -66,29 +78,43 @@ export async function updateProfileController(req: Request, res: Response, next:
       }
     }
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...(name !== undefined ? { name: name.trim() || null } : {}),
-        ...(nextPhone !== undefined ? { phone: nextPhone } : {}),
-        ...(telegramUsername !== undefined ? { telegramUsername: telegramUsername.trim() || null } : {}),
-        ...((notifyWeb !== undefined || notifyTelegram !== undefined) && {
-          notificationSettings: {
-            upsert: {
-              create: {
-                notifyWeb: notifyWeb ?? true,
-                notifyTelegram: notifyTelegram ?? false,
-              },
-              update: {
-                ...(notifyWeb !== undefined ? { notifyWeb: !!notifyWeb } : {}),
-                ...(notifyTelegram !== undefined ? { notifyTelegram: !!notifyTelegram } : {}),
-              },
-            },
+    await prisma.$transaction(async (tx) => {
+      if (name !== undefined || nextPhone !== undefined || telegramUsername !== undefined) {
+        await tx.$executeRaw`
+          CALL sp_update_user_profile(
+            ${userId},
+            ${normalizedName ?? null},
+            ${nextPhone ?? null},
+            ${normalizedTelegramUsername ?? null},
+            ${name !== undefined},
+            ${nextPhone !== undefined},
+            ${telegramUsername !== undefined}
+          )
+        `;
+      }
+
+      if (notifyWeb !== undefined || notifyTelegram !== undefined) {
+        await tx.notificationSettings.upsert({
+          where: { userId },
+          create: {
+            userId,
+            notifyWeb: notifyWeb ?? true,
+            notifyTelegram: notifyTelegram ?? false,
           },
-        }),
-      },
+          update: {
+            ...(notifyWeb !== undefined ? { notifyWeb: !!notifyWeb } : {}),
+            ...(notifyTelegram !== undefined ? { notifyTelegram: !!notifyTelegram } : {}),
+          },
+        });
+      }
+    });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
       select: mapProfileSelect(),
     });
+
+    if (!user) return next(ApiError.notFound('Пользователь не найден'));
 
     return res.json(user);
   } catch (err) {

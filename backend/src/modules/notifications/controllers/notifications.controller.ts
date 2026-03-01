@@ -49,9 +49,10 @@ export async function listNotificationsController(
 export async function unreadCountController(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
-    const unread = await prisma.notification.count({
-      where: { userId, isRead: false },
-    });
+    const result = await prisma.$queryRaw<Array<{ unread: number }>>`
+      SELECT fn_count_unread_notifications(${userId})::int AS unread
+    `;
+    const unread = Number(result[0]?.unread ?? 0);
     return res.json({ unread });
   } catch (err) {
     return next(err);
