@@ -171,6 +171,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                         <DropdownMenu.Item asChild><Link to="/profile">Профиль</Link></DropdownMenu.Item>
                         <DropdownMenu.Item asChild><Link to="/notifications">Уведомления</Link></DropdownMenu.Item>
                         <DropdownMenu.Item asChild><Link to="/my-ads">Мои объявления</Link></DropdownMenu.Item>
+                        <DropdownMenu.Item asChild><Link to="/support">Поддержка</Link></DropdownMenu.Item>
                         {user.role === 'ADMIN' && (
                           <>
                             <DropdownMenu.Item asChild><Link to="/admin">Админ-панель</Link></DropdownMenu.Item>
