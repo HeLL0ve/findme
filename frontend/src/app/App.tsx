@@ -8,6 +8,7 @@ import { useBrowserNotifications } from '../shared/useBrowserNotifications';
 import Header from './Header';
 import Footer from './Footer';
 import ProtectedRoute from '../shared/ProtectedRoute';
+import AdminChatWidget from '../components/admin/AdminChatWidget';
 import Home from '../pages/Home';
 import AdsList from '../pages/ads/List';
 import AdDetail from '../pages/ads/Detail';
@@ -15,6 +16,9 @@ import CreateAd from '../pages/ads/Create';
 import EditAd from '../pages/ads/Edit';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import Profile from '../pages/Profile';
 import MyAdsPage from '../pages/MyAds';
 import ChatsPage from '../pages/chats/Chats';
@@ -93,6 +97,9 @@ export default function App() {
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/my-ads" element={<ProtectedRoute><MyAdsPage /></ProtectedRoute>} />
@@ -110,6 +117,7 @@ export default function App() {
           <Route path="/admin/stats" element={<ProtectedRoute requiredRole="ADMIN"><AdminStatsPage /></ProtectedRoute>} />
         </Routes>
         <Footer />
+        <AdminChatWidget />
       </BrowserRouter>
     </Theme>
   );

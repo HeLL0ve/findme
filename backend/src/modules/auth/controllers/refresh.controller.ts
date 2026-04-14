@@ -28,6 +28,9 @@ export async function refreshController(req: Request, res: Response, next: NextF
     if (user.isBlocked) {
       return next(new ApiError('USER_BLOCKED', 'Пользователь заблокирован', 403));
     }
+    if (!user.emailVerifiedAt) {
+      return next(new ApiError('EMAIL_NOT_VERIFIED', 'Подтвердите email перед входом в систему', 403));
+    }
 
     const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.jwtAccessSecret, {
       expiresIn: '15m',

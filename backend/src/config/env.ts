@@ -11,9 +11,17 @@ export const env = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET! as string,
 
   clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  appUrl: process.env.APP_URL || process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+
+  mailFrom: process.env.MAIL_FROM || 'noreply@findme.local',
+  mailApiUrl: process.env.MAIL_API_URL || '',
+  mailApiKey: process.env.MAIL_API_KEY || '',
+  gmailUser: process.env.GMAIL_USER || '',
+  gmailPassword: process.env.GMAIL_PASSWORD || '', // Use Gmail App Password
 
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChannelId: process.env.TELEGRAM_CHANNEL_ID || '',
+  telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || '',
 };
 
 if (!env.databaseUrl) {

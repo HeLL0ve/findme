@@ -10,8 +10,13 @@ type LoginInput = {
   password: string;
 };
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
 export async function loginService(data: LoginInput) {
-  const { email, password } = data;
+  const email = normalizeEmail(data.email);
+  const password = data.password;
 
   if (!email || !password) {
     throw AuthError.validation('Email и пароль обязательны');
@@ -25,6 +30,10 @@ export async function loginService(data: LoginInput) {
 
   if (user.isBlocked) {
     throw new AuthError('USER_BLOCKED', 'Пользователь заблокирован', 403);
+  }
+
+  if (!user.emailVerifiedAt) {
+    throw new AuthError('EMAIL_NOT_VERIFIED', 'Подтвердите email перед входом в систему', 403);
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);

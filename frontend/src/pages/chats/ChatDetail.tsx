@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Avatar, Button, Card, Container, Dialog, DropdownMenu, Flex, Text, TextArea, TextField } from '@radix-ui/themes';
+import { MoreIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../../shared/apiError';
@@ -15,6 +16,7 @@ type Message = {
   senderId: string;
   createdAt: string;
   editedAt?: string | null;
+  isRead?: boolean;
   sender?: {
     id: string;
     name?: string | null;
@@ -54,6 +56,8 @@ export default function ChatDetailPage() {
   const [editTarget, setEditTarget] = useState<Message | null>(null);
   const [editText, setEditText] = useState('');
   const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useWsConnection();
 
@@ -91,6 +95,17 @@ export default function ChatDetailPage() {
       if (msg?.type === 'chat:new' && msg.chatId === id) {
         setMessages((prev) => [...prev, msg.message]);
       }
+      if (msg?.type === 'chat:typing' && msg.chatId === id) {
+        setTypingUsers((prev) => {
+          const next = new Set(prev);
+          if (msg.isTyping) {
+            next.add(msg.userId);
+          } else {
+            next.delete(msg.userId);
+          }
+          return next;
+        });
+      }
     });
     sendWs({ type: 'chat:join', chatId: id });
     return unsubscribe;
@@ -109,6 +124,12 @@ export default function ChatDetailPage() {
     if (!id || !input.trim()) return;
     setError(null);
 
+    // Stop typing indicator
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    sendWs({ type: 'chat:typing', chatId: id, isTyping: false });
+
     const payload = { type: 'chat:send', chatId: id, content: input.trim() };
     const sentViaWs = sendWs(payload);
     if (!sentViaWs) {
@@ -121,6 +142,23 @@ export default function ChatDetailPage() {
       }
     }
     setInput('');
+  }
+
+  function handleInputChange(value: string) {
+    setInput(value);
+
+    // Send typing indicator
+    if (!id) return;
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    if (value.trim()) {
+      sendWs({ type: 'chat:typing', chatId: id, isTyping: true });
+      typingTimeoutRef.current = setTimeout(() => {
+        sendWs({ type: 'chat:typing', chatId: id, isTyping: false });
+      }, 3000);
+    }
   }
 
   async function deleteChat() {
@@ -170,9 +208,9 @@ export default function ChatDetailPage() {
   if (!chat) return <Container size="4"><Text>{error || 'Загрузка...'}</Text></Container>;
 
   return (
-    <Container size="4">
-      <Card className="chat-shell" style={{ padding: 0 }}>
-        <Flex direction="column" style={{ height: '78vh' }}>
+    <Flex direction="column" style={{ height: '100vh', maxWidth: '900px', margin: '0 auto', width: '100%' }}>
+      <Card className="chat-shell" style={{ padding: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Flex direction="column" style={{ height: '100%' }}>
           <Flex align="center" justify="between" gap="2" style={{ padding: 12, borderBottom: '1px solid var(--gray-a5)' }}>
             <Flex align="center" gap="2" style={{ minWidth: 0 }}>
               <Button variant="ghost" size="1" onClick={() => navigate('/chats')} aria-label="Назад к чатам">
@@ -234,7 +272,7 @@ export default function ChatDetailPage() {
                       {mine && (
                         <DropdownMenu.Root>
                           <DropdownMenu.Trigger>
-                            <Button size="1" variant="ghost">⋯</Button>
+                            <Button size="1" variant="ghost"><MoreIcon width={16} height={16} /></Button>
                           </DropdownMenu.Trigger>
                           <DropdownMenu.Content align="end">
                             {editable && (
@@ -253,15 +291,20 @@ export default function ChatDetailPage() {
                 );
               })}
               {messages.length === 0 && <Text color="gray">Сообщений пока нет</Text>}
+              {typingUsers.size > 0 && (
+                <Text size="2" color="gray" style={{ fontStyle: 'italic' }}>
+                  {peer?.name || 'Собеседник'} печатает...
+                </Text>
+              )}
               <div ref={bottomRef} />
             </Flex>
           </div>
 
-          <Flex align="end" gap="2" style={{ padding: 12, borderTop: '1px solid var(--gray-a5)' }}>
+          <Flex align="end" gap="2" style={{ padding: 12, borderTop: '1px solid var(--gray-a5)', flexShrink: 0 }}>
             <TextArea
               placeholder="Введите сообщение..."
               value={input}
-              onChange={(event) => setInput(event.target.value)}
+              onChange={(event) => handleInputChange(event.target.value)}
               style={{ flex: 1, minHeight: 44 }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' && !event.shiftKey) {
@@ -308,6 +351,14 @@ export default function ChatDetailPage() {
           </Flex>
         </Dialog.Content>
       </Dialog.Root>
-    </Container>
+
+      <style>{`
+        .truncate {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      `}</style>
+    </Flex>
   );
 }

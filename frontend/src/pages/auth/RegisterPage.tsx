@@ -4,12 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card, Container, Dialog, Flex, Heading, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
-import { useAuthStore } from '../../shared/authStore';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const setAccessToken = useAuthStore((state) => state.setAccessToken);
-  const setUser = useAuthStore((state) => state.setUser);
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -33,20 +30,7 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       await api.post('/auth/register', form);
-      const loginResponse = await api.post('/auth/login', {
-        email: form.email,
-        password: form.password,
-      });
-
-      setAccessToken(loginResponse.data.accessToken);
-      try {
-        const me = await api.get('/users/me');
-        setUser(me.data);
-      } catch {
-        setUser(loginResponse.data.user ?? null);
-      }
-
-      navigate('/');
+      navigate(`/login?registered=1&email=${encodeURIComponent(form.email)}`);
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Ошибка регистрации'));
     } finally {
@@ -98,7 +82,7 @@ export default function RegisterPage() {
                   style={{
                     border: 'none',
                     background: 'transparent',
-                    color: 'var(--accent)',
+                    color: 'var(--accent-11)',
                     padding: 0,
                     textDecoration: 'underline',
                     cursor: 'pointer',
@@ -106,8 +90,8 @@ export default function RegisterPage() {
                   }}
                 >
                   условия использования
-                </button>{' '}
-                и политику обработки персональных данных.
+                </button>
+                .
               </label>
             </Flex>
 
@@ -124,48 +108,78 @@ export default function RegisterPage() {
       </Card>
 
       <Dialog.Root open={termsOpen} onOpenChange={setTermsOpen}>
-        <Dialog.Content maxWidth="720px">
+        <Dialog.Content maxWidth="720px" style={{ maxHeight: '80vh', overflow: 'auto' }}>
           <Dialog.Title>Условия использования FindMe</Dialog.Title>
-          <Dialog.Description size="2">
-            Пожалуйста, внимательно прочитайте основные условия перед регистрацией.
-          </Dialog.Description>
+          <Flex direction="column" gap="3" style={{ marginTop: 16, lineHeight: 1.6 }}>
+            <div>
+              <Heading size="4" mb="2">1. Общие положения</Heading>
+              <Text as="div" size="2">
+                FindMe — сервис для поиска потерянных и найденных домашних животных. Регистрируясь на сервисе, вы принимаете настоящие условия использования в полном объеме.
+              </Text>
+            </div>
 
-          <div style={{ maxHeight: 420, overflow: 'auto', marginTop: 12, paddingRight: 6 }}>
-            <Text as="p" size="2">
-              1. Сервис FindMe предназначен для публикации объявлений о потерянных и найденных домашних животных,
-              общения пользователей и координации поиска.
-            </Text>
-            <Text as="p" size="2">
-              2. Пользователь обязуется указывать достоверную информацию в объявлениях и не размещать ложные данные,
-              спам, оскорбления или контент, нарушающий законодательство.
-            </Text>
-            <Text as="p" size="2">
-              3. Загружаемые фотографии и тексты должны принадлежать пользователю или использоваться им на законных
-              основаниях. Ответственность за содержание публикаций несет пользователь.
-            </Text>
-            <Text as="p" size="2">
-              4. Администрация имеет право модерировать объявления, отклонять публикации, ограничивать доступ и
-              рассматривать жалобы.
-            </Text>
-            <Text as="p" size="2">
-              5. Пользователь соглашается на обработку персональных данных (email, имя, контактный номер, username
-              Telegram и другие данные профиля) для обеспечения работы сервиса и уведомлений.
-            </Text>
-            <Text as="p" size="2">
-              6. Сервис не гарантирует обязательного результата поиска животного, но предоставляет технические
-              инструменты для поиска и взаимодействия участников.
-            </Text>
-            <Text as="p" size="2">
-              7. В чатах запрещены угрозы, дискриминация, мошенничество и распространение вредоносных ссылок.
-            </Text>
-            <Text as="p" size="2">
-              8. При регистрации пользователь подтверждает, что ознакомился с этими условиями и принимает их полностью.
-            </Text>
-          </div>
+            <div>
+              <Heading size="4" mb="2">2. Ответственность пользователей</Heading>
+              <Text as="div" size="2">
+                Пользователи несут полную ответственность за информацию, размещаемую в своих объявлениях. Запрещается публиковать:
+              </Text>
+              <ul style={{ marginTop: 8, paddingLeft: 20 }}>
+                <li><Text as="span" size="2">Ложную, оскорбительную или незаконную информацию</Text></li>
+                <li><Text as="span" size="2">Контент, нарушающий права третьих лиц</Text></li>
+                <li><Text as="span" size="2">Объявления о животных без согласия их владельца</Text></li>
+                <li><Text as="span" size="2">Коммерческие предложения и спам</Text></li>
+              </ul>
+            </div>
 
-          <Flex justify="end" mt="4">
+            <div>
+              <Heading size="4" mb="2">3. Защита данных</Heading>
+              <Text as="div" size="2">
+                Ваша личная информация хранится в соответствии с принципами конфиденциальности. Мы не передаем данные третьим лицам без вашего согласия, кроме случаев, требуемых законодательством.
+              </Text>
+            </div>
+
+            <div>
+              <Heading size="4" mb="2">4. Правила моральной ответственности</Heading>
+              <Text as="div" size="2">
+                При общении с другими пользователями проявляйте уважение и честность. Сообщайте достоверную информацию о питомцах и помогите другим найти их любимцев.
+              </Text>
+            </div>
+
+            <div>
+              <Heading size="4" mb="2">5. Модерация и санкции</Heading>
+              <Text as="div" size="2">
+                Администрация вправе удалять нарушающий контент и блокировать аккаунты, нарушающие условия использования. Жалобы на нарушения рассматриваются в течение 24-48 часов.
+              </Text>
+            </div>
+
+            <div>
+              <Heading size="4" mb="2">6. Ограничение ответственности</Heading>
+              <Text as="div" size="2">
+                FindMe предоставляет сервис "как есть". Мы не гарантируем нахождение потерянного животного и не несем ответственность за результаты взаимодействия пользователей.
+              </Text>
+            </div>
+
+            <div>
+              <Heading size="4" mb="2">7. Изменение условий</Heading>
+              <Text as="div" size="2">
+                FindMe оставляет право изменять настоящие условия. Уведомление об изменениях будет направлено на адрес электронной почты, указанный при регистрации.
+              </Text>
+            </div>
+
+            <div>
+              <Heading size="4" mb="2">8. Контакты</Heading>
+              <Text as="div" size="2">
+                По вопросам соблюдения условий пишите на support@findme.local
+              </Text>
+            </div>
+          </Flex>
+
+          <Flex justify="end" mt="4" gap="2">
             <Dialog.Close>
-              <Button type="button">Понятно</Button>
+              <Button type="button" variant="soft">Отклонить</Button>
+            </Dialog.Close>
+            <Dialog.Close>
+              <Button type="button">Принять</Button>
             </Dialog.Close>
           </Flex>
         </Dialog.Content>

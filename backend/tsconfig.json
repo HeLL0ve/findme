@@ -11,7 +11,7 @@
     "module": "CommonJS",
     "rootDir": ".",
     "outDir": "dist",
-    "moduleResolution": "node",
+    //"moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,

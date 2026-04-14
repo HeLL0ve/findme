@@ -61,9 +61,24 @@ export default function NotificationsPage() {
   }
 
   async function requestPushPermission() {
-    if (typeof Notification === 'undefined') return;
-    const value = await Notification.requestPermission();
-    setPermission(value);
+    if (typeof Notification === 'undefined') {
+      alert('Push-уведомления не поддерживаются в вашем браузере');
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      setPermission(permission);
+      
+      if (permission === 'granted') {
+        alert('Push-уведомления включены!');
+      } else if (permission === 'denied') {
+        alert('Вы отклонили push-уведомления. Измените это в настройках браузера.');
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      alert('Не удалось включить push-уведомления');
+    }
   }
 
   return (

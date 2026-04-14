@@ -13,10 +13,13 @@ function mapProfileSelect() {
   return {
     id: true,
     email: true,
+    emailVerifiedAt: true,
     name: true,
     phone: true,
     telegramUsername: true,
     avatarUrl: true,
+    telegramChatId: true,
+    telegramLinkedAt: true,
     role: true,
     isBlocked: true,
     notificationSettings: { select: { notifyWeb: true, notifyTelegram: true } },
@@ -32,7 +35,11 @@ export async function getProfileController(req: Request, res: Response, next: Ne
     });
 
     if (!user) return next(ApiError.notFound('Пользователь не найден'));
-    return res.json(user);
+
+    return res.json({
+      ...user,
+      telegramLinked: Boolean(user.telegramChatId),
+    });
   } catch (err) {
     return next(err);
   }
@@ -90,7 +97,10 @@ export async function updateProfileController(req: Request, res: Response, next:
       select: mapProfileSelect(),
     });
 
-    return res.json(user);
+    return res.json({
+      ...user,
+      telegramLinked: Boolean(user.telegramChatId),
+    });
   } catch (err) {
     return next(err);
   }

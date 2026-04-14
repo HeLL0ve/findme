@@ -1,13 +1,14 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Badge, Button, Card, Container, Dialog, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
+import { MessageIcon, ArchiveIcon, AlertTriangleIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { useAuthStore } from '../../shared/authStore';
 import { config } from '../../shared/config';
-import { adStatusLabel, adTypeLabel } from '../../shared/labels';
+import { adStatusLabel } from '../../shared/labels';
 
 type Ad = {
   id: string;
@@ -24,6 +25,7 @@ type Ad = {
     name?: string | null;
     email?: string;
     phone?: string | null;
+    telegramUsername?: string | null;
     avatarUrl?: string | null;
   };
   location?: {
@@ -96,6 +98,133 @@ export default function AdDetail() {
     }
   }
 
+  async function shareAd() {
+    if (!ad || !id) return;
+    const title = ad.petName || 'Объявление на FindMe';
+    const adUrl = `${window.location.origin}/ads/${id}`;
+    const text = `${ad.type === 'LOST' ? 'Потерян' : 'Найден'} ${ad.animalType || 'питомец'}: ${ad.description}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text,
+          url: adUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Share error:', err);
+        }
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(`${title}\n${text}\n${adUrl}`);
+        alert('Ссылка скопирована в буфер обмена');
+      } catch {
+        alert(`Скопируйте вручную: ${adUrl}`);
+      }
+    }
+  }
+
+  async function exportToPdf() {
+    if (!ad || !id) return;
+
+    const title = ad.petName || 'Питомец';
+    const adUrl = `${window.location.origin}/ads/${id}`;
+    const timestamp = new Date().toLocaleString('ru-RU');
+
+    // Create HTML content for PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+            .header { border-bottom: 2px solid #7c3aed; padding-bottom: 10px; margin-bottom: 20px; }
+            .title { font-size: 28px; font-weight: bold; color: #7c3aed; margin: 10px 0; }
+            .badge { display: inline-block; padding: 4px 12px; margin-right: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+            .badge-lost { background: #fed7aa; color: #92400e; }
+            .badge-found { background: #bbf7d0; color: #065f46; }
+            .badge-approved { background: #bfdbfe; color: #1e3a8a; }
+            .section { margin-bottom: 20px; }
+            .section-title { font-size: 14px; font-weight: bold; color: #7c3aed; margin-bottom: 8px; }
+            .info-row { display: flex; margin-bottom: 8px; }
+            .info-label { font-weight: bold; width: 120px; }
+            .info-value { flex: 1; }
+            .description { background: #f3f4f6; padding: 12px; border-radius: 8px; margin-top: 10px; }
+            .footer { border-top: 1px solid #e5e7eb; padding-top: 10px; margin-top: 20px; font-size: 12px; color: #666; }
+            .qr-code { text-align: center; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="title">${title}</div>
+            <div style="margin-top: 10px;">
+              <span class="badge ${ad.type === 'LOST' ? 'badge-lost' : 'badge-found'}">
+                ${ad.type === 'LOST' ? 'ПОТЕРЯН' : 'НАЙДЕН'}
+              </span>
+              <span class="badge badge-approved">
+                ${ad.status === 'APPROVED' ? 'ОПУБЛИКОВАНО' : ad.status}
+              </span>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Информация о питомце</div>
+            ${ad.animalType ? `<div class="info-row"><div class="info-label">Вид животного:</div><div class="info-value">${ad.animalType}</div></div>` : ''}
+            ${ad.breed ? `<div class="info-row"><div class="info-label">Порода:</div><div class="info-value">${ad.breed}</div></div>` : ''}
+            ${ad.color ? `<div class="info-row"><div class="info-label">Окрас:</div><div class="info-value">${ad.color}</div></div>` : ''}
+          </div>
+
+          ${ad.location ? `
+            <div class="section">
+              <div class="section-title">Местоположение</div>
+              ${ad.location.city ? `<div class="info-row"><div class="info-label">Город:</div><div class="info-value">${ad.location.city}</div></div>` : ''}
+              ${ad.location.address ? `<div class="info-row"><div class="info-label">Адрес:</div><div class="info-value">${ad.location.address}</div></div>` : ''}
+            </div>
+          ` : ''}
+
+          <div class="section">
+            <div class="section-title">Описание</div>
+            <div class="description">${ad.description}</div>
+          </div>
+
+          ${ad.user ? `
+            <div class="section">
+              <div class="section-title">Контактные данные</div>
+              ${ad.user.name ? `<div class="info-row"><div class="info-label">Имя:</div><div class="info-value">${ad.user.name}</div></div>` : ''}
+              ${ad.user.phone ? `<div class="info-row"><div class="info-label">Телефон:</div><div class="info-value">${ad.user.phone}</div></div>` : ''}
+              ${ad.user.email ? `<div class="info-row"><div class="info-label">Email:</div><div class="info-value">${ad.user.email}</div></div>` : ''}
+            </div>
+          ` : ''}
+
+          <div class="footer">
+            <div>Объявление на FindMe</div>
+            <div>ID объявления: ${id}</div>
+            <div>Ссылка: <a href="${adUrl}">${adUrl}</a></div>
+            <div>Экспортировано: ${timestamp}</div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Open in new window and print
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      // Wait for content to load, then print
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    } else {
+      alert('Не удалось открыть окно печати');
+    }
+  }
+
   async function moveToArchive() {
     if (!id) return;
     try {
@@ -139,86 +268,218 @@ export default function AdDetail() {
   const canComplain = !!user && !isOwner;
 
   return (
-    <Container size="4">
-      <Flex direction="column" gap="4">
-        {error && <Text color="red">{error}</Text>}
+    <Flex direction="column" gap="0">
+      {/* Header */}
+      <Flex direction={{ initial: 'column', md: 'row' }} gap="5" align={{ initial: 'start', md: 'center' }} justify="between" style={{
+        background: `linear-gradient(135deg, var(--${ad.type === 'LOST' ? 'orange' : 'green'}-2) 0%, var(--gray-a1) 100%)`,
+        borderBottom: `2px solid var(--${ad.type === 'LOST' ? 'orange' : 'green'}-7)`,
+        padding: 'var(--space-5) var(--space-4)',
+      }}>
+        <Flex direction="column" gap="3">
+          <div>
+            <Heading size="7" weight="bold" style={{ 
+              marginBottom: 'var(--space-1)',
+              color: 'var(--gray-12)'
+            }}>
+              {ad.petName || '🐾 Питомец'}
+            </Heading>
+            <Flex gap="2" align="center" wrap="wrap">
+              <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
+                {ad.type === 'LOST' ? 'потерян' : 'найден'}
+              </Badge>
+              <Badge color={ad.status === 'APPROVED' ? 'blue' : ad.status === 'PENDING' ? 'amber' : 'gray'} variant="soft" size="1">
+                {adStatusLabel(ad.status)}
+              </Badge>
+            </Flex>
+          </div>
+          <Flex direction="column" gap="1">
+            <Text size="2" weight="medium" color="gray">
+              {ad.animalType || 'Вид животного не указан'}
+            </Text>
+            {[ad.breed, ad.color ? `окрас: ${ad.color}` : null]
+              .filter(Boolean)
+              .map((info, idx) => (
+                <Text key={idx} size="1" color="gray">
+                  • {info}
+                </Text>
+              ))}
+          </Flex>
+        </Flex>
+        <Flex gap="2" wrap="wrap" style={{ alignSelf: 'flex-start' }}>
+          {ad.location?.city && (
+            <Flex gap="2" align="center" style={{
+              padding: 'var(--space-2) var(--space-3)',
+              background: 'var(--blue-a2)',
+              borderRadius: 'var(--radius-2)',
+              border: '1px solid var(--blue-a6)',
+            }}>
+              <Text size="2" weight="medium">📍</Text>
+              <Text size="2">{ad.location.city}</Text>
+            </Flex>
+          )}
+        </Flex>
+      </Flex>
 
-        {selectedPhoto && (
-          <Card>
-            <div
-              style={{
-                width: '100%',
-                height: 420,
-                borderRadius: 14,
-                overflow: 'hidden',
-                background: 'var(--accent-soft)',
-                cursor: 'zoom-in',
-              }}
-              onClick={() => setLightboxOpen(true)}
-            >
-              <img
-                src={selectedPhoto}
-                alt={ad.petName || 'Фото объявления'}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </div>
-            {photos.length > 1 && (
-              <Flex gap="2" wrap="wrap" mt="3">
-                {photos.map((photo, index) => (
-                  <button
-                    key={photo}
-                    type="button"
-                    onClick={() => setSelectedPhotoIndex(index)}
-                    style={{
-                      border: index === selectedPhotoIndex ? '2px solid var(--violet-8)' : '1px solid var(--gray-a6)',
-                      borderRadius: 10,
-                      padding: 0,
-                      overflow: 'hidden',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <img
-                      src={photo}
-                      alt={`Фото ${index + 1}`}
-                      style={{ width: 92, height: 72, objectFit: 'cover', display: 'block' }}
-                    />
-                  </button>
-                ))}
+      <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+        <Flex direction={{ initial: 'column', md: 'row' }} gap="6">
+          {/* Left Column - Media & Map */}
+          <Flex direction="column" gap="6" style={{ flex: 2 }}>
+            {/* Photo Gallery */}
+            {selectedPhoto && (
+              <Flex direction="column" gap="4">
+                <Flex
+                  direction="column"
+                  style={{
+                    width: '100%',
+                    height: 'min(400px, 60vh)',
+                    borderRadius: 'var(--radius-3)',
+                    overflow: 'hidden',
+                    background: 'var(--gray-a2)',
+                    cursor: 'zoom-in',
+                    position: 'relative',
+                  }}
+                  onClick={() => setLightboxOpen(true)}
+                >
+                  <img
+                    src={selectedPhoto}
+                    alt={ad.petName || 'Фото объявления'}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+                  />
+                  {photos.length > 1 && (
+                    <Flex style={{
+                      position: 'absolute',
+                      top: 'var(--space-3)',
+                      right: 'var(--space-3)',
+                      background: 'rgba(0, 0, 0, 0.6)',
+                      color: 'white',
+                      padding: 'var(--space-2) var(--space-3)',
+                      borderRadius: 'var(--radius-2)',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                    }}>
+                      {selectedPhotoIndex + 1} / {photos.length}
+                    </Flex>
+                  )}
+                </Flex>
+
+                {/* Photo Thumbnails */}
+                {photos.length > 1 && (
+                  <Flex gap="2" wrap="wrap" align="center">
+                    {photos.map((photo, index) => (
+                      <button
+                        key={photo}
+                        type="button"
+                        onClick={() => setSelectedPhotoIndex(index)}
+                        style={{
+                          border: index === selectedPhotoIndex ? '3px solid var(--violet-8)' : '2px solid var(--gray-a6)',
+                          borderRadius: 'var(--radius-2)',
+                          padding: 0,
+                          overflow: 'hidden',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          width: '80px',
+                          height: '80px',
+                        }}
+                        onMouseEnter={(e) => {
+                          const el = e.currentTarget as HTMLElement;
+                          el.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          const el = e.currentTarget as HTMLElement;
+                          el.style.transform = 'scale(1)';
+                        }}
+                      >
+                        <img
+                          src={photo}
+                          alt={`Фото ${index + 1}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        />
+                      </button>
+                    ))}
+                  </Flex>
+                )}
               </Flex>
             )}
-          </Card>
-        )}
 
-        <Card>
-          <Flex direction={{ initial: 'column', md: 'row' }} gap="4">
-            <Flex direction="column" gap="3" style={{ flex: 1 }}>
-              <Heading size="8" className="truncate">{ad.petName || 'Питомец'}</Heading>
-              <Text color="gray" className="truncate">
-                {[ad.animalType || 'Не указано', ad.breed || null, ad.color ? `окрас: ${ad.color}` : null]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </Text>
-
-              <Flex gap="2" wrap="wrap">
-                <Badge color={ad.type === 'LOST' ? 'orange' : 'green'}>{adTypeLabel(ad.type)}</Badge>
-                <Badge color={ad.status === 'APPROVED' ? 'blue' : 'gray'}>{adStatusLabel(ad.status)}</Badge>
+            {/* Description */}
+            <Card style={{
+              background: 'var(--gray-a1)',
+              border: '1px solid var(--gray-a6)',
+            }}>
+              <Flex direction="column" gap="3">
+                <Heading size="4" weight="bold">📝 Описание</Heading>
+                <Text style={{ lineHeight: '1.7' }} color="gray">{ad.description}</Text>
               </Flex>
+            </Card>
 
-              <Text>{ad.description}</Text>
+            {/* Location */}
+            {ad.location && (
+              <Card style={{
+                background: 'var(--gray-a1)',
+                border: '1px solid var(--gray-a6)',
+              }}>
+                <Flex direction="column" gap="3">
+                  <Heading size="4" weight="bold">📍 Местоположение</Heading>
+                  <Flex direction="column" gap="2">
+                    {ad.location.city && (
+                      <Flex justify="between">
+                        <Text weight="bold" color="gray">Город:</Text>
+                        <Text>{ad.location.city}</Text>
+                      </Flex>
+                    )}
+                    {ad.location.address && (
+                      <Flex justify="between">
+                        <Text weight="bold" color="gray">Адрес:</Text>
+                        <Text>{ad.location.address}</Text>
+                      </Flex>
+                    )}
+                  </Flex>
+                </Flex>
+              </Card>
+            )}
 
-              {ad.location && (
-                <Card variant="surface">
-                  <Heading size="4">Местоположение</Heading>
-                  <Text size="2" color="gray">{ad.location.city || 'Город не указан'}</Text>
-                  <Text size="2">{ad.location.address || 'Адрес не указан'}</Text>
-                </Card>
-              )}
-            </Flex>
+            {/* Pet Info */}
+            <Card style={{
+              background: 'var(--gray-a1)',
+              border: '1px solid var(--gray-a6)',
+            }}>
+              <Flex direction="column" gap="3">
+                <Heading size="4" weight="bold">🐾 Информация о питомце</Heading>
+                <Flex direction="column" gap="2">
+                  {ad.animalType && (
+                    <Flex justify="between">
+                      <Text weight="bold" color="gray">Вид:</Text>
+                      <Text>{ad.animalType}</Text>
+                    </Flex>
+                  )}
+                  {ad.breed && (
+                    <Flex justify="between">
+                      <Text weight="bold" color="gray">Порода:</Text>
+                      <Text>{ad.breed}</Text>
+                    </Flex>
+                  )}
+                  {ad.color && (
+                    <Flex justify="between">
+                      <Text weight="bold" color="gray">Окрас:</Text>
+                      <Text>{ad.color}</Text>
+                    </Flex>
+                  )}
+                </Flex>
+              </Flex>
+            </Card>
+          </Flex>
 
-            <Flex direction="column" gap="3" style={{ minWidth: 270 }}>
-              <Card>
-                <Text color="gray">Автор объявления</Text>
+          {/* Right Column - User & Actions */}
+          <Flex direction="column" gap="4" style={{ flex: 1, minWidth: '280px' }}>
+            {/* User Card */}
+            <Card style={{
+              background: 'var(--violet-1)',
+              border: '2px solid var(--violet-a6)',
+              borderRadius: 'var(--radius-3)',
+            }}>
+              <Flex direction="column" gap="3">
+                <Text size="2" weight="bold" color="gray">👤 Автор объявления</Text>
                 {ad.user?.id ? (
                   <UserAvatarLink
                     userId={ad.user.id}
@@ -229,36 +490,128 @@ export default function AdDetail() {
                 ) : (
                   <Text>Пользователь</Text>
                 )}
-              </Card>
-
-              <Flex direction="column" gap="2">
-                {!isOwner && user && <Button onClick={() => void startChat()}>Написать</Button>}
-                {isOwner && ad.status !== 'ARCHIVED' && (
-                  <ConfirmActionDialog
-                    title="Переместить объявление в архив?"
-                    description="Объявление перестанет отображаться в активном поиске."
-                    confirmText="В архив"
-                    color="orange"
-                    onConfirm={moveToArchive}
-                    trigger={<Button variant="outline">Переместить в архив</Button>}
-                  />
-                )}
-                {!user && <Button onClick={() => navigate('/login')}>Войти для связи</Button>}
-
-                {canComplain && (
-                  <Button
-                    color="orange"
-                    variant="soft"
-                    onClick={() => setComplaintTarget({ type: 'AD', targetId: ad.id, title: 'Жалоба на объявление' })}
-                  >
-                    Пожаловаться на объявление
-                  </Button>
-                )}
               </Flex>
+            </Card>
+
+            {/* Contact Info */}
+            {ad.user && (ad.user.phone || ad.user.email || ad.user.telegramUsername) && (
+              <Card style={{
+                background: 'var(--green-1)',
+                border: '1px solid var(--green-a6)',
+              }}>
+                <Flex direction="column" gap="3">
+                  <Text size="2" weight="bold" color="gray">📞 Контакты</Text>
+                  <Flex direction="column" gap="2">
+                    {ad.user.phone && (
+                      <Flex gap="2" align="center">
+                        <Text>📱</Text>
+                        <a href={`tel:${ad.user.phone}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          <Text size="2" style={{ wordBreak: 'break-all', color: 'var(--blue-11)', cursor: 'pointer' }}>
+                            {ad.user.phone}
+                          </Text>
+                        </a>
+                      </Flex>
+                    )}
+                    {ad.user.telegramUsername && (
+                      <Flex gap="2" align="center">
+                        <MessageIcon width={20} height={20} />
+                        <a href={`https://t.me/${ad.user.telegramUsername}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                          <Text size="2" style={{ wordBreak: 'break-all', color: 'var(--blue-11)', cursor: 'pointer' }}>
+                            @{ad.user.telegramUsername}
+                          </Text>
+                        </a>
+                      </Flex>
+                    )}
+                    {ad.user.email && (
+                      <Flex gap="2" align="center">
+                        <Text>📧</Text>
+                        <a href={`mailto:${ad.user.email}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          <Text size="2" style={{ wordBreak: 'break-all', color: 'var(--blue-11)', cursor: 'pointer' }}>
+                            {ad.user.email}
+                          </Text>
+                        </a>
+                      </Flex>
+                    )}
+                  </Flex>
+                </Flex>
+              </Card>
+            )}
+
+            {/* Actions */}
+            <Flex direction="column" gap="2">
+              {!isOwner && user && (
+                <>
+                  <Button
+                    onClick={() => void startChat()}
+                    size="3"
+                    style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    <Flex align="center" gap="2"><MessageIcon width={16} height={16} />Написать сообщение</Flex>
+                  </Button>
+                  <Button
+                    variant="soft"
+                    onClick={() => void shareAd()}
+                    size="2"
+                    style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    🔗 Поделиться
+                  </Button>
+                </>
+              )}
+
+              <Button
+                variant="soft"
+                onClick={() => void exportToPdf()}
+                size="2"
+                style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
+              >
+                📄 Экспортировать PDF
+              </Button>
+
+              {isOwner && ad.status !== 'ARCHIVED' && (
+                <ConfirmActionDialog
+                  title="Переместить объявление в архив?"
+                  description="Объявление перестанет отображаться в активном поиске."
+                  confirmText="В архив"
+                  color="orange"
+                  onConfirm={moveToArchive}
+                  trigger={
+                    <Button
+                      variant="outline"
+                      color="orange"
+                      style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      <Flex align="center" gap="2"><ArchiveIcon width={16} height={16} />Архивировать</Flex>
+                    </Button>
+                  }
+                />
+              )}
+
+              {!user && (
+                <Button
+                  onClick={() => navigate('/login')}
+                  size="3"
+                  style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Войти для связи
+                </Button>
+              )}
+
+              {canComplain && (
+                <Button
+                  color="orange"
+                  variant="soft"
+                  onClick={() => setComplaintTarget({ type: 'AD', targetId: ad.id, title: 'Жалоба на объявление' })}
+                  size="2"
+                  style={{ width: '100%', fontWeight: 600, cursor: 'pointer', marginTop: 'var(--space-2)' }}
+                >
+                  <Flex align="center" gap="2"><AlertTriangleIcon width={16} height={16} />Пожаловаться</Flex>
+                </Button>
+              )}
             </Flex>
           </Flex>
-        </Card>
-      </Flex>
+        </Flex>
+      </Container>
 
       <Dialog.Root open={!!complaintTarget} onOpenChange={(open) => !open && setComplaintTarget(null)}>
         <Dialog.Content maxWidth="560px">
@@ -313,6 +666,6 @@ export default function AdDetail() {
           )}
         </Dialog.Content>
       </Dialog.Root>
-    </Container>
+    </Flex>
   );
 }

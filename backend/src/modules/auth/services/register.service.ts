@@ -2,10 +2,16 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../../../config/prisma';
 import { AuthError } from '../auth.errors';
 import { RegisterDto } from '../schemas/register.schemas';
+import { issueEmailVerificationToken } from './email-auth.service';
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
 
 export class registerService {
   static async register(data: RegisterDto) {
-    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    const email = normalizeEmail(data.email);
+    const existing = await prisma.user.findUnique({ where: { email } });
 
     if (existing) {
       throw new AuthError('USER_ALREADY_EXISTS', 'Пользователь с таким email уже существует', 409);
@@ -15,7 +21,7 @@ export class registerService {
 
     const user = await prisma.user.create({
       data: {
-        email: data.email,
+        email,
         passwordHash,
         ...(data.name ? { name: data.name.trim() } : {}),
         notificationSettings: {
@@ -31,6 +37,7 @@ export class registerService {
       },
     });
 
+    await issueEmailVerificationToken(user.id, user.email);
     return user;
   }
 }

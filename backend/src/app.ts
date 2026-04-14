@@ -10,6 +10,9 @@ import chatsRoutes from './modules/chats/chat.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import complaintsRoutes from './modules/complaints/complaints.routes';
 import notificationsRoutes from './modules/notifications/notifications.routes';
+import telegramRoutes from './modules/telegram/telegram.routes';
+import statsRoutes from './modules/stats/stats.routes';
+import supportMessagesRoutes from './modules/supportMessages/supportMessages.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import path from 'path';
 
@@ -27,10 +30,13 @@ app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);
 app.use('/users', usersRoutes);
 app.use('/ads', adsRoutes);
+app.use('/support', supportMessagesRoutes);
 app.use('/chats', chatsRoutes);
 app.use('/admin', adminRoutes);
+app.use('/stats', statsRoutes);
 app.use('/complaints', complaintsRoutes);
 app.use('/notifications', notificationsRoutes);
+app.use('/telegram', telegramRoutes);
 
 // serve uploads
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));

@@ -13,7 +13,14 @@ export async function registerController(req: Request, res: Response, next: Next
   try {
     const user = await registerService.register(parsed.data);
 
-    return res.status(201).json(user);
+    return res.status(201).json({
+      success: true,
+      requiresEmailVerification: true,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
   } catch (err) {
     return next(err);
   }

@@ -8,14 +8,18 @@ datasource db {
 }
 
 model User {
-  id           String @id @default(uuid())
-  email        String @unique
-  passwordHash String
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String
+  emailVerifiedAt DateTime?
 
   name             String?
   phone            String?
   telegramUsername String?
   avatarUrl        String?
+  telegramChatId   String?   @unique
+  telegramUserId   String?   @unique
+  telegramLinkedAt DateTime?
 
   role      Role    @default(USER)
   isBlocked Boolean @default(false)
@@ -23,17 +27,22 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  ads           Ad[]
-  messages      Message[]
-  chatsAsAuthor Chat[]    @relation("ChatAuthor")
-  chatsAsWriter Chat[]    @relation("ChatWriter")
-  complaintsCreated  Complaint[] @relation("ComplaintReporter")
-  complaintsAbout    Complaint[] @relation("ComplaintTargetUser")
-  complaintsReviewed Complaint[] @relation("ComplaintReviewer")
-  notifications      Notification[]
+  ads                     Ad[]
+  messages                Message[]
+  chatsAsAuthor           Chat[]           @relation("ChatAuthor")
+  chatsAsWriter           Chat[]           @relation("ChatWriter")
+  complaintsCreated       Complaint[]      @relation("ComplaintReporter")
+  complaintsAbout         Complaint[]      @relation("ComplaintTargetUser")
+  complaintsReviewed      Complaint[]      @relation("ComplaintReviewer")
+  notifications           Notification[]
+  supportMessagesAsUser   SupportMessage[] @relation("SupportMessageUser")
+  supportMessagesAsSender SupportMessage[] @relation("SupportMessageSender")
 
-  notificationSettings NotificationSettings?
-  refreshTokens        RefreshToken[]
+  notificationSettings    NotificationSettings?
+  refreshTokens           RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  telegramLinkTokens      TelegramLinkToken[]
 }
 
 model NotificationSettings {
@@ -60,9 +69,9 @@ model Ad {
   color       String?
   description String
 
-  location Location?
-  photos   AdPhoto[]
-  chats    Chat[]
+  location   Location?
+  photos     AdPhoto[]
+  chats      Chat[]
   complaints Complaint[]
 
   createdAt DateTime @default(now())
@@ -75,11 +84,11 @@ model Complaint {
   reporterId String
   reporter   User   @relation("ComplaintReporter", fields: [reporterId], references: [id], onDelete: Cascade)
 
-  kind ComplaintKind @default(REPORT)
+  kind       ComplaintKind       @default(REPORT)
   targetType ComplaintTargetType
 
   adId String?
-  ad   Ad?    @relation(fields: [adId], references: [id], onDelete: Cascade)
+  ad   Ad?     @relation(fields: [adId], references: [id], onDelete: Cascade)
 
   targetUserId String?
   targetUser   User?   @relation("ComplaintTargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
@@ -90,7 +99,7 @@ model Complaint {
   status        ComplaintStatus @default(PENDING)
   reviewComment String?
   reviewedById  String?
-  reviewedBy    User? @relation("ComplaintReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedBy    User?           @relation("ComplaintReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
   reviewedAt    DateTime?
 
   createdAt DateTime @default(now())
@@ -147,8 +156,8 @@ model Message {
   senderId String
   sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
-  content String
-  isRead  Boolean @default(false)
+  content  String
+  isRead   Boolean   @default(false)
   editedAt DateTime?
 
   createdAt DateTime @default(now())
@@ -166,7 +175,7 @@ model Notification {
 
   isRead Boolean @default(false)
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   readAt    DateTime?
 
   @@index([userId, isRead, createdAt])
@@ -223,4 +232,64 @@ model RefreshToken {
 
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model EmailVerificationToken {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model PasswordResetToken {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model TelegramLinkToken {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  code      String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model SupportMessage {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation("SupportMessageUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation("SupportMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  text String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([senderId])
+  @@index([createdAt])
 }

@@ -5,6 +5,7 @@ import { config } from '../shared/config';
 import { useAuthStore } from '../shared/authStore';
 import { roleLabel } from '../shared/labels';
 import { useUnreadNotifications } from '../shared/useUnreadNotifications';
+import NotificationsModal from '../components/common/NotificationsModal';
 
 type Props = {
   appearance: 'light' | 'dark';
@@ -66,6 +67,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
   const unreadNotifications = useUnreadNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationsModalOpen, setNotificationsModalOpen] = useState(false);
 
   const displayRole = useMemo(() => roleLabel(user?.role), [user?.role]);
   const avatarSrc = resolveAvatarSrc(user?.avatarUrl);
@@ -82,9 +84,23 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
   ];
 
   return (
-    <Box style={{ position: 'sticky', top: 0, zIndex: 20, backdropFilter: 'blur(10px)' }}>
+    <Box style={{ 
+      position: 'sticky', 
+      top: 0, 
+      zIndex: 20, 
+      backdropFilter: 'blur(10px)',
+      background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85))',
+      borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+    }}>
       <Container size="4" style={{ maxWidth: 1600, width: '100%', marginInline: 'auto' }}>
-        <Card style={{ marginTop: 10, marginBottom: 12, padding: 0 }}>
+        <Card style={{ 
+          marginTop: 10, 
+          marginBottom: 12, 
+          padding: 0,
+          background: 'transparent',
+          border: 'none',
+          boxShadow: 'none',
+        }}>
           <Flex align="center" justify="between" gap="3" style={{ padding: '10px 14px' }}>
             <Flex align="center" gap="3" style={{ minWidth: 0 }}>
               <Link to="/" style={{ textDecoration: 'none' }}>
@@ -129,10 +145,8 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
 
               {token && (
                 <Box style={{ position: 'relative' }}>
-                  <IconButton asChild variant="soft" aria-label="Уведомления">
-                    <Link to="/notifications">
-                      <BellIcon />
-                    </Link>
+                  <IconButton variant="soft" aria-label="Уведомления" onClick={() => setNotificationsModalOpen(true)}>
+                    <BellIcon />
                   </IconButton>
                   {unreadNotifications > 0 && (
                     <Box
@@ -238,6 +252,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
           )}
         </Card>
       </Container>
+      <NotificationsModal open={notificationsModalOpen} onOpenChange={setNotificationsModalOpen} />
     </Box>
   );
 }

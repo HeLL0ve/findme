@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
-import { Avatar, Button, Card, Container, Dialog, Flex, Grid, Heading, Text, TextField } from '@radix-ui/themes';
+import { Avatar, Button, Card, Container, Dialog, Flex, Grid, Heading, Text, TextField, Badge } from '@radix-ui/themes';
 import { api } from '../api/axios';
 import AdCard, { type AdCardData } from '../components/ads/AdCard';
 import { extractApiErrorMessage } from '../shared/apiError';
@@ -11,9 +11,12 @@ import { roleLabel } from '../shared/labels';
 type ProfileDto = {
   id: string;
   email: string;
+  emailVerifiedAt?: string | null;
   name?: string | null;
   phone?: string | null;
   telegramUsername?: string | null;
+  telegramLinked?: boolean;
+  telegramLinkedAt?: string | null;
   avatarUrl?: string | null;
   role: 'USER' | 'ADMIN';
   notificationSettings?: {
@@ -45,6 +48,7 @@ export default function Profile() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [telegramActionLoading, setTelegramActionLoading] = useState(false);
   const [form, setForm] = useState<Partial<ProfileDto>>({});
   const [myAds, setMyAds] = useState<MyAd[]>([]);
   const [passwordForm, setPasswordForm] = useState<PasswordForm>({
@@ -163,153 +167,482 @@ export default function Profile() {
   }
 
   async function handleNotifyWebChange(value: boolean) {
-    if (value && typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      try {
-        await Notification.requestPermission();
-      } catch {
-        // ignore browser permission errors
+    let shouldEnable = value;
+
+    // Если пытаемся включить, запросим разрешение у браузера
+    if (value && typeof Notification !== 'undefined') {
+      if (Notification.permission === 'denied') {
+        alert('Push-уведомления запрещены. Измените это в настройках браузера.');
+        shouldEnable = false;
+      } else if (Notification.permission === 'default') {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            shouldEnable = false;
+          }
+        } catch (error) {
+          console.error('Error requesting notification permission:', error);
+          shouldEnable = false;
+        }
       }
     }
 
+    const newSettings = {
+      notifyWeb: shouldEnable,
+      notifyTelegram: Boolean(form.notificationSettings?.notifyTelegram),
+    };
+
     setForm((prev) => ({
       ...prev,
-      notificationSettings: {
-        notifyWeb: value,
-        notifyTelegram: Boolean(prev.notificationSettings?.notifyTelegram),
-      },
+      notificationSettings: newSettings,
     }));
+
+    // Instantly save to backend
+    try {
+      await api.put('/users/me', {
+        notifyWeb: shouldEnable,
+        notifyTelegram: newSettings.notifyTelegram,
+      });
+    } catch (err) {
+      console.error('Failed to save notification settings:', err);
+      setError('Не удалось сохранить настройки уведомлений');
+    }
+  }
+
+  async function handleNotifyTelegramChange(value: boolean) {
+    const newSettings = {
+      notifyWeb: Boolean(form.notificationSettings?.notifyWeb),
+      notifyTelegram: value,
+    };
+
+    setForm((prev) => ({
+      ...prev,
+      notificationSettings: newSettings,
+    }));
+
+    // Instantly save to backend
+    try {
+      await api.put('/users/me', {
+        notifyWeb: newSettings.notifyWeb,
+        notifyTelegram: value,
+      });
+    } catch (err) {
+      console.error('Failed to save notification settings:', err);
+    }
+  }
+
+  async function generateTelegramLink() {
+    setError(null);
+    setSuccess(null);
+    setTelegramActionLoading(true);
+    try {
+      const response = await api.get('/telegram/link');
+      const link = response.data?.link as string | undefined;
+      if (!link) {
+        setError('Не удалось сформировать ссылку привязки. Проверьте TELEGRAM_BOT_USERNAME в .env');
+        return;
+      }
+      window.open(link, '_blank', 'noopener,noreferrer');
+      setSuccess('Откройте Telegram по ссылке и отправьте /start боту.');
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось сформировать ссылку привязки Telegram'));
+    } finally {
+      setTelegramActionLoading(false);
+    }
+  }
+
+  async function unlinkTelegramAccount() {
+    setError(null);
+    setSuccess(null);
+    setTelegramActionLoading(true);
+    try {
+      await api.post('/telegram/unlink');
+      setForm((prev) => ({
+        ...prev,
+        telegramLinked: false,
+        telegramLinkedAt: null,
+      }));
+      setSuccess('Telegram-аккаунт отвязан');
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось отвязать Telegram'));
+    } finally {
+      setTelegramActionLoading(false);
+    }
   }
 
   if (loading) return <Container size="4"><Text>Загрузка...</Text></Container>;
 
   return (
-    <Container size="4">
-      <Flex direction="column" gap="4">
-        <Card>
-          <Heading size="7">Профиль</Heading>
-          <form onSubmit={saveProfile} className="form-root" style={{ marginTop: 16 }}>
-            <Flex direction="column" gap="3">
-              <Flex align="center" gap="3" wrap="wrap">
-                <Avatar src={avatarSrc} fallback={initials} size="6" radius="full" />
-                <Flex direction="column" gap="1">
-                  <Text size="2" color="gray">Аватар</Text>
-                  <input type="file" accept="image/*" onChange={uploadAvatar} />
+    <Flex direction="column" gap="0">
+      {/* Header */}
+      <Flex direction="column" gap="2" style={{
+        background: 'linear-gradient(135deg, var(--violet-2) 0%, var(--accent-soft) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
+        padding: 'var(--space-4)',
+      }}>
+        <Container size="4">
+          <Heading size="7" weight="bold">👤 Профиль</Heading>
+          <Text color="gray" size="2">Управляйте вашими данными, настройками и объявлениями</Text>
+        </Container>
+      </Flex>
+
+      <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+        <Flex direction={{ initial: 'column', md: 'row' }} gap="6">
+          {/* Left Column - Profile Settings */}
+          <Flex direction="column" gap="4" style={{ flex: 1 }}>
+            {/* Avatar & Basic Info */}
+            <Card>
+              <Flex direction="column" gap="4">
+                <Heading size="4" weight="bold">🖼️ Аватар профиля</Heading>
+
+                <Flex align="center" gap="4" direction={{ initial: 'column', sm: 'row' }}>
+                  <Avatar src={avatarSrc} fallback={initials} size="7" radius="full" style={{
+                    border: '3px solid var(--violet-8)',
+                  }} />
+                  <Flex direction="column" gap="3" style={{ flex: 1 }}>
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="bold" color="gray">Загрузить новый аватар</Text>
+                      <Text size="1" color="gray">Поддерживаются JPG, PNG, до 5 МБ</Text>
+                    </Flex>
+                    <label style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 'var(--space-2)',
+                      cursor: 'pointer',
+                      background: 'var(--violet-3)',
+                      padding: 'var(--space-2) var(--space-3)',
+                      borderRadius: 'var(--radius-2)',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      transition: 'all 0.2s ease',
+                    }} onMouseEnter={(e) => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.background = 'var(--violet-4)';
+                    }} onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.background = 'var(--violet-3)';
+                    }}>
+                      📁 Выбрать файл
+                      <input type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
+                    </label>
+                  </Flex>
                 </Flex>
               </Flex>
+            </Card>
 
-              <Text size="2" color="gray">Email</Text>
-              <Text>{form.email}</Text>
+            {/* Basic Information */}
+            <Card>
+              <form onSubmit={saveProfile} className="form-root">
+                <Flex direction="column" gap="4">
+                  <Heading size="4" weight="bold">ℹ️ Основная информация</Heading>
 
-              <TextField.Root
-                placeholder="Имя"
-                value={form.name ?? ''}
-                onChange={(event) => setForm({ ...form, name: event.target.value })}
-              />
-              <TextField.Root
-                placeholder="Телефон (+375XXXXXXXXX)"
-                value={form.phone ?? ''}
-                onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                pattern="\\+375(25|29|33|44)\\d{7}"
-              />
-              <TextField.Root
-                placeholder="Telegram username"
-                value={form.telegramUsername ?? ''}
-                onChange={(event) => setForm({ ...form, telegramUsername: event.target.value })}
-              />
+                  <Flex direction="column" gap="3">
+                    <Flex direction="column" gap="2">
+                      <Text size="2" weight="bold" color="gray">Email *</Text>
+                      <Card style={{
+                        background: 'var(--gray-a1)',
+                        padding: 'var(--space-2) var(--space-3)',
+                      }}>
+                        <Flex justify="between" align="center" gap="2">
+                          <Text size="2">{form.email}</Text>
+                          <Badge size="1" color={form.emailVerifiedAt ? 'green' : 'orange'}>
+                            {form.emailVerifiedAt ? 'Подтвержден' : 'Не подтвержден'}
+                          </Badge>
+                        </Flex>
+                      </Card>
+                    </Flex>
 
-              <Flex direction="column" gap="2">
-                <Text size="2" color="gray">Уведомления</Text>
-                <Flex align="center" gap="2">
-                  <Checkbox.Root
-                    checked={!!form.notificationSettings?.notifyWeb}
-                    onCheckedChange={(value) => void handleNotifyWebChange(Boolean(value))}
-                    id="notifyWeb"
-                    className="checkbox"
-                  >
-                    <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
-                  </Checkbox.Root>
-                  <label htmlFor="notifyWeb">Web-уведомления</label>
+                    <Flex direction="column" gap="2">
+                      <Text size="2" weight="bold" color="gray">Имя</Text>
+                      <TextField.Root
+                        placeholder="Ваше имя"
+                        value={form.name ?? ''}
+                        onChange={(event) => setForm({ ...form, name: event.target.value })}
+                      />
+                    </Flex>
+
+                    <Flex direction="column" gap="2">
+                      <Text size="2" weight="bold" color="gray">Телефон</Text>
+                      <TextField.Root
+                        placeholder="+375XXXXXXXXX"
+                        value={form.phone ?? ''}
+                        onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                        type="tel"
+                      />
+                      <Text size="1" color="gray">Видно только людям, с которыми вы общались</Text>
+                    </Flex>
+                  </Flex>
+
+                  <Button type="submit" size="2" style={{ width: '100%', fontWeight: 600 }}>
+                    💾 Сохранить изменения
+                  </Button>
                 </Flex>
+              </form>
+            </Card>
 
-                <Flex align="center" gap="2">
-                  <Checkbox.Root
-                    checked={!!form.notificationSettings?.notifyTelegram}
-                    onCheckedChange={(value) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        notificationSettings: {
-                          notifyWeb: Boolean(prev.notificationSettings?.notifyWeb),
-                          notifyTelegram: Boolean(value),
-                        },
-                      }))}
-                    id="notifyTelegram"
-                    className="checkbox"
-                  >
-                    <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
-                  </Checkbox.Root>
-                  <label htmlFor="notifyTelegram">Telegram-уведомления</label>
+            {/* Telegram */}
+            <Card style={{
+              background: 'var(--blue-a1)',
+              border: '1px solid var(--blue-a6)',
+            }}>
+              <Flex direction="column" gap="4">
+                <Heading size="4" weight="bold">✈️ Telegram</Heading>
+
+                <Flex direction="column" gap="3">
+                  <Flex direction="column" gap="2">
+                    <Text size="2" weight="bold" color="gray">Username Telegram (опционально)</Text>
+                    <form onSubmit={saveProfile}>
+                      <TextField.Root
+                        placeholder="@yourusername"
+                        value={form.telegramUsername ?? ''}
+                        onChange={(event) => setForm({ ...form, telegramUsername: event.target.value })}
+                      />
+                    </form>
+                    <Text size="1" color="gray">Людям будет показан ваш username для связи</Text>
+                  </Flex>
+
+                  <Flex direction="column" gap="2">
+                    <Text size="2" weight="bold" color="gray">Статус привязки</Text>
+                    <Card style={{
+                      background: form.telegramLinked ? 'var(--green-2)' : 'var(--gray-a1)',
+                      padding: 'var(--space-2) var(--space-3)',
+                    }}>
+                      <Flex justify="between" align="center" gap="2">
+                        <Text size="2">
+                          {form.telegramLinked ? 'Аккаунт привязан' : 'Аккаунт не привязан'}
+                        </Text>
+                        <Text size="1" color="gray">{form.telegramLinkedAt ? new Date(form.telegramLinkedAt).toLocaleDateString() : ''}</Text>
+                      </Flex>
+                    </Card>
+                  </Flex>
+
+                  <Flex gap="2" direction={{ initial: 'column', sm: 'row' }}>
+                    <Button
+                      type="button"
+                      variant="soft"
+                      onClick={() => void generateTelegramLink()}
+                      disabled={telegramActionLoading}
+                      style={{ flex: 1, fontWeight: 600 }}
+                    >
+                      {telegramActionLoading ? '⏳' : '🔗'} Привязать Telegram
+                    </Button>
+                    {form.telegramLinked && (
+                      <Button
+                        type="button"
+                        color="orange"
+                        variant="soft"
+                        onClick={() => void unlinkTelegramAccount()}
+                        disabled={telegramActionLoading}
+                        style={{ flex: 1, fontWeight: 600 }}
+                      >
+                        {telegramActionLoading ? '⏳' : '✕'} Отвязать
+                      </Button>
+                    )}
+                  </Flex>
                 </Flex>
               </Flex>
+            </Card>
 
-              <Text size="2">Роль: {roleLabel(form.role)}</Text>
+            {/* Notifications */}
+            <Card>
+              <Flex direction="column" gap="4">
+                <Heading size="4" weight="bold">🔔 Уведомления</Heading>
 
-              <Flex gap="2" wrap="wrap">
-                <Button type="submit">Сохранить профиль</Button>
+                <Flex direction="column" gap="3">
+                  <Flex align="center" gap="3" p="3" style={{
+                    background: form.notificationSettings?.notifyWeb ? 'var(--green-a1)' : 'var(--gray-a1)',
+                    borderRadius: 'var(--radius-2)',
+                    border: form.notificationSettings?.notifyWeb ? '1px solid var(--green-a6)' : '1px solid var(--gray-a6)',
+                    cursor: 'pointer',
+                  }} onClick={() => void handleNotifyWebChange(!form.notificationSettings?.notifyWeb)}>
+                    <Checkbox.Root
+                      checked={!!form.notificationSettings?.notifyWeb}
+                      onCheckedChange={(value) => void handleNotifyWebChange(Boolean(value))}
+                      className="checkbox"
+                    >
+                      <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+                    </Checkbox.Root>
+                    <Flex direction="column" gap="1">
+                      <Text weight="bold">💻 Web-уведомления</Text>
+                      <Text size="1" color="gray">Получайте уведомления в браузере</Text>
+                    </Flex>
+                  </Flex>
+
+                  <Flex align="center" gap="3" p="3" style={{
+                    background: form.notificationSettings?.notifyTelegram ? 'var(--blue-a1)' : 'var(--gray-a1)',
+                    borderRadius: 'var(--radius-2)',
+                    border: form.notificationSettings?.notifyTelegram ? '1px solid var(--blue-a6)' : '1px solid var(--gray-a6)',
+                    cursor: 'pointer',
+                  }} onClick={() => void handleNotifyTelegramChange(!form.notificationSettings?.notifyTelegram)}>
+                    <Checkbox.Root
+                      checked={!!form.notificationSettings?.notifyTelegram}
+                      onCheckedChange={(value) => void handleNotifyTelegramChange(Boolean(value))}
+                      className="checkbox"
+                    >
+                      <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
+                    </Checkbox.Root>
+                    <Flex direction="column" gap="1">
+                      <Text weight="bold">✈️ Telegram-уведомления</Text>
+                      <Text size="1" color="gray">Получайте уведомления в Telegram {form.telegramLinked ? '(привязан)' : '(не привязан)'}</Text>
+                    </Flex>
+                  </Flex>
+                </Flex>
+              </Flex>
+            </Card>
+
+            {/* Password & Security */}
+            <Card style={{
+              background: 'var(--red-a1)',
+              border: '1px solid var(--red-a6)',
+            }}>
+              <Flex direction="column" gap="4">
+                <Heading size="4" weight="bold">🔐 Безопасность</Heading>
+
+                <Flex direction="column" gap="2">
+                  <Text size="2" color="gray">Статус роли: <Text weight="bold">{roleLabel(form.role)}</Text></Text>
+                </Flex>
+
                 <Dialog.Root open={changePasswordOpen} onOpenChange={setChangePasswordOpen}>
                   <Dialog.Trigger>
-                    <Button type="button" variant="soft">Сменить пароль</Button>
+                    <Button type="button" color="orange" variant="soft" style={{ width: '100%', fontWeight: 600 }}>
+                      🔑 Сменить пароль
+                    </Button>
                   </Dialog.Trigger>
                   <Dialog.Content maxWidth="440px">
                     <Dialog.Title>Смена пароля</Dialog.Title>
-                    <form onSubmit={changePassword} className="form-root" style={{ marginTop: 12 }}>
-                      <TextField.Root
-                        type="password"
-                        placeholder="Текущий пароль"
-                        value={passwordForm.currentPassword}
-                        onChange={(event) =>
-                          setPasswordForm({ ...passwordForm, currentPassword: event.target.value })}
-                      />
-                      <TextField.Root
-                        type="password"
-                        placeholder="Новый пароль"
-                        value={passwordForm.newPassword}
-                        onChange={(event) =>
-                          setPasswordForm({ ...passwordForm, newPassword: event.target.value })}
-                      />
-                      <TextField.Root
-                        type="password"
-                        placeholder="Повторите новый пароль"
-                        value={passwordForm.repeatPassword}
-                        onChange={(event) =>
-                          setPasswordForm({ ...passwordForm, repeatPassword: event.target.value })}
-                      />
-                      <Flex justify="end" gap="2">
-                        <Dialog.Close>
-                          <Button type="button" variant="soft">Отмена</Button>
-                        </Dialog.Close>
-                        <Button type="submit">Обновить</Button>
+                    <Dialog.Description size="2" mb="3">
+                      Введите ваш текущий пароль и новый пароль для защиты аккаунта
+                    </Dialog.Description>
+                    <form onSubmit={changePassword} className="form-root">
+                      <Flex direction="column" gap="3">
+                        <Flex direction="column" gap="2">
+                          <Text size="2" weight="bold" color="gray">Текущий пароль *</Text>
+                          <TextField.Root
+                            type="password"
+                            placeholder="Введите текущий пароль"
+                            value={passwordForm.currentPassword}
+                            onChange={(event) =>
+                              setPasswordForm({ ...passwordForm, currentPassword: event.target.value })}
+                          />
+                        </Flex>
+                        <Flex direction="column" gap="2">
+                          <Text size="2" weight="bold" color="gray">Новый пароль * (минимум 6 символов)</Text>
+                          <TextField.Root
+                            type="password"
+                            placeholder="Введите новый пароль"
+                            value={passwordForm.newPassword}
+                            onChange={(event) =>
+                              setPasswordForm({ ...passwordForm, newPassword: event.target.value })}
+                          />
+                        </Flex>
+                        <Flex direction="column" gap="2">
+                          <Text size="2" weight="bold" color="gray">Подтверждение пароля *</Text>
+                          <TextField.Root
+                            type="password"
+                            placeholder="Повторите новый пароль"
+                            value={passwordForm.repeatPassword}
+                            onChange={(event) =>
+                              setPasswordForm({ ...passwordForm, repeatPassword: event.target.value })}
+                          />
+                        </Flex>
+
+                        {error && <Text color="red" size="2">{error}</Text>}
+
+                        <Flex justify="end" gap="2">
+                          <Dialog.Close>
+                            <Button type="button" variant="soft">Отмена</Button>
+                          </Dialog.Close>
+                          <Button type="submit">🔄 Обновить пароль</Button>
+                        </Flex>
                       </Flex>
                     </form>
                   </Dialog.Content>
                 </Dialog.Root>
               </Flex>
+            </Card>
 
-              {error && <Text color="red">{error}</Text>}
-              {success && <Text color="green">{success}</Text>}
-            </Flex>
-          </form>
-        </Card>
+            {/* Messages */}
+            {error && (
+              <Card style={{
+                background: 'var(--red-2)',
+                borderLeft: '3px solid var(--red-9)',
+              }}>
+                <Text color="red" size="2">{error}</Text>
+              </Card>
+            )}
+            {success && (
+              <Card style={{
+                background: 'var(--green-2)',
+                borderLeft: '3px solid var(--green-9)',
+              }}>
+                <Text color="green" size="2">{success}</Text>
+              </Card>
+            )}
+          </Flex>
 
-        <Flex direction="column" gap="2">
-          <Heading size="6">Мои объявления</Heading>
-          {myAds.length === 0 && <Text color="gray">У вас пока нет объявлений.</Text>}
-          <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="3">
-            {myAds.map((ad) => (
-              <AdCard key={ad.id} ad={ad} showDescription />
-            ))}
-          </Grid>
+          {/* Right Column - My Ads */}
+          <Flex direction="column" gap="4" style={{ flex: 1 }}>
+            <Card>
+              <Flex direction="column" gap="4">
+                <Flex justify="between" align="center" wrap="wrap" gap="2">
+                  <Heading size="4" weight="bold">📋 Мои объявления ({myAds.length})</Heading>
+                  <Button asChild size="2">
+                    <a href="/create-ad" style={{ textDecoration: 'none' }}>➕ Новое</a>
+                  </Button>
+                </Flex>
+
+                {myAds.length === 0 ? (
+                  <Card style={{
+                    background: 'var(--gray-a2)',
+                    textAlign: 'center',
+                    padding: 'var(--space-4)',
+                  }}>
+                    <Flex direction="column" gap="3" align="center" justify="center">
+                      <Text size="5">📭</Text>
+                      <Text color="gray" weight="bold">У вас пока нет объявлений</Text>
+                      <Text size="2" color="gray">Создайте первое объявление, чтобы помочь потерянным питомцам</Text>
+                      <Button asChild>
+                        <a href="/create-ad">➕ Создать объявление</a>
+                      </Button>
+                    </Flex>
+                  </Card>
+                ) : (
+                  <Grid columns={{ initial: '1', md: '1', lg: '2' }} gap="3">
+                    {myAds.map((ad) => (
+                      <AdCard key={ad.id} ad={ad} showDescription />
+                    ))}
+                  </Grid>
+                )}
+              </Flex>
+            </Card>
+          </Flex>
         </Flex>
-      </Flex>
-    </Container>
+      </Container>
+
+      <style>{`
+        .checkbox {
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border: 2px solid var(--gray-a7);
+          border-radius: 4px;
+          cursor: pointer;
+          background: white;
+          transition: all 0.2s;
+        }
+        .checkbox:hover {
+          border-color: var(--violet-8);
+        }
+        .checkbox[data-state="checked"] {
+          background: var(--violet-8);
+          border-color: var(--violet-8);
+        }
+        .checkbox-indicator {
+          color: white;
+          font-weight: bold;
+          font-size: 14px;
+        }
+      `}</style>
+    </Flex>
   );
 }
