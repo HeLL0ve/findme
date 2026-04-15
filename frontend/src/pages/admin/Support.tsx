@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Badge, Button, Card, Container, Flex, Heading, ScrollArea, Text, TextArea } from '@radix-ui/themes';
+import { Button, Card, Container, Flex, Heading, ScrollArea, Text, TextArea } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
@@ -161,8 +161,7 @@ export default function AdminSupportPage() {
                 ) : (
                   <Flex direction="column" gap="3" p="3">
                     {selectedMessages.map((msg, idx) => {
-                      const prevMsg = idx > 0 ? selectedMessages[idx - 1] : null;
-                    //   const showSenderName = !prevMsg || prevMsg.senderId !== msg.senderId;
+                      const showSenderName = idx === 0 || selectedMessages[idx - 1]?.senderId !== msg.senderId;
                       return (
                         <Flex
                           key={msg.id}
@@ -176,11 +175,11 @@ export default function AdminSupportPage() {
                             backgroundColor: msg.sender.role === 'ADMIN' ? 'var(--accent-3)' : 'var(--gray-3)',
                           }}
                         >
-                          {/* {showSenderName && (
+                          {showSenderName && (
                             <Text size="1" color={msg.sender.role === 'ADMIN' ? 'violet' : 'gray'}>
                               {msg.sender.name || (msg.sender.role === 'ADMIN' ? 'Админ' : 'Пользователь')}
                             </Text>
-                          )} */}
+                          )}
                           <Text size="2">{msg.text}</Text>
                           <Text size="1" color="gray">
                             {new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
