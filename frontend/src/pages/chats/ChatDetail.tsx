@@ -208,7 +208,7 @@ export default function ChatDetailPage() {
   if (!chat) return <Container size="4"><Text>{error || 'Загрузка...'}</Text></Container>;
 
   return (
-    <Flex direction="column" style={{ height: '100vh', maxWidth: 1140, margin: '0 auto', width: '100%' }}>
+    <Flex direction="column" style={{ height: '90vh', maxWidth: 1140, margin: '0 auto', width: '100%' }}>
       <Card className="chat-shell" style={{ padding: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Flex direction="column" style={{ height: '100%' }}>
           <Flex align="center" justify="between" gap="2" style={{ padding: 12, borderBottom: '1px solid var(--gray-a5)' }}>

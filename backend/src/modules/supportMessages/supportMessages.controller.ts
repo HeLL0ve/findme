@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../../prisma/client';
+import { prisma } from '../../config/prisma';
 
 export const supportMessagesController = {
   async getAdminChatMessages(req: Request, res: Response) {
