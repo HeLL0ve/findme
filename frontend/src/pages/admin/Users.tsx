@@ -91,7 +91,7 @@ export default function AdminUsers() {
   return (
     <Container size="3">
       <Flex direction="column" gap="4">
-        <Heading size="8">Пользователи ({users.length})</Heading>
+        <Heading size="8" style={{margin: '10px'}}>Пользователи ({users.length})</Heading>
         <Flex direction="column" gap="3">
           {users.map((user) => (
             <UserProfileCard
