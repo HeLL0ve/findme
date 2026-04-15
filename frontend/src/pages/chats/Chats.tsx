@@ -91,7 +91,7 @@ export default function ChatsPage() {
       <Container size="4" style={{ paddingTop: 'var(--space-4)', paddingBottom: 'var(--space-6)' }}>
         <Flex direction="column" gap="4" style={{ minHeight: 'calc(100vh - 280px)' }}>
           {/* Search & Stats */}
-          <Flex gap="3" direction={{ initial: 'column', md: 'row' }} align="end">
+          <Flex gap="3" direction={{ initial: 'column', lg: 'row' }} align={{ initial: 'stretch', lg: 'end' }}>
             <Flex direction="column" gap="2" style={{ flex: 1 }}>
               <Flex align="center" gap="2">
                 <SearchIcon width={16} height={16} />
@@ -107,6 +107,8 @@ export default function ChatsPage() {
               background: 'var(--violet-a2)',
               border: '1px solid var(--violet-a6)',
               padding: 'var(--space-3)',
+              minWidth: '140px',
+              flexShrink: 0,
             }}>
               <Flex direction="row" gap="1" align="center">
                 <Text size="2" weight="bold">{chats.length}</Text>
