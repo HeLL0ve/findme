@@ -192,7 +192,7 @@ export async function sendAdApprovedToTelegramChannel(ad: ApprovedAdPayload) {
   if (photos.length > 0) {
     if (photos.length === 1) {
       // Send single photo with caption and button
-      return sendTelegramPhoto(chatId, photos[0], caption, replyMarkup);
+      return sendTelegramPhoto(chatId, photos[0]!, caption, replyMarkup);
     } else {
       // Send multiple photos as media group, then send caption with button
       await sendTelegramMediaGroup(chatId, photos, caption);

@@ -27,6 +27,7 @@ import AdminDashboard from '../pages/admin/Dashboard';
 import AdminUsers from '../pages/admin/Users';
 import AdminAdsPage from '../pages/admin/Ads';
 import AdminComplaintsPage from '../pages/admin/Complaints';
+import AdminSupportPage from '../pages/admin/Support';
 import AdminStatsPage from '../pages/admin/Stats';
 import NotificationsPage from '../pages/Notifications';
 import SupportPage from '../pages/Support';
@@ -114,6 +115,7 @@ export default function App() {
           <Route path="/admin/users" element={<ProtectedRoute requiredRole="ADMIN"><AdminUsers /></ProtectedRoute>} />
           <Route path="/admin/ads" element={<ProtectedRoute requiredRole="ADMIN"><AdminAdsPage /></ProtectedRoute>} />
           <Route path="/admin/complaints" element={<ProtectedRoute requiredRole="ADMIN"><AdminComplaintsPage /></ProtectedRoute>} />
+          <Route path="/admin/support" element={<ProtectedRoute requiredRole="ADMIN"><AdminSupportPage /></ProtectedRoute>} />
           <Route path="/admin/stats" element={<ProtectedRoute requiredRole="ADMIN"><AdminStatsPage /></ProtectedRoute>} />
         </Routes>
         <Footer />

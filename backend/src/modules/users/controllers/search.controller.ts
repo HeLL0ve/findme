@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../../../prisma/client';
+import { prisma } from '../../../config/prisma';
 
 export const searchController = {
   async searchUsers(req: Request, res: Response) {

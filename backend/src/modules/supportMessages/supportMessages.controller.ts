@@ -125,7 +125,7 @@ export const supportMessagesController = {
   async replyToSupportMessage(req: Request, res: Response) {
     try {
       const adminId = (req as any).user?.userId;
-      const { userId } = req.params;
+      const userId = req.params.userId as string;
       const { text } = req.body;
 
       const userRole = (req as any).user?.role;
@@ -150,6 +150,14 @@ export const supportMessagesController = {
               name: true,
               avatarUrl: true,
               role: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatarUrl: true,
             },
           },
         },

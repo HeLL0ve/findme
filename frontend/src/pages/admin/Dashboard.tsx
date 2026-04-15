@@ -242,11 +242,16 @@ export default function AdminDashboard() {
                     <Heading size="3">Жалобы и поддержка</Heading>
                   </Flex>
                   <Text size="2" color="gray">
-                    Рассмотрение и обработка обращений пользователей
+                    Рассмотрение и обработка обращений и поддержки
                   </Text>
-                  <Button asChild variant="soft">
-                    <Link to="/admin/complaints">Открыть →</Link>
-                  </Button>
+                  <Flex gap="2">
+                    <Button asChild variant="soft" style={{ flex: 1 }}>
+                      <Link to="/admin/complaints">Жалобы →</Link>
+                    </Button>
+                    <Button asChild variant="soft" style={{ flex: 1 }}>
+                      <Link to="/admin/support">Поддержка →</Link>
+                    </Button>
+                  </Flex>
                 </Flex>
               </Card>
 
