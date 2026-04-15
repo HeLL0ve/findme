@@ -47,8 +47,14 @@ export default function LoginPage() {
       navigate('/');
     } catch (err) {
       const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code;
-      if (code === 'EMAIL_NOT_VERIFIED') setNeedsVerification(true);
-      setError(extractApiErrorMessage(err, 'Ошибка входа'));
+      if (code === 'EMAIL_NOT_VERIFIED') {
+        setNeedsVerification(true);
+        setError('Подтвердите email перед входом. Отправить письмо повторно ?');
+      } else if (code === 'INVALID_CREDENTIALS') {
+        setError('Неверный email или пароль');
+      } else {
+        setError(extractApiErrorMessage(err, 'Ошибка входа'));
+      }
     } finally {
       setSubmitting(false);
     }

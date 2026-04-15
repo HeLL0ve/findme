@@ -110,7 +110,7 @@ export default function ChatsPage() {
               minWidth: '140px',
               flexShrink: 0,
             }}>
-              <Flex direction="row" gap="1" align="center">
+              <Flex direction="row" gap="1" align="center" style={{height: '8px'}}>
                 <Text size="2" weight="bold">{chats.length}</Text>
                 <Text size="1" color="gray">чатов</Text>
               </Flex>

@@ -205,6 +205,7 @@ export default function UserProfileCard({
 
         {/* Actions Section */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          
           {onStartChat && (
             <Button
               size="2"
@@ -254,7 +255,7 @@ export default function UserProfileCard({
                   color={user.role === 'ADMIN' ? 'orange' : 'violet'}
                   size="2"
                 >
-                  {user.role === 'ADMIN' ? 'Снять' : 'Админ'}
+                  {user.role === 'ADMIN' ? 'Снять админа' : 'Сделать админом'}
                 </Button>
               }
             />

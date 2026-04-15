@@ -306,8 +306,9 @@ export default function AdminSupportChat() {
                 }
               }}
               style={{
-                minHeight: '60px',
-                maxHeight: '120px',
+                minHeight: 44,
+                maxHeight: 120,
+                padding: '8px 12px',
                 resize: 'vertical',
               }}
             />
@@ -315,7 +316,8 @@ export default function AdminSupportChat() {
               onClick={() => void handleSendMessage()}
               disabled={!newMessage.trim() || loading}
               style={{
-                width: '100%',
+                height: 44,
+                minWidth: '80px',
               }}
             >
               <SendIcon width={16} height={16} />

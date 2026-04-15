@@ -64,10 +64,17 @@ export default function App() {
           return;
         }
 
-        const refreshed = await api.post('/auth/refresh');
-        if (!mounted) return;
-        setAccessToken(refreshed.data.accessToken);
-        setUser(refreshed.data.user);
+        try {
+          const refreshed = await api.post('/auth/refresh');
+          if (!mounted) return;
+          setAccessToken(refreshed.data.accessToken);
+          setUser(refreshed.data.user);
+        } catch (_refreshError) {
+          // No refresh token or refresh failed - user is not logged in, this is OK
+          if (!mounted) return;
+          setAccessToken(null);
+          setUser(null);
+        }
       } catch (_error) {
         if (!mounted) return;
         setAccessToken(null);

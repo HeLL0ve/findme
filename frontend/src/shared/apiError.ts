@@ -3,16 +3,26 @@ export function extractApiErrorMessage(error: unknown, fallback = 'Произо�
     response?: {
       data?: {
         message?: unknown;
+        error?: unknown;
         details?: unknown;
       };
     };
+    message?: unknown;
   };
 
+  // Try message field first
   const message = e?.response?.data?.message;
   if (typeof message === 'string' && message.trim()) {
     return message;
   }
 
+  // Try error field second
+  const errorField = e?.response?.data?.error;
+  if (typeof errorField === 'string' && errorField.trim()) {
+    return errorField;
+  }
+
+  // Try details field
   const details = e?.response?.data?.details;
   if (Array.isArray(details) && details.length > 0 && typeof details[0] === 'string') {
     return details[0];
@@ -27,6 +37,12 @@ export function extractApiErrorMessage(error: unknown, fallback = 'Произо�
     if (Array.isArray(first) && typeof first[0] === 'string') {
       return first[0];
     }
+  }
+
+  // Try error message property (for network errors)
+  const errorMessage = e?.message;
+  if (typeof errorMessage === 'string' && errorMessage.trim() && errorMessage !== 'Error') {
+    return errorMessage;
   }
 
   return fallback;

@@ -208,7 +208,7 @@ export default function ChatDetailPage() {
   if (!chat) return <Container size="4"><Text>{error || 'Загрузка...'}</Text></Container>;
 
   return (
-    <Flex direction="column" style={{ height: '90vh', maxWidth: 1140, margin: '0 auto', width: '100%' }}>
+    <Flex direction="column" style={{ height: '55vh', maxWidth: 1140, margin: '0 auto', width: '100%' }}>
       <Card className="chat-shell" style={{ padding: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Flex direction="column" style={{ height: '100%' }}>
           <Flex align="center" justify="between" gap="2" style={{ padding: 12, borderBottom: '1px solid var(--gray-a5)' }}>
@@ -305,7 +305,7 @@ export default function ChatDetailPage() {
               placeholder="Введите сообщение..."
               value={input}
               onChange={(event) => handleInputChange(event.target.value)}
-              style={{ flex: 1, minHeight: 44 }}
+              style={{ flex: 1, minHeight: 44, maxHeight: 120 }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' && !event.shiftKey) {
                   event.preventDefault();
@@ -313,7 +313,7 @@ export default function ChatDetailPage() {
                 }
               }}
             />
-            <Button onClick={() => void sendMessage()}>Отправить</Button>
+            <Button onClick={() => void sendMessage()} style={{ height: 50, alignSelf: 'stretch'}}>Отправить</Button>
           </Flex>
         </Flex>
       </Card>

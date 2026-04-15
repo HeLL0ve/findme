@@ -52,7 +52,6 @@ export default function AdminSupportPage() {
   const userChats = Array.from(new Map(messages.map(m => [m.userId, m.user])).entries()).map(([userId, user]) => ({
     userId,
     user,
-    unreadCount: messages.filter(m => m.userId === userId && m.sender.role === 'USER').length,
     lastMessage: messages.filter(m => m.userId === userId).at(-1),
   }));
 
@@ -95,7 +94,7 @@ export default function AdminSupportPage() {
 
   return (
     <Container size="4" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Heading size="6" mb="4">Чатов поддержки</Heading>
+      <Heading size="6" mb="4" style={{margin: '15px'}}>Чаты поддержки</Heading>
 
       <Flex gap="4" style={{ flex: 1, minHeight: 0 }}>
         {/* Users list */}
@@ -121,12 +120,9 @@ export default function AdminSupportPage() {
                 >
                   <UserAvatarLink userId={chat.user.id} name={chat.user.name} email={chat.user.email} avatarUrl={chat.user.avatarUrl} size="1" />
                   <Flex direction="column" style={{ flex: 1, minWidth: 0 }}>
-                    <Text weight="medium" size="2" truncate>{chat.user.name || chat.user.email}</Text>
+                    {/* <Text weight="medium" size="2" truncate>{chat.user.name || chat.user.email}</Text> */}
                     <Text size="1" color="gray" truncate>{chat.lastMessage?.text}</Text>
                   </Flex>
-                  {chat.unreadCount > 0 && (
-                    <Badge color="red" size="1">{chat.unreadCount}</Badge>
-                  )}
                 </Flex>
               ))
             )}
@@ -145,13 +141,13 @@ export default function AdminSupportPage() {
               <Flex pb="3" style={{ borderBottom: '1px solid var(--gray-3)' }} align="center" gap="2">
                 <UserAvatarLink userId={selectedChat.user.id} name={selectedChat.user.name} email={selectedChat.user.email} avatarUrl={selectedChat.user.avatarUrl} />
                 <Flex direction="column">
-                  <Text weight="medium">{selectedChat.user.name || selectedChat.user.email}</Text>
+                  {/* <Text weight="medium">{selectedChat.user.name || selectedChat.user.email}</Text> */}
                   <Text size="1" color="gray">{selectedChat.user.email}</Text>
                 </Flex>
               </Flex>
 
               {/* Messages */}
-              <ScrollArea style={{ flex: 1, marginBottom: '12px' }}>
+              <ScrollArea style={{ flex: 1, marginBottom: '12px', minHeight: '300px', height: '500px' }}>
                 {selectedMessages.length === 0 ? (
                   <Flex direction="column" align="center" justify="center" style={{ height: '300px', padding: '20px' }}>
                     <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>
@@ -166,7 +162,7 @@ export default function AdminSupportPage() {
                   <Flex direction="column" gap="3" p="3">
                     {selectedMessages.map((msg, idx) => {
                       const prevMsg = idx > 0 ? selectedMessages[idx - 1] : null;
-                      const showSenderName = !prevMsg || prevMsg.senderId !== msg.senderId;
+                    //   const showSenderName = !prevMsg || prevMsg.senderId !== msg.senderId;
                       return (
                         <Flex
                           key={msg.id}
@@ -180,11 +176,11 @@ export default function AdminSupportPage() {
                             backgroundColor: msg.sender.role === 'ADMIN' ? 'var(--accent-3)' : 'var(--gray-3)',
                           }}
                         >
-                          {showSenderName && (
+                          {/* {showSenderName && (
                             <Text size="1" color={msg.sender.role === 'ADMIN' ? 'violet' : 'gray'}>
                               {msg.sender.name || (msg.sender.role === 'ADMIN' ? 'Админ' : 'Пользователь')}
                             </Text>
-                          )}
+                          )} */}
                           <Text size="2">{msg.text}</Text>
                           <Text size="1" color="gray">
                             {new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
@@ -197,18 +193,18 @@ export default function AdminSupportPage() {
               </ScrollArea>
 
               {/* Reply input */}
-              <Flex gap="2">
+              <Flex gap="2" style={{ borderTop: '1px solid var(--gray-a5)', paddingTop: '12px' }}>
                 <TextArea
                   placeholder="Ответить..."
                   value={replyText}
                   onChange={e => setReplyText(e.target.value)}
-                  style={{ flex: 1, minHeight: '40px', maxHeight: '120px' }}
+                  style={{ flex: 1, minHeight: 44, maxHeight: 120}}
                   disabled={sendingReply}
                 />
                 <Button
                   onClick={() => handleSendReply()}
                   disabled={!replyText.trim() || sendingReply}
-                  style={{ alignSelf: 'flex-end' }}
+                  style={{ height: 50, alignSelf: 'stretch' }}
                 >
                   <SendIcon />
                 </Button>
