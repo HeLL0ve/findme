@@ -111,7 +111,7 @@ export default function AdminChatWidget() {
           height: '60px',
           borderRadius: '50%',
           border: 'none',
-          background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+          background: 'var(--chat-user-bg)',
           color: 'white',
           cursor: 'pointer',
           display: 'flex',
@@ -168,10 +168,10 @@ export default function AdminChatWidget() {
             right: 0,
             width: 'min(340px, calc(100vw - 32px))',
             height: '480px',
-            background: 'white',
+            background: 'var(--surface)',
             borderRadius: '16px',
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 20px 48px rgba(0, 0, 0, 0.12)',
+            border: '1px solid var(--gray-a5)',
+            boxShadow: '0 20px 48px var(--gray-a6)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -182,8 +182,8 @@ export default function AdminChatWidget() {
           <div
             style={{
               padding: '16px',
-              borderBottom: '1px solid #f3f4f6',
-              background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+              borderBottom: '1px solid var(--gray-a5)',
+              background: 'var(--chat-user-bg)',
               color: 'white',
               display: 'flex',
               justifyContent: 'space-between',
@@ -213,7 +213,7 @@ export default function AdminChatWidget() {
               flex: 1,
               overflowY: 'auto',
               padding: '16px 12px',
-              background: 'linear-gradient(to bottom, #ffffff 0%, #fafafa 100%)',
+              background: 'linear-gradient(to bottom, var(--surface) 0%, var(--gray-a1) 100%)',
             }}
           >
             {loading && (
@@ -243,8 +243,8 @@ export default function AdminChatWidget() {
                     maxWidth: '80%',
                     padding: '10px 14px',
                     borderRadius: msg.sender === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
-                    background: msg.sender === 'user' ? 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)' : '#f3f4f6',
-                    color: msg.sender === 'user' ? 'white' : '#1f2937',
+                    background: msg.sender === 'user' ? 'var(--chat-user-bg)' : 'var(--chat-admin-bg)',
+                    color: msg.sender === 'user' ? 'var(--chat-user-text)' : 'var(--chat-admin-text)',
                     boxShadow: msg.sender === 'user' ? '0 4px 12px rgba(124, 58, 237, 0.2)' : 'none',
                     transition: 'all 0.2s ease',
                   }}
@@ -272,7 +272,7 @@ export default function AdminChatWidget() {
           </div>
 
           {/* Input */}
-          <div style={{ padding: '12px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
+          <div style={{ padding: '12px', borderTop: '1px solid var(--gray-a5)', background: 'var(--gray-2)' }}>
             <Flex gap="2">
               <input
                 type="text"
@@ -288,22 +288,23 @@ export default function AdminChatWidget() {
                 style={{
                   flex: 1,
                   padding: '10px 14px',
-                  border: '1px solid #e5e7eb',
+                  border: '1px solid var(--gray-a5)',
                   borderRadius: '8px',
                   fontSize: '14px',
                   fontFamily: 'inherit',
                   transition: 'all 0.2s ease',
                   outline: 'none',
-                  backgroundColor: '#f9fafb',
+                  backgroundColor: 'var(--gray-1)',
+                  color: 'var(--gray-12)',
                 }}
                 onFocus={(e) => {
-                  (e.currentTarget as HTMLInputElement).style.borderColor = '#7c3aed';
-                  (e.currentTarget as HTMLInputElement).style.backgroundColor = '#fff';
-                  (e.currentTarget as HTMLInputElement).style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                  (e.currentTarget as HTMLInputElement).style.borderColor = 'var(--violet-a7)';
+                  (e.currentTarget as HTMLInputElement).style.backgroundColor = 'var(--surface)';
+                  (e.currentTarget as HTMLInputElement).style.boxShadow = '0 0 0 3px var(--violet-a3)';
                 }}
                 onBlur={(e) => {
-                  (e.currentTarget as HTMLInputElement).style.borderColor = '#e5e7eb';
-                  (e.currentTarget as HTMLInputElement).style.backgroundColor = '#f9fafb';
+                  (e.currentTarget as HTMLInputElement).style.borderColor = 'var(--gray-a5)';
+                  (e.currentTarget as HTMLInputElement).style.backgroundColor = 'var(--gray-1)';
                   (e.currentTarget as HTMLInputElement).style.boxShadow = 'none';
                 }}
               />
@@ -312,7 +313,7 @@ export default function AdminChatWidget() {
                 disabled={!newMessage.trim()}
                 style={{
                   padding: '10px 16px',
-                  background: newMessage.trim() ? 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)' : '#d1d5db',
+                  background: newMessage.trim() ? 'var(--chat-user-bg)' : 'var(--gray-6)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',

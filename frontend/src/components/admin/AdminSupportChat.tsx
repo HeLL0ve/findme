@@ -266,7 +266,7 @@ export default function AdminSupportChat() {
                           ? 'var(--violet-3)'
                           : isOwn
                             ? 'var(--blue-3)'
-                            : 'white',
+                            : 'var(--gray-2)',
                         border: '1px solid var(--gray-a5)',
                         wordBreak: 'break-word',
                       }}
@@ -292,7 +292,7 @@ export default function AdminSupportChat() {
             style={{
               padding: 'var(--space-3)',
               borderTop: '1px solid var(--gray-a5)',
-              background: 'white',
+              background: 'var(--gray-2)',
             }}
           >
             <TextArea

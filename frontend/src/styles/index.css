@@ -29,19 +29,14 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(900px 420px at -10% -20%, rgba(168, 150, 205, 0.15), transparent 60%),
-    radial-gradient(800px 360px at 95% -25%, rgba(186, 165, 220, 0.12), transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  background: var(--bg);
   z-index: -1;
   pointer-events: none;
 }
 
-[data-theme='dark'] body::before {
-  background:
-    radial-gradient(900px 420px at -10% -20%, rgba(168, 150, 205, 0.18), transparent 62%),
-    radial-gradient(800px 360px at 95% -25%, rgba(186, 165, 220, 0.12), transparent 62%),
-    linear-gradient(180deg, rgba(12, 13, 30, 0.92), rgba(6, 7, 16, 0.4));
+/* Ensure text color follows theme */
+body {
+  color: var(--text);
 }
 
 a {

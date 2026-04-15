@@ -44,8 +44,8 @@ export default function AdCard({
       cursor: 'pointer',
       height: '100%',
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, rgba(245, 245, 250, 1) 0%, rgba(240, 240, 248, 1) 100%)',
-      border: '1px solid rgba(200, 200, 220, 0.3)',
+      background: 'linear-gradient(135deg, var(--surface) 0%, var(--gray-a1) 100%)',
+      border: '1px solid var(--gray-a5)',
     }} onMouseEnter={(e) => {
       const card = e.currentTarget as HTMLElement;
       card.style.transform = 'translateY(-8px)';

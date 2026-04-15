@@ -98,7 +98,7 @@ export default function AdminSupportPage() {
 
       <Flex gap="4" style={{ flex: 1, minHeight: 0 }}>
         {/* Users list */}
-        <Card style={{ width: '280px', display: 'flex', flexDirection: 'column' }}>
+        <Card style={{ width: '280px', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--gray-2)' }}>
           <ScrollArea>
             {userChats.length === 0 ? (
               <Text as="p" size="2" color="gray">Нет чатов</Text>
@@ -112,7 +112,7 @@ export default function AdminSupportPage() {
                     cursor: 'pointer',
                     borderRadius: '6px',
                     marginBottom: '4px',
-                    backgroundColor: selectedUserId === chat.userId ? 'var(--gray-3)' : 'transparent',
+                    backgroundColor: selectedUserId === chat.userId ? 'var(--violet-3)' : 'transparent',
                     transition: 'background-color 0.2s',
                   }}
                   gap="2"
@@ -130,7 +130,7 @@ export default function AdminSupportPage() {
         </Card>
 
         {/* Chat view */}
-        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--gray-1)' }}>
           {!selectedChat ? (
             <Flex direction="column" align="center" justify="center" style={{ flex: 1 }}>
               <Text color="gray" align="center">Нет выбранного чата</Text>
@@ -138,7 +138,7 @@ export default function AdminSupportPage() {
           ) : (
             <>
               {/* Chat header */}
-              <Flex pb="3" style={{ borderBottom: '1px solid var(--gray-3)' }} align="center" gap="2">
+              <Flex pb="3" style={{ borderBottom: '1px solid var(--gray-a5)' }} align="center" gap="2">
                 <UserAvatarLink userId={selectedChat.user.id} name={selectedChat.user.name} email={selectedChat.user.email} avatarUrl={selectedChat.user.avatarUrl} />
                 <Flex direction="column">
                   {/* <Text weight="medium">{selectedChat.user.name || selectedChat.user.email}</Text> */}
@@ -172,7 +172,8 @@ export default function AdminSupportPage() {
                             maxWidth: '60%',
                             padding: '8px 12px',
                             borderRadius: '8px',
-                            backgroundColor: msg.sender.role === 'ADMIN' ? 'var(--accent-3)' : 'var(--gray-3)',
+                            backgroundColor: msg.sender.role === 'ADMIN' ? 'var(--violet-4)' : 'var(--gray-3)',
+                            color: msg.sender.role === 'ADMIN' ? 'var(--gray-12)' : 'var(--gray-12)',
                           }}
                         >
                           {showSenderName && (
@@ -192,7 +193,7 @@ export default function AdminSupportPage() {
               </ScrollArea>
 
               {/* Reply input */}
-              <Flex gap="2" style={{ borderTop: '1px solid var(--gray-a5)', paddingTop: '12px' }}>
+              <Flex gap="2" style={{ borderTop: '1px solid var(--gray-a4)', paddingTop: '12px', backgroundColor: 'var(--gray-1)', padding: '12px' }}>
                 <TextArea
                   placeholder="Ответить..."
                   value={replyText}

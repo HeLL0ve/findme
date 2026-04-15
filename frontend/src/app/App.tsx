@@ -38,16 +38,25 @@ export default function App() {
   const setUser = useAuthStore((state) => state.setUser);
   const setInitialized = useAuthStore((state) => state.setInitialized!);
 
-  const [appearance, setAppearance] = useState<'light' | 'dark'>(() =>
-    localStorage.getItem('appearance') === 'dark' ? 'dark' : 'light',
-  );
+  const [appearance, setAppearance] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('appearance');
+    return saved === 'light' || saved === 'dark' ? saved : 'light';
+  });
 
   useWsConnection();
   useBrowserNotifications();
 
+  // Sync appearance to CSS attribute so theme respects user's choice
   useEffect(() => {
-    document.documentElement.dataset.theme = appearance;
     localStorage.setItem('appearance', appearance);
+    // Also ensure the colorScheme CSS property is set
+    if (appearance === 'dark') {
+      document.documentElement.classList.add('dark-mode');
+      document.documentElement.classList.remove('light-mode');
+    } else {
+      document.documentElement.classList.add('light-mode');
+      document.documentElement.classList.remove('dark-mode');
+    }
   }, [appearance]);
 
   useEffect(() => {

@@ -107,7 +107,7 @@ export default function UserProfileCard({
           padding: '20px',
           borderRadius: '12px',
           border: '1px solid var(--gray-a6)',
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
+          background: 'linear-gradient(135deg, var(--surface) 0%, var(--gray-a1) 100%)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onMouseEnter={(e) => {
@@ -156,10 +156,10 @@ export default function UserProfileCard({
         {/* Contact Info Section */}
         {showContactInfo && (user.email || user.phone || user.telegramUsername) && (
           <div style={{
-            background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)',
+            background: 'linear-gradient(135deg, var(--accent-soft) 0%, var(--accent-soft) 100%)',
             padding: '14px 16px',
             borderRadius: '10px',
-            border: '1px solid rgba(124, 58, 237, 0.1)',
+            border: '1px solid var(--gray-a5)',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
@@ -214,7 +214,7 @@ export default function UserProfileCard({
                 onStartChat(user.id);
               }}
               style={{
-                background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                background: 'var(--chat-user-bg)',
                 cursor: 'pointer',
               }}
             >

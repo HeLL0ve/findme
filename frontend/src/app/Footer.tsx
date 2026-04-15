@@ -6,8 +6,8 @@ export default function Footer() {
 
   return (
     <footer style={{
-      background: 'rgba(200, 200, 220, 0.05)',
-      borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+      background: 'var(--gray-a2)',
+      borderTop: '1px solid var(--gray-a4)',
       marginTop: '60px',
     }}>
       <Container size="4">

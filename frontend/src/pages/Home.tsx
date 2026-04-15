@@ -51,8 +51,8 @@ export default function Home() {
     <Flex direction="column" gap="0">
       {/* Hero Section */}
       <Section size={{ initial: '2', md: '3' }} style={{
-        background: 'linear-gradient(135deg, rgba(237, 232, 255, 1) 0%, rgba(245, 243, 255, 1) 100%)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+        background: 'linear-gradient(135deg, var(--violet-2) 0%, var(--violet-a2) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
       }}>
         <Container size="4">
           <Flex direction={{ initial: 'column', md: 'row' }} gap={{ initial: '6', md: '8' }} align="center" justify="between" style={{ minHeight: '320px' }}>
@@ -60,7 +60,7 @@ export default function Home() {
             <Flex direction="column" gap={{ initial: '4', md: '5' }} style={{ flex: 1 }}>
               <Flex direction="column" gap="3">
                 <Heading size={{ initial: '7', md: '9' }} weight="bold" style={{
-                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 1) 0%, rgba(124, 58, 237, 0.8) 100%)',
+                  background: 'linear-gradient(135deg, var(--violet-11) 0%, var(--violet-10) 100%)',
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -109,18 +109,18 @@ export default function Home() {
 
             {/* Правая часть - Статистика онлайна */}
             <Box style={{
-              background: 'rgba(237, 232, 255, 0.7)',
+              background: 'var(--violet-a2)',
               borderRadius: '12px',
               padding: '16px',
               minWidth: '240px',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
-              border: '2px solid rgba(124, 58, 237, 0.4)',
+              boxShadow: '0 4px 16px var(--shadow-3)',
+              border: '2px solid var(--violet-a6)',
             }}>
               <Flex direction="column" gap="3" align="center">
                 <Flex direction="column" gap="2" align="center">
                   <Text size="1" weight="bold" color="gray">АКТИВНО СЕЙЧАС</Text>
                   <Heading size="8" style={{
-                    color: 'rgba(124, 58, 237, 1)',
+                    color: 'var(--violet-11)',
                   }}>
                     {online}
                   </Heading>
@@ -167,7 +167,7 @@ export default function Home() {
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} style={{
                   height: '320px',
-                  background: 'rgba(200, 200, 220, 0.2)',
+                  background: 'var(--gray-a2)',
                   animation: 'pulse 2s infinite',
                 }}>
                   <Box style={{ height: '100%' }} />
@@ -182,7 +182,7 @@ export default function Home() {
             </Grid>
           ) : (
             <Card style={{
-              background: 'rgba(200, 200, 220, 0.1)',
+              background: 'var(--gray-a1)',
               textAlign: 'center',
               padding: '24px',
             }}>
@@ -199,13 +199,13 @@ export default function Home() {
 
         {/* Banner/Image Section - место для картинки */}
         <Card style={{
-          background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
+          background: 'linear-gradient(135deg, var(--violet-a2) 0%, var(--blue-a2) 100%)',
           overflow: 'hidden',
           height: '280px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          border: '2px dashed rgba(124, 58, 237, 0.3)',
+          border: '2px dashed var(--violet-a5)',
           marginTop: '32px',
         }}>
           <Flex direction="column" gap="3" align="center" justify="center">

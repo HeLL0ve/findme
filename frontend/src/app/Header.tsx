@@ -89,8 +89,8 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
       top: 0, 
       zIndex: 20, 
       backdropFilter: 'blur(10px)',
-      background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85))',
-      borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+      background: 'linear-gradient(to bottom, var(--gray-surface), color-mix(in oklab, var(--gray-surface) 95%, var(--gray-a2)))',
+      borderBottom: '1px solid var(--gray-a4)',
     }}>
       <Container size="4" style={{ maxWidth: 1600, width: '100%', marginInline: 'auto' }}>
         <Card style={{ 
