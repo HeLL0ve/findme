@@ -8,7 +8,7 @@ import { useBrowserNotifications } from '../shared/useBrowserNotifications';
 import Header from './Header';
 import Footer from './Footer';
 import ProtectedRoute from '../shared/ProtectedRoute';
-import AdminChatWidget from '../components/admin/AdminChatWidget';
+import AdminSupportChat from '../components/admin/AdminSupportChat';
 import Home from '../pages/Home';
 import AdsList from '../pages/ads/List';
 import AdDetail from '../pages/ads/Detail';
@@ -117,7 +117,7 @@ export default function App() {
           <Route path="/admin/stats" element={<ProtectedRoute requiredRole="ADMIN"><AdminStatsPage /></ProtectedRoute>} />
         </Routes>
         <Footer />
-        <AdminChatWidget />
+        <AdminSupportChat />
       </BrowserRouter>
     </Theme>
   );

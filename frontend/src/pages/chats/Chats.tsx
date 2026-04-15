@@ -108,8 +108,8 @@ export default function ChatsPage() {
               border: '1px solid var(--violet-a6)',
               padding: 'var(--space-3)',
             }}>
-              <Flex direction="column" gap="1" align="center">
-                <Text size="3" weight="bold">{chats.length}</Text>
+              <Flex direction="row" gap="1" align="center">
+                <Text size="2" weight="bold">{chats.length}</Text>
                 <Text size="1" color="gray">чатов</Text>
               </Flex>
             </Card>

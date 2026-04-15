@@ -5,6 +5,8 @@ export const supportMessagesController = {
   async getAdminChatMessages(req: Request, res: Response) {
     try {
       const userId = (req as any).user?.userId;
+      console.log('[getAdminChatMessages] userId:', userId);
+      
       if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
       const messages = await prisma.supportMessage.findMany({
@@ -18,15 +20,23 @@ export const supportMessagesController = {
               role: true,
             },
           },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
         orderBy: { createdAt: 'asc' },
         take: 50,
       });
 
+      console.log('[getAdminChatMessages] found messages:', messages.length);
       res.json({ messages });
     } catch (error) {
       console.error('Error fetching admin chat messages:', error);
-      res.status(500).json({ error: 'Failed to fetch messages' });
+      res.status(500).json({ error: 'Failed to fetch messages', details: error instanceof Error ? error.message : String(error) });
     }
   },
 
@@ -46,6 +56,11 @@ export const supportMessagesController = {
           senderId: userId,
           text: text.trim(),
         },
+      });
+
+      // Then fetch with relations
+      const fullMessage = await prisma.supportMessage.findUnique({
+        where: { id: message.id },
         include: {
           sender: {
             select: {
@@ -58,16 +73,14 @@ export const supportMessagesController = {
         },
       });
 
-      // TODO: Notify admins via WebSocket
-      // wsServer.broadcastToAdmins({
-      //   type: 'new-user-message',
-      //   data: message,
-      // });
+      if (!fullMessage) {
+        return res.status(500).json({ error: 'Failed to fetch created message' });
+      }
 
-      res.status(201).json(message);
+      res.status(201).json(fullMessage);
     } catch (error) {
       console.error('Error sending message to admin:', error);
-      res.status(500).json({ error: 'Failed to send message' });
+      res.status(500).json({ error: 'Failed to send message', details: error instanceof Error ? error.message : String(error) });
     }
   },
 
