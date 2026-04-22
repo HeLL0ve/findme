@@ -4,6 +4,7 @@ import { Button, Card, Container, Flex, Heading, Text, TextArea, TextField } fro
 import { api } from '../../api/axios';
 import AdPhotoPicker from '../../components/ads/AdPhotoPicker';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { AddIcon, PawIcon } from '../../components/common/Icons';
 
 type CreateAdFormState = {
   type: 'LOST' | 'FOUND';
@@ -141,7 +142,10 @@ export default function CreateAd() {
         padding: 'var(--space-4)',
       }}>
         <Container size="3">
-          <Heading size="7" weight="bold">➕ Создать объявление</Heading>
+          <Flex gap="2" align="center">
+            <AddIcon width={28} height={28} />
+            <Heading size="7" weight="bold">Создать объявление</Heading>
+          </Flex>
           <Text color="gray" size="2">
             Помогите вернуть потерянного питомца или дайте новый дом найденному в беде
           </Text>
@@ -164,14 +168,14 @@ export default function CreateAd() {
             <Card>
               <Flex direction="column" gap="4">
                 <Flex direction="column" gap="1">
-                  <Heading size="4" weight="bold">🔴 Тип объявления</Heading>
+                  <Heading size="4" weight="bold">Тип объявления</Heading>
                   <Text size="2" color="gray">Выберите, потерян ли питомец или вы его нашли</Text>
                 </Flex>
 
                 <Flex gap="3" direction={{ initial: 'column', sm: 'row' }}>
                   {[
-                    { value: 'LOST' as const, label: '🔴 Потерян питомец', description: 'Мой питомец потерялся' },
-                    { value: 'FOUND' as const, label: '🟢 Найден питомец', description: 'Я нашёл бездомного питомца' },
+                    { value: 'LOST' as const, label: 'Потерян питомец', description: 'Мой питомец потерялся' },
+                    { value: 'FOUND' as const, label: 'Найден питомец', description: 'Я нашёл бездомного питомца' },
                   ].map(({ value, label, description }) => (
                     <Card
                       key={value}
@@ -199,7 +203,10 @@ export default function CreateAd() {
             <Card>
               <Flex direction="column" gap="4">
                 <Flex direction="column" gap="1">
-                  <Heading size="4" weight="bold">🐾 Информация о питомце</Heading>
+                  <Flex gap="2" align="center">
+                    <PawIcon width={20} height={20} />
+                    <Heading size="4" weight="bold">Информация о питомце</Heading>
+                  </Flex>
                   <Text size="2" color="gray">Укажите основные характеристики (отмечено * обязательно)</Text>
                 </Flex>
 

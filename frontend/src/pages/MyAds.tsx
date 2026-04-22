@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Container, Flex, Grid, Heading, Text, Card, Box, Section } from '@radix-ui/themes';
-import { SearchIcon, CheckIcon, ArchiveIcon } from '../components/common/Icons';
+import { SearchIcon, CheckIcon, ArchiveIcon, DescriptionIcon, PawIcon } from '../components/common/Icons';
 import { api } from '../api/axios';
 import AdCard, { type AdCardData } from '../components/ads/AdCard';
 import ConfirmActionDialog from '../components/common/ConfirmActionDialog';
@@ -60,7 +60,7 @@ export default function MyAdsPage() {
         borderBottom: '1px solid var(--gray-a5)',
       }}>
         <Container size="4">
-          <Heading size="7" weight="bold">📂 Мои объявления</Heading>
+          <Heading size="7" weight="bold">Мои объявления</Heading>
           <Text color="gray" size="2">
             Управляйте вашими объявлениями о потерянных и найденных питомцах
           </Text>
@@ -74,33 +74,79 @@ export default function MyAdsPage() {
             {/* Stats Card */}
             <Flex gap="3" style={{ flex: '1', minWidth: '300px' }}>
               {[
-                { label: 'Всего', count: ads.length, component: null, color: 'var(--gray-a2)' },
-                { label: 'Активных', count: approvedCount, component: <CheckIcon />, color: 'var(--green-a2)' },
-                { label: 'В архиве', count: archivedCount, component: <ArchiveIcon />, color: 'var(--orange-a2)' },
+                { 
+                  label: 'Всего', 
+                  count: ads.length, 
+                  icon: DescriptionIcon,
+                  color: 'var(--gray-a2)',
+                  iconColor: 'var(--gray-11)',
+                  borderColor: 'var(--gray-a6)',
+                },
+                { 
+                  label: 'Активных', 
+                  count: approvedCount, 
+                  icon: CheckIcon,
+                  color: 'var(--green-a2)',
+                  iconColor: 'var(--green-11)',
+                  borderColor: 'var(--green-a6)',
+                },
+                { 
+                  label: 'В архиве', 
+                  count: archivedCount, 
+                  icon: ArchiveIcon,
+                  color: 'var(--orange-a2)',
+                  iconColor: 'var(--orange-11)',
+                  borderColor: 'var(--orange-a6)',
+                },
               ].map((stat, idx) => (
                 <Card key={idx} style={{
                   flex: 1,
                   background: stat.color,
-                  border: `1px solid var(--gray-a6)`,
+                  border: `2px solid ${stat.borderColor}`,
                   textAlign: 'center',
-                  padding: 'var(--space-3)',
+                  padding: 'var(--space-4)',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}>
-                  <Flex direction="column" gap="1" align="center">
-                    {stat.component ? <Text size="4">{stat.component}</Text> : <Text size="4">📋</Text>}
-                    <Text size="2" weight="bold">{stat.count}</Text>
-                    <Text size="1" color="gray">{stat.label}</Text>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '-10px',
+                    opacity: 0.1,
+                    pointerEvents: 'none',
+                  }}>
+                    <stat.icon width={100} height={100} color={stat.iconColor} />
+                  </div>
+                  <Flex direction="column" gap="2" align="center" style={{ position: 'relative', zIndex: 1 }}>
+                    <stat.icon width={32} height={32} color={stat.iconColor} />
+                    <Text size="6" weight="bold" style={{ color: stat.iconColor }}>
+                      {stat.count}
+                    </Text>
+                    <Text size="2" weight="medium" color="gray">{stat.label}</Text>
                   </Flex>
                 </Card>
               ))}
             </Flex>
 
             {/* Create button */}
-            <Button asChild size="2" style={{
-              fontWeight: 600,
-              alignSelf: 'center',
-            }}>
-              <Link to="/create-ad">➕ Новое объявление</Link>
-            </Button>
+            <Flex gap="2" align="center">
+              <Button asChild size="3" style={{
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, var(--violet-9) 0%, var(--violet-11) 100%)',
+                padding: '0 24px',
+                height: '52px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}>
+                <Link to="/create-ad" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}>
+                  <DescriptionIcon width={20} height={20} color="white" />
+                  Новое объявление
+                </Link>
+              </Button>
+            </Flex>
           </Flex>
 
           {/* Error */}
@@ -116,16 +162,24 @@ export default function MyAdsPage() {
           {/* Filters */}
           <Flex gap="2" wrap="wrap">
             {[
-              { value: 'ALL' as const, label: 'Все' },
-              { value: 'APPROVED' as const, label: 'Активные' },
-              { value: 'ARCHIVED' as const, label: '📦 В архиве' },
-            ].map(({ value, label }) => (
+              { value: 'ALL' as const, label: 'Все', icon: PawIcon },
+              { value: 'APPROVED' as const, label: 'Активные', icon: CheckIcon },
+              { value: 'ARCHIVED' as const, label: 'В архиве', icon: ArchiveIcon },
+            ].map(({ value, label, icon: Icon }) => (
               <Button
                 key={value}
-                variant={statusFilter === value ? 'solid' : 'soft'}
+                variant={statusFilter === value ? 'solid' : 'outline'}
                 size="2"
                 onClick={() => setStatusFilter(value)}
+                style={{
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease',
+                }}
               >
+                <Icon width={18} height={18} />
                 {label}
               </Button>
             ))}
@@ -149,28 +203,37 @@ export default function MyAdsPage() {
           {/* Empty State */}
           {!loading && filteredAds.length === 0 && (
             <Card style={{
-              background: 'var(--gray-a2)',
+              background: 'linear-gradient(135deg, var(--gray-a1) 0%, var(--gray-a2) 100%)',
               textAlign: 'center',
-              padding: 'var(--space-6)',
+              padding: 'var(--space-8)',
+              border: '2px dashed var(--gray-a6)',
+              borderRadius: 'var(--radius-3)',
             }}>
-              <Flex direction="column" gap="3" align="center" justify="center">
-                <Text size="5">
-                  {statusFilter === 'ARCHIVED' ? '📦' : statusFilter === 'APPROVED' ? '✅' : '�'}
-                </Text>
-                <Heading size="4" color="gray">
+              <Flex direction="column" gap="4" align="center" justify="center">
+                <div style={{ opacity: 0.3 }}>
+                  <PawIcon width={80} height={80} color="var(--gray-11)" />
+                </div>
+                <Heading size="5" color="gray">
                   {statusFilter === 'ARCHIVED'
                     ? 'Нет архивированных объявлений'
                     : statusFilter === 'APPROVED'
                     ? 'Нет активных объявлений'
                     : 'У вас пока нет объявлений'}
                 </Heading>
-                <Text color="gray">
+                <Text color="gray" size="3">
                   {statusFilter === 'ALL'
                     ? 'Создайте первое объявление, чтобы помочь потерянным питомцам'
                     : 'Измените фильтр или создайте новое объявление'}
                 </Text>
-                <Button asChild>
-                  <Link to="/create-ad">➕ Создать объявление</Link>
+                <Button asChild size="3" style={{
+                  background: 'linear-gradient(135deg, var(--violet-9) 0%, var(--violet-11) 100%)',
+                  padding: '0 20px',
+                  marginTop: 'var(--space-2)',
+                }}>
+                  <Link to="/create-ad" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}>
+                    <DescriptionIcon width={18} height={18} color="white" />
+                    Создать объявление
+                  </Link>
                 </Button>
               </Flex>
             </Card>
@@ -190,7 +253,7 @@ export default function MyAdsPage() {
                         <Link to={`/ads/${ad.id}`} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><SearchIcon width={16} height={16} />Открыть</Link>
                       </Button>
                       <Button asChild variant="soft" size="1" style={{ flex: 1 }}>
-                        <Link to={`/my-ads/${ad.id}/edit`}>✏️ Редак.</Link>
+                        <Link to={`/my-ads/${ad.id}/edit`}>Редактировать</Link>
                       </Button>
                       {ad.status !== 'ARCHIVED' && (
                         <ConfirmActionDialog
@@ -199,7 +262,7 @@ export default function MyAdsPage() {
                           confirmText="В архив"
                           color="orange"
                           onConfirm={() => moveToArchive(ad.id)}
-                          trigger={<Button size="1" variant="soft" color="gray" style={{ flex: 1 }}>📦 Архив</Button>}
+                          trigger={<Button size="1" variant="soft" color="gray" style={{ flex: 1 }}>Архив</Button>}
                         />
                       )}
                     </Flex>
