@@ -286,8 +286,24 @@ export async function updateAdController(req: Request<AdParams>, res: Response, 
     const ad = await prisma.ad.update({
       where: { id },
       data: updateData,
-      include: { photos: true, location: true },
+      include: {
+        photos: true,
+        location: true,
+        user: { select: { id: true, name: true, phone: true, email: true, avatarUrl: true } },
+      },
     });
+
+    const restoredFromArchive = existing.status === 'ARCHIVED' && ad.status === 'APPROVED';
+    if (restoredFromArchive) {
+      const telegramResult = await sendAdApprovedToTelegram(ad);
+      if (!telegramResult.ok) {
+        console.warn('[ads] restored ad was not published to telegram', {
+          adId: ad.id,
+          skipped: telegramResult.skipped,
+          error: telegramResult.error,
+        });
+      }
+    }
 
     return res.json(ad);
   } catch (err) {
@@ -362,7 +378,15 @@ export async function moderateAdController(req: Request<AdParams>, res: Response
     });
 
     if (status === 'APPROVED') {
-      await sendAdApprovedToTelegram(updatedAd);
+      const telegramResult = await sendAdApprovedToTelegram(updatedAd);
+      if (!telegramResult.ok) {
+        console.warn('[ads] approved ad was not published to telegram', {
+          adId: updatedAd.id,
+          skipped: telegramResult.skipped,
+          error: telegramResult.error,
+        });
+      }
+
       await createNotification({
         userId: updatedAd.userId,
         type: 'AD_APPROVED',

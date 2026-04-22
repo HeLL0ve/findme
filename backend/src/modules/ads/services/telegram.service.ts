@@ -19,5 +19,17 @@ export async function sendAdApprovedToTelegram(ad: {
   photos?: Array<{ photoUrl: string }>;
 }): Promise<TelegramResult> {
   const result = await sendAdApprovedToTelegramChannel(ad);
-  return { ok: result.ok, skipped: !result.ok };
+  const response: TelegramResult = {
+    ok: result.ok,
+  };
+
+  if ('skipped' in result && typeof result.skipped === 'boolean') {
+    response.skipped = result.skipped;
+  }
+
+  if (result.description) {
+    response.error = result.description;
+  }
+
+  return response;
 }

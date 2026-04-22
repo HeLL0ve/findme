@@ -12,6 +12,7 @@ export const env = {
 
   clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
   appUrl: process.env.APP_URL || process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  publicApiUrl: process.env.PUBLIC_API_URL || process.env.API_URL || process.env.APP_URL || 'http://localhost:3000',
 
   mailFrom: process.env.MAIL_FROM || 'noreply@findme.local',
   mailApiUrl: process.env.MAIL_API_URL || '',
