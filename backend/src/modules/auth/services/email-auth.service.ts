@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
-import { prisma } from '../../../config/prisma';
 import { env } from '../../../config/env';
+import { prisma } from '../../../config/prisma';
 import { ApiError } from '../../../shared/errors/apiError';
 import { createRawToken, hashToken } from '../../../shared/security/tokenHash';
+import { buildEmailVerificationMail, buildPasswordResetMail } from '../../mail/mail.templates';
 import { sendMail } from '../../mail/mail.service';
 
 const EMAIL_VERIFY_TTL_HOURS = 24;
@@ -17,23 +18,44 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+function buildMailBrandConfig() {
+  return {
+    brandName: env.mailBrandName,
+    logoUrl: env.mailLogoUrl,
+  };
+}
+
 async function sendVerificationEmail(email: string, token: string) {
   const link = buildClientLink('/verify-email', token);
+  const supportEmail = env.mailFrom.includes('@') ? env.mailFrom : '';
+  const mail = buildEmailVerificationMail({
+    actionUrl: link,
+    brand: buildMailBrandConfig(),
+    ...(supportEmail ? { supportEmail } : {}),
+  });
+
   await sendMail({
     to: email,
-    subject: 'Подтверждение email в FindMe',
-    text: `Подтвердите email: ${link}`,
-    html: `<p>Подтвердите email для аккаунта FindMe:</p><p><a href="${link}">${link}</a></p>`,
+    subject: mail.subjectTitle,
+    text: mail.text,
+    html: mail.html,
   });
 }
 
 async function sendPasswordResetEmail(email: string, token: string) {
   const link = buildClientLink('/reset-password', token);
+  const supportEmail = env.mailFrom.includes('@') ? env.mailFrom : '';
+  const mail = buildPasswordResetMail({
+    actionUrl: link,
+    brand: buildMailBrandConfig(),
+    ...(supportEmail ? { supportEmail } : {}),
+  });
+
   await sendMail({
     to: email,
-    subject: 'Сброс пароля в FindMe',
-    text: `Ссылка для сброса пароля: ${link}`,
-    html: `<p>Сброс пароля для аккаунта FindMe:</p><p><a href="${link}">${link}</a></p>`,
+    subject: mail.subjectTitle,
+    text: mail.text,
+    html: mail.html,
   });
 }
 

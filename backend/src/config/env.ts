@@ -15,6 +15,8 @@ export const env = {
   publicApiUrl: process.env.PUBLIC_API_URL || process.env.API_URL || process.env.APP_URL || 'http://localhost:3000',
 
   mailFrom: process.env.MAIL_FROM || 'noreply@findme.local',
+  mailBrandName: process.env.MAIL_BRAND_NAME || 'FindMe',
+  mailLogoUrl: process.env.MAIL_LOGO_URL || '',
   mailApiUrl: process.env.MAIL_API_URL || '',
   mailApiKey: process.env.MAIL_API_KEY || '',
   gmailUser: process.env.GMAIL_USER || '',

@@ -42,6 +42,16 @@ GMAIL_USER=john.doe@gmail.com
 GMAIL_PASSWORD=abcdefghijklmnop
 ```
 
+Опционально для брендирования писем:
+
+```env
+MAIL_BRAND_NAME=FindMe
+MAIL_LOGO_URL=https://your-domain.com/logo.png
+```
+
+- `MAIL_BRAND_NAME` - имя бренда в шапке письма
+- `MAIL_LOGO_URL` - URL логотипа (если пусто, в шаблоне будет аккуратный placeholder)
+
 ## Шаг 4: Перезагрузи backend
 
 1. Останови текущий процесс backend (Ctrl+C)

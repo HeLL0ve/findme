@@ -44,23 +44,22 @@ async function sendViaHttpProvider(input: SendMailInput) {
 async function sendViaGmailProvider(input: SendMailInput) {
   const gmailUser = env.gmailUser;
   const gmailPassword = env.gmailPassword;
-  
   if (!gmailUser || !gmailPassword) return false;
 
   try {
     initNodemailer();
     if (!nodemailer) return false;
-    
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: gmailUser,
-        pass: gmailPassword, // Google App Password (не обычный пароль!)
+        pass: gmailPassword,
       },
     });
 
     const result = await transporter.sendMail({
-      from: gmailUser, // Gmail требует использовать сам аккаунт как from
+      from: `FindMe <${gmailUser}>`,
       to: input.to,
       subject: input.subject,
       html: input.html,
@@ -76,22 +75,20 @@ async function sendViaGmailProvider(input: SendMailInput) {
 
 export async function sendMail(input: SendMailInput) {
   try {
-    // Try Gmail first if configured
     const sentViaGmail = await sendViaGmailProvider(input);
     if (sentViaGmail) return { ok: true, provider: 'gmail' };
 
-    // Then try HTTP provider
     const sentViaHttp = await sendViaHttpProvider(input);
     if (sentViaHttp) return { ok: true, provider: 'http' };
   } catch (error) {
     console.error('[mail] provider error', error);
   }
 
-  // Local fallback for development if provider is not configured.
   console.log('[mail] fallback output', {
     to: input.to,
     subject: input.subject,
     text: input.text,
   });
+
   return { ok: false, fallback: true };
 }
