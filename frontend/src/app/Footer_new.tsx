@@ -77,15 +77,9 @@ export default function Footer() {
               <Flex direction="column" gap="2" style={{ minWidth: '150px' }}>
                 <Heading size="3" weight="bold">Информация</Heading>
                 <Flex direction="column" gap="1">
-                  <RadixLink href="https://github.com" target="_blank" underline="hover" size="2">
+                  <RadixLink href="https://github.com/HeLL0ve/findme" target="_blank" underline="hover" size="2">
                     GitHub
                   </RadixLink>
-                  <a href="/" style={{ textDecoration: 'none', color: 'var(--accent-11)' }}>
-                    <Text size="2" color="blue" style={{ cursor: 'pointer' }}>Условия</Text>
-                  </a>
-                  <a href="/" style={{ textDecoration: 'none', color: 'var(--accent-11)' }}>
-                    <Text size="2" color="blue" style={{ cursor: 'pointer' }}>Конфиденциальность</Text>
-                  </a>
                 </Flex>
               </Flex>
             </Flex>
