@@ -7,6 +7,14 @@ import { extractApiErrorMessage } from '../shared/apiError';
 import { useAuthStore } from '../shared/authStore';
 import { config } from '../shared/config';
 import { roleLabel } from '../shared/labels';
+import {
+  UserIcon,
+  InfoIcon,
+  BellIcon,
+  LockIcon,
+  AddIcon,
+  DescriptionIcon,
+} from '../components/common/Icons';
 
 type ProfileDto = {
   id: string;
@@ -281,7 +289,10 @@ export default function Profile() {
         padding: 'var(--space-4)',
       }}>
         <Container size="4">
-          <Heading size="7" weight="bold">👤 Профиль</Heading>
+          <Flex gap="2" align="center">
+            <UserIcon width={28} height={28} />
+            <Heading size="7" weight="bold">Профиль</Heading>
+          </Flex>
           <Text color="gray" size="2">Управляйте вашими данными, настройками и объявлениями</Text>
         </Container>
       </Flex>
@@ -293,7 +304,9 @@ export default function Profile() {
             {/* Avatar & Basic Info */}
             <Card>
               <Flex direction="column" gap="4">
-                <Heading size="4" weight="bold">🖼️ Аватар профиля</Heading>
+                <Flex gap="2" align="center">
+                  <Heading size="4" weight="bold">Аватар профиля</Heading>
+                </Flex>
 
                 <Flex align="center" gap="4" direction={{ initial: 'column', sm: 'row' }}>
                   <Avatar src={avatarSrc} fallback={initials} size="7" radius="full" style={{
@@ -322,7 +335,7 @@ export default function Profile() {
                       const el = e.currentTarget as HTMLElement;
                       el.style.background = 'var(--violet-3)';
                     }}>
-                      📁 Выбрать файл
+                      Выбрать файл
                       <input type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
                     </label>
                   </Flex>
@@ -334,7 +347,10 @@ export default function Profile() {
             <Card>
               <form onSubmit={saveProfile} className="form-root">
                 <Flex direction="column" gap="4">
-                  <Heading size="4" weight="bold">ℹ️ Основная информация</Heading>
+                  <Flex gap="2" align="center">
+                    <InfoIcon width={20} height={20} />
+                    <Heading size="4" weight="bold">Основная информация</Heading>
+                  </Flex>
 
                   <Flex direction="column" gap="3">
                     <Flex direction="column" gap="2">
@@ -374,7 +390,7 @@ export default function Profile() {
                   </Flex>
 
                   <Button type="submit" size="2" style={{ width: '100%', fontWeight: 600 }}>
-                    💾 Сохранить изменения
+                    Сохранить изменения
                   </Button>
                 </Flex>
               </form>
@@ -386,7 +402,7 @@ export default function Profile() {
               border: '1px solid var(--blue-a6)',
             }}>
               <Flex direction="column" gap="4">
-                <Heading size="4" weight="bold">✈️ Telegram</Heading>
+                <Heading size="4" weight="bold">Telegram</Heading>
 
                 <Flex direction="column" gap="3">
                   <Flex direction="column" gap="2">
@@ -424,7 +440,7 @@ export default function Profile() {
                       disabled={telegramActionLoading}
                       style={{ flex: 1, fontWeight: 600 }}
                     >
-                      {telegramActionLoading ? '⏳' : '🔗'} Привязать Telegram
+                      {telegramActionLoading ? '⏳' : 'Привязать Telegram'}
                     </Button>
                     {form.telegramLinked && (
                       <Button
@@ -435,7 +451,7 @@ export default function Profile() {
                         disabled={telegramActionLoading}
                         style={{ flex: 1, fontWeight: 600 }}
                       >
-                        {telegramActionLoading ? '⏳' : '✕'} Отвязать
+                        {telegramActionLoading ? '⏳' : 'Отвязать'}
                       </Button>
                     )}
                   </Flex>
@@ -446,7 +462,10 @@ export default function Profile() {
             {/* Notifications */}
             <Card>
               <Flex direction="column" gap="4">
-                <Heading size="4" weight="bold">🔔 Уведомления</Heading>
+                <Flex gap="2" align="center">
+                  <BellIcon width={20} height={20} />
+                  <Heading size="4" weight="bold">Уведомления</Heading>
+                </Flex>
 
                 <Flex direction="column" gap="3">
                   <Flex align="center" gap="3" p="3" style={{
@@ -463,7 +482,7 @@ export default function Profile() {
                       <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
                     </Checkbox.Root>
                     <Flex direction="column" gap="1">
-                      <Text weight="bold">💻 Web-уведомления</Text>
+                      <Text weight="bold">Web-уведомления</Text>
                       <Text size="1" color="gray">Получайте уведомления в браузере</Text>
                     </Flex>
                   </Flex>
@@ -482,7 +501,7 @@ export default function Profile() {
                       <Checkbox.Indicator className="checkbox-indicator">✓</Checkbox.Indicator>
                     </Checkbox.Root>
                     <Flex direction="column" gap="1">
-                      <Text weight="bold">✈️ Telegram-уведомления</Text>
+                      <Text weight="bold">Telegram-уведомления</Text>
                       <Text size="1" color="gray">Получайте уведомления в Telegram {form.telegramLinked ? '(привязан)' : '(не привязан)'}</Text>
                     </Flex>
                   </Flex>
@@ -496,7 +515,10 @@ export default function Profile() {
               border: '1px solid var(--red-a6)',
             }}>
               <Flex direction="column" gap="4">
-                <Heading size="4" weight="bold">🔐 Безопасность</Heading>
+                <Flex gap="2" align="center">
+                  <LockIcon width={20} height={20} />
+                  <Heading size="4" weight="bold">Безопасность</Heading>
+                </Flex>
 
                 <Flex direction="column" gap="2">
                   <Text size="2" color="gray">Статус роли: <Text weight="bold">{roleLabel(form.role)}</Text></Text>
@@ -505,7 +527,7 @@ export default function Profile() {
                 <Dialog.Root open={changePasswordOpen} onOpenChange={setChangePasswordOpen}>
                   <Dialog.Trigger>
                     <Button type="button" color="orange" variant="soft" style={{ width: '100%', fontWeight: 600 }}>
-                      🔑 Сменить пароль
+                      Сменить пароль
                     </Button>
                   </Dialog.Trigger>
                   <Dialog.Content maxWidth="440px">
@@ -552,7 +574,7 @@ export default function Profile() {
                           <Dialog.Close>
                             <Button type="button" variant="soft">Отмена</Button>
                           </Dialog.Close>
-                          <Button type="submit">🔄 Обновить пароль</Button>
+                          <Button type="submit">Обновить пароль</Button>
                         </Flex>
                       </Flex>
                     </form>
@@ -585,9 +607,12 @@ export default function Profile() {
             <Card>
               <Flex direction="column" gap="4">
                 <Flex justify="between" align="center" wrap="wrap" gap="2">
-                  <Heading size="4" weight="bold">📋 Мои объявления ({myAds.length})</Heading>
+                  <Flex gap="2" align="center">
+                    <DescriptionIcon width={20} height={20} />
+                    <Heading size="4" weight="bold">Мои объявления ({myAds.length})</Heading>
+                  </Flex>
                   <Button asChild size="2">
-                    <a href="/create-ad" style={{ textDecoration: 'none' }}>➕ Новое</a>
+                    <a href="/create-ad" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}><AddIcon width={18} height={18} /> Новое</a>
                   </Button>
                 </Flex>
 
@@ -598,12 +623,12 @@ export default function Profile() {
                     padding: 'var(--space-4)',
                   }}>
                     <Flex direction="column" gap="3" align="center" justify="center">
-                      <Text size="5">📭</Text>
                       <Text color="gray" weight="bold">У вас пока нет объявлений</Text>
                       <Text size="2" color="gray">Создайте первое объявление, чтобы помочь потерянным питомцам</Text>
                       <Button asChild>
-                        <a href="/create-ad">➕ Создать объявление</a>
+                        <a href="/create-ad" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><AddIcon width={18} height={18} /> Создать объявление</a>
                       </Button>
+                      
                     </Flex>
                   </Card>
                 ) : (

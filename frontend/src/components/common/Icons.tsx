@@ -220,3 +220,26 @@ export const CloseIcon: React.FC<IconProps> = ({ width = 20, height = 20, color 
     <line x1="6" y1="6" x2="18" y2="18"></line>
   </svg>
 );
+
+export const LockIcon: React.FC<IconProps> = ({ width = 20, height = 20, color = 'currentColor', className }) => (
+  <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+  </svg>
+);
+
+export const KeyIcon: React.FC<IconProps> = ({ width = 20, height = 20, color = 'currentColor', className }) => (
+  <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 2l-9 9"></path>
+    <circle cx="11" cy="13" r="1"></circle>
+    <path d="M16 16.537A4.474 4.474 0 0 0 19 13a4.5 4.5 0 1 0-6.5 4"></path>
+  </svg>
+);
+
+export const RefreshIcon: React.FC<IconProps> = ({ width = 20, height = 20, color = 'currentColor', className }) => (
+  <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="23 4 23 10 17 10"></polyline>
+    <polyline points="1 20 1 14 7 14"></polyline>
+    <path d="M3.51 9a9 9 0 0 1 14.85-3.36M20.49 15a9 9 0 0 1-14.85 3.36"></path>
+  </svg>
+);
