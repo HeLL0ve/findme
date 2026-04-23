@@ -280,3 +280,26 @@ export const MapPinIcon: React.FC<IconProps> = ({ width = 20, height = 20, color
     <circle cx="12" cy="10" r="3"></circle>
   </svg>
 );
+
+export const MapIcon: React.FC<IconProps> = ({
+  width = 20,
+  height = 20,
+  color = 'currentColor',
+  className
+}) => (
+  <svg
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <polygon points="1 6 8 3 16 6 23 3 23 18 16 21 8 18 1 21 1 6"></polygon>
+    <line x1="8" y1="3" x2="8" y2="18"></line>
+    <line x1="16" y1="6" x2="16" y2="21"></line>
+  </svg>
+);

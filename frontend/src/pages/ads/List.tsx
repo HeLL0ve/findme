@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Container, Flex, Grid, Heading, Select, Text, TextField, Box, Section } from '@radix-ui/themes';
-import { SearchIcon, FilterIcon } from '../../components/common/Icons';
+import { SearchIcon, FilterIcon, ListIcon, MapIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
 import AdCard, { type AdCardData } from '../../components/ads/AdCard';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import AdsMap from '../../shared/AdsMap';
+import { List } from '@radix-ui/themes/components/tabs';
 
 type Ad = AdCardData & {
   location?: {
@@ -97,7 +98,7 @@ export default function AdsList() {
             }}>
               <Flex direction="column" gap="4">
                 <Flex gap="2" align="center">
-                  <SearchIcon width={20} height={20} color="var(--blue-10)" />
+                  <SearchIcon width={20} height={20}/>
                   <Heading size="4" weight="bold">Фильтры</Heading>
                 </Flex>
 
@@ -220,14 +221,16 @@ export default function AdsList() {
                   onClick={() => setViewMode('list')}
                   size="2"
                 >
-                  📋 Список
+                  <ListIcon width={16} height={16} />
+                  Список
                 </Button>
                 <Button
                   variant={viewMode === 'map' ? 'solid' : 'soft'}
                   onClick={() => setViewMode('map')}
                   size="2"
                 >
-                  🗺️ Карта
+                  <MapIcon width={16} height={16} />
+                  Карта
                 </Button>
               </Flex>
 
