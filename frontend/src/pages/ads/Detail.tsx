@@ -270,55 +270,40 @@ export default function AdDetail() {
   return (
     <Flex direction="column" gap="0">
       {/* Header */}
-      <Flex direction={{ initial: 'column', md: 'row' }} gap="5" align={{ initial: 'start', md: 'center' }} justify="between" style={{
-        background: `linear-gradient(135deg, var(--${ad.type === 'LOST' ? 'orange' : 'green'}-2) 0%, var(--gray-a1) 100%)`,
-        borderBottom: `2px solid var(--${ad.type === 'LOST' ? 'orange' : 'green'}-7)`,
-        padding: 'var(--space-5) var(--space-4)',
-      }}>
-        <Flex direction="column" gap="3">
-          <div>
-            <Heading size="7" weight="bold" style={{ 
-              marginBottom: 'var(--space-1)',
-              color: 'var(--gray-12)'
-            }}>
-              {ad.petName || '🐾 Питомец'}
-            </Heading>
-            <Flex gap="2" align="center" wrap="wrap">
-              <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
-                {ad.type === 'LOST' ? 'потерян' : 'найден'}
-              </Badge>
-              <Badge color={ad.status === 'APPROVED' ? 'blue' : ad.status === 'PENDING' ? 'amber' : 'gray'} variant="soft" size="1">
-                {adStatusLabel(ad.status)}
-              </Badge>
-            </Flex>
-          </div>
-          <Flex direction="column" gap="1">
-            <Text size="2" weight="medium" color="gray">
-              {ad.animalType || 'Вид животного не указан'}
-            </Text>
-            {[ad.breed, ad.color ? `окрас: ${ad.color}` : null]
-              .filter(Boolean)
-              .map((info, idx) => (
-                <Text key={idx} size="1" color="gray">
-                  • {info}
+      <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-5)' }}>
+        <Card style={{
+          background: 'var(--gray-a1)',
+          border: '1px solid var(--gray-a6)',
+        }}>
+          <Flex direction={{ initial: 'column', md: 'row' }} gap="4" justify="between" align={{ initial: 'start', md: 'center' }} wrap="wrap">
+            <Flex direction="column" gap="2">
+              <Heading size="5" weight="bold">
+                {ad.petName || 'Питомец'}
+              </Heading>
+              <Flex gap="2" align="center" wrap="wrap">
+                <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
+                  {ad.type === 'LOST' ? 'потерян' : 'найден'}
+                </Badge>
+                <Badge color={ad.status === 'APPROVED' ? 'blue' : ad.status === 'PENDING' ? 'amber' : 'gray'} variant="soft" size="2">
+                  {adStatusLabel(ad.status)}
+                </Badge>
+              </Flex>
+              {[ad.animalType, ad.breed, ad.color].filter(Boolean).length > 0 && (
+                <Text size="2" color="gray">
+                  {[ad.animalType, ad.breed, ad.color ? `${ad.color}` : null]
+                    .filter(Boolean)
+                    .join(' • ')}
                 </Text>
-              ))}
-          </Flex>
-        </Flex>
-        <Flex gap="2" wrap="wrap" style={{ alignSelf: 'flex-start' }}>
-          {ad.location?.city && (
-            <Flex gap="2" align="center" style={{
-              padding: 'var(--space-2) var(--space-3)',
-              background: 'var(--blue-a2)',
-              borderRadius: 'var(--radius-2)',
-              border: '1px solid var(--blue-a6)',
-            }}>
-              <Text size="2" weight="medium">📍</Text>
-              <Text size="2">{ad.location.city}</Text>
+              )}
             </Flex>
-          )}
-        </Flex>
-      </Flex>
+            {ad.location?.city && (
+              <Text size="2" weight="medium" style={{ color: 'var(--gray-11)' }}>
+                📍 {ad.location.city}
+              </Text>
+            )}
+          </Flex>
+        </Card>
+      </Container>
 
       <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
         <Flex direction={{ initial: 'column', md: 'row' }} gap="6">
