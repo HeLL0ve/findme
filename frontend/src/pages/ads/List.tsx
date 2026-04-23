@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Container, Flex, Grid, Heading, Select, Text, TextField, Box, Section } from '@radix-ui/themes';
-import { SearchIcon } from '../../components/common/Icons';
+import { SearchIcon, FilterIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
 import AdCard, { type AdCardData } from '../../components/ads/AdCard';
 import { extractApiErrorMessage } from '../../shared/apiError';
@@ -86,15 +86,20 @@ export default function AdsList() {
         <Flex gap="6" direction={{ initial: 'column', md: 'row' }} style={{ flex: 1 }}>
           {/* Sidebar Filters - Desktop */}
           <Box
+            className="sidebar-filters"
             style={{
               minWidth: '280px',
-              display: 'none',
             }}
-            className="sidebar-filters"
           >
-            <Card>
+            <Card style={{
+              border: '1px solid var(--gray-a7)',
+              borderRadius: 'var(--radius-3)',
+            }}>
               <Flex direction="column" gap="4">
-                <Heading size="4" weight="bold">Фильтры</Heading>
+                <Flex gap="2" align="center">
+                  <SearchIcon width={20} height={20} color="var(--blue-10)" />
+                  <Heading size="4" weight="bold">Фильтры</Heading>
+                </Flex>
 
                 {/* Search Input */}
                 <Flex direction="column" gap="2">
@@ -123,8 +128,8 @@ export default function AdsList() {
                     <Select.Trigger placeholder="Выберите тип" />
                     <Select.Content>
                       <Select.Item value="ALL">Все типы</Select.Item>
-                      <Select.Item value="LOST">🔴 Потерян</Select.Item>
-                      <Select.Item value="FOUND">🟢 Найден</Select.Item>
+                      <Select.Item value="LOST">Потерян</Select.Item>
+                      <Select.Item value="FOUND">Найден</Select.Item>
                     </Select.Content>
                   </Select.Root>
                 </Flex>
@@ -135,8 +140,8 @@ export default function AdsList() {
                   <Select.Root value={filters.status} onValueChange={(value) => setFilters((prev) => ({ ...prev, status: value as Filters['status'] }))}>
                     <Select.Trigger placeholder="Выберите статус" />
                     <Select.Content>
-                      <Select.Item value="APPROVED">✅ Опубликовано</Select.Item>
-                      <Select.Item value="ARCHIVED">📦 В архиве</Select.Item>
+                      <Select.Item value="APPROVED">Опубликовано</Select.Item>
+                      <Select.Item value="ARCHIVED">В архиве</Select.Item>
                     </Select.Content>
                   </Select.Root>
                 </Flex>
@@ -144,8 +149,9 @@ export default function AdsList() {
                 <Button onClick={() => void fetchAds()} disabled={loading} style={{
                   width: '100%',
                   fontWeight: 600,
+                  cursor: 'pointer',
                 }}>
-                  {loading ? '⏳ Загрузка...' : '🔍 Найти'}
+                  {loading ? 'Загрузка...' : 'Найти'}
                 </Button>
               </Flex>
             </Card>
@@ -154,19 +160,24 @@ export default function AdsList() {
           {/* Main Content */}
           <Flex direction="column" gap="4" style={{ flex: 1 }}>
             {/* Mobile Filters */}
-            <Box style={{
-              display: 'block',
-            }} className="mobile-filters">
+            <Box className="mobile-filters">
               <Button
                 variant={showFilters ? 'solid' : 'soft'}
                 onClick={() => setShowFilters(!showFilters)}
-                style={{ width: '100%' }}
+                style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
               >
-                {showFilters ? '✕ Скрыть фильтры' : '⚙️ Показать фильтры'}
+                <Flex align="center" gap="2">
+                  <FilterIcon width={16} height={16} />
+                  {showFilters ? 'Скрыть фильтры' : 'Показать фильтры'}
+                </Flex>
               </Button>
 
               {showFilters && (
-                <Card style={{ marginTop: 'var(--space-2)' }}>
+                <Card style={{ 
+                  marginTop: 'var(--space-2)',
+                  border: '1px solid var(--gray-a7)',
+                  borderRadius: 'var(--radius-3)',
+                }}>
                   <Flex direction="column" gap="3">
                     <TextField.Root
                       placeholder="Кличка, описание, порода"
@@ -193,7 +204,7 @@ export default function AdsList() {
                         <Select.Item value="ARCHIVED">В архиве</Select.Item>
                       </Select.Content>
                     </Select.Root>
-                    <Button onClick={() => void fetchAds()} disabled={loading} style={{ width: '100%' }}>
+                    <Button onClick={() => void fetchAds()} disabled={loading} style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}>
                       {loading ? 'Загрузка...' : 'Найти'}
                     </Button>
                   </Flex>
