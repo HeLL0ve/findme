@@ -141,9 +141,47 @@ export default function RegisterPage() {
       </form>
 
       <Dialog.Root open={termsOpen} onOpenChange={setTermsOpen}>
-        <Dialog.Content maxWidth="720px" style={{ maxHeight: '80vh', overflow: 'auto' }}>
-          <Dialog.Title>Условия использования FindMe</Dialog.Title>
-          <Flex direction="column" gap="3" style={{ marginTop: 16, lineHeight: 1.6 }}>
+        <Dialog.Content
+          maxWidth="760px"
+          style={{
+            padding: 0,
+            overflow: 'hidden',
+            borderRadius: 18,
+            border: '1px solid var(--gray-a6)',
+            background:
+              'linear-gradient(180deg, color-mix(in oklab, var(--surface) 92%, var(--accent-soft)), var(--surface))',
+            boxShadow: '0 28px 80px rgba(0,0,0,0.22), 0 6px 18px rgba(0,0,0,0.12)',
+          }}
+        >
+          <div
+            style={{
+              padding: '18px 20px 14px',
+              borderBottom: '1px solid var(--gray-a5)',
+              background:
+                'linear-gradient(135deg, color-mix(in oklab, var(--green-a3) 45%, transparent), transparent 55%)',
+            }}
+          >
+            <Text as="div" size="2" style={{ marginBottom: 8 }}>
+              <span className="auth-kicker" style={{ ['--auth-kicker-bg' as never]: 'var(--green-a3)', ['--auth-kicker-border' as never]: 'var(--green-a6)', ['--auth-kicker-text' as never]: 'var(--green-11)' }}>
+                Пользовательское соглашение
+              </span>
+            </Text>
+            <Dialog.Title style={{ margin: 0 }}>Условия использования FindMe</Dialog.Title>
+            <Dialog.Description size="2" color="gray" style={{ marginTop: 6 }}>
+              Пожалуйста, ознакомьтесь с условиями. Нажимая «Принять», вы соглашаетесь с ними и сможете продолжить регистрацию.
+            </Dialog.Description>
+          </div>
+
+          <div style={{ maxHeight: '62vh', overflow: 'auto', padding: 18 }}>
+            <div
+              style={{
+                border: '1px solid var(--gray-a5)',
+                borderRadius: 14,
+                background: 'var(--gray-a2)',
+                padding: 16,
+              }}
+            >
+              <Flex direction="column" gap="3" style={{ lineHeight: 1.65 }}>
             <div>
               <Heading size="4" mb="2">1. Общие положения</Heading>
               <Text as="div" size="2">
@@ -205,16 +243,45 @@ export default function RegisterPage() {
                 По вопросам соблюдения условий пишите на support@findme.local
               </Text>
             </div>
-          </Flex>
+              </Flex>
+            </div>
+          </div>
 
-          <Flex justify="end" mt="4" gap="2">
-            <Dialog.Close>
-              <Button type="button" variant="soft">Отклонить</Button>
-            </Dialog.Close>
-            <Dialog.Close>
-              <Button type="button">Принять</Button>
-            </Dialog.Close>
-          </Flex>
+          <div
+            style={{
+              padding: '14px 18px',
+              borderTop: '1px solid var(--gray-a5)',
+              background: 'color-mix(in oklab, var(--surface) 90%, var(--accent-soft))',
+            }}
+          >
+            <Flex justify="between" align="center" gap="3" wrap="wrap">
+              <Text size="2" color="gray">
+                Статус: <Text as="span" weight="bold" color={form.acceptTerms ? 'green' : 'gray'}>{form.acceptTerms ? 'принято' : 'не принято'}</Text>
+              </Text>
+              <Flex justify="end" gap="2">
+                <Button
+                  type="button"
+                  variant="soft"
+                  onClick={() => {
+                    setForm((prev) => ({ ...prev, acceptTerms: false }));
+                    setTermsOpen(false);
+                  }}
+                >
+                  Отклонить
+                </Button>
+                <Button
+                  type="button"
+                  style={{ fontWeight: 700 }}
+                  onClick={() => {
+                    setForm((prev) => ({ ...prev, acceptTerms: true }));
+                    setTermsOpen(false);
+                  }}
+                >
+                  Принять
+                </Button>
+              </Flex>
+            </Flex>
+          </div>
         </Dialog.Content>
       </Dialog.Root>
     </AuthShell>
