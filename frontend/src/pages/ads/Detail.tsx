@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Badge, Button, Card, Container, Dialog, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
-import { MessageIcon, ArchiveIcon, AlertTriangleIcon } from '../../components/common/Icons';
+import { MessageIcon, ArchiveIcon, AlertTriangleIcon, PawIcon, DescriptionIcon, LocationIcon, UserIcon, PrintIcon, ShareIcon, PhoneIcon, MailIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
@@ -273,7 +273,8 @@ export default function AdDetail() {
       <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-5)' }}>
         <Card style={{
           background: 'var(--gray-a1)',
-          border: '1px solid var(--gray-a6)',
+          border: '1px solid var(--gray-a7)',
+          borderRadius: 'var(--radius-4)',
         }}>
           <Flex direction={{ initial: 'column', md: 'row' }} gap="4" justify="between" align={{ initial: 'start', md: 'center' }} wrap="wrap">
             <Flex direction="column" gap="2">
@@ -297,9 +298,10 @@ export default function AdDetail() {
               )}
             </Flex>
             {ad.location?.city && (
-              <Text size="2" weight="medium" style={{ color: 'var(--gray-11)' }}>
-                📍 {ad.location.city}
-              </Text>
+              <Flex gap="2" align="center" style={{ color: 'var(--gray-11)' }}>
+                <LocationIcon width={18} height={18} color="var(--violet-10)" />
+                <Text size="2" weight="medium">{ad.location.city}</Text>
+              </Flex>
             )}
           </Flex>
         </Card>
@@ -390,10 +392,14 @@ export default function AdDetail() {
             {/* Description */}
             <Card style={{
               background: 'var(--gray-a1)',
-              border: '1px solid var(--gray-a6)',
+              border: '1px solid var(--gray-a7)',
+              borderRadius: 'var(--radius-3)',
             }}>
               <Flex direction="column" gap="3">
-                <Heading size="4" weight="bold">📝 Описание</Heading>
+                <Flex gap="2" align="center">
+                  <DescriptionIcon width={20} height={20} color="var(--gray-11)" />
+                  <Heading size="4" weight="bold">Описание</Heading>
+                </Flex>
                 <Text style={{ lineHeight: '1.7' }} color="gray">{ad.description}</Text>
               </Flex>
             </Card>
@@ -402,10 +408,14 @@ export default function AdDetail() {
             {ad.location && (
               <Card style={{
                 background: 'var(--gray-a1)',
-                border: '1px solid var(--gray-a6)',
+                border: '1px solid var(--gray-a7)',
+                borderRadius: 'var(--radius-3)',
               }}>
                 <Flex direction="column" gap="3">
-                  <Heading size="4" weight="bold">📍 Местоположение</Heading>
+                  <Flex gap="2" align="center">
+                    <LocationIcon width={20} height={20} color="var(--violet-10)" />
+                    <Heading size="4" weight="bold">Местоположение</Heading>
+                  </Flex>
                   <Flex direction="column" gap="2">
                     {ad.location.city && (
                       <Flex justify="between">
@@ -427,10 +437,14 @@ export default function AdDetail() {
             {/* Pet Info */}
             <Card style={{
               background: 'var(--gray-a1)',
-              border: '1px solid var(--gray-a6)',
+              border: '1px solid var(--gray-a7)',
+              borderRadius: 'var(--radius-3)',
             }}>
               <Flex direction="column" gap="3">
-                <Heading size="4" weight="bold">🐾 Информация о питомце</Heading>
+                <Flex gap="2" align="center">
+                  <PawIcon width={20} height={20} color="var(--orange-10)" />
+                  <Heading size="4" weight="bold">Информация о питомце</Heading>
+                </Flex>
                 <Flex direction="column" gap="2">
                   {ad.animalType && (
                     <Flex justify="between">
@@ -460,11 +474,14 @@ export default function AdDetail() {
             {/* User Card */}
             <Card style={{
               background: 'var(--violet-1)',
-              border: '2px solid var(--violet-a6)',
+              border: '1px solid var(--violet-a6)',
               borderRadius: 'var(--radius-3)',
             }}>
               <Flex direction="column" gap="3">
-                <Text size="2" weight="bold" color="gray">👤 Автор объявления</Text>
+                <Flex gap="2" align="center">
+                  <UserIcon width={18} height={18} color="var(--violet-10)" />
+                  <Text size="2" weight="bold" color="gray">Автор объявления</Text>
+                </Flex>
                 {ad.user?.id ? (
                   <UserAvatarLink
                     userId={ad.user.id}
@@ -481,15 +498,19 @@ export default function AdDetail() {
             {/* Contact Info */}
             {ad.user && (ad.user.phone || ad.user.email || ad.user.telegramUsername) && (
               <Card style={{
-                background: 'var(--green-1)',
+                background: 'var(--green-a1)',
                 border: '1px solid var(--green-a6)',
+                borderRadius: 'var(--radius-3)',
               }}>
                 <Flex direction="column" gap="3">
-                  <Text size="2" weight="bold" color="gray">📞 Контакты</Text>
+                  <Flex gap="2" align="center">
+                    <PhoneIcon width={18} height={18} color="var(--green-10)" />
+                    <Text size="2" weight="bold" color="gray">Контакты</Text>
+                  </Flex>
                   <Flex direction="column" gap="2">
                     {ad.user.phone && (
                       <Flex gap="2" align="center">
-                        <Text>📱</Text>
+                        <PhoneIcon width={16} height={16} color="var(--green-10)" />
                         <a href={`tel:${ad.user.phone}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                           <Text size="2" style={{ wordBreak: 'break-all', color: 'var(--blue-11)', cursor: 'pointer' }}>
                             {ad.user.phone}
@@ -499,7 +520,7 @@ export default function AdDetail() {
                     )}
                     {ad.user.telegramUsername && (
                       <Flex gap="2" align="center">
-                        <MessageIcon width={20} height={20} />
+                        <MessageIcon width={16} height={16} color="var(--green-10)" />
                         <a href={`https://t.me/${ad.user.telegramUsername}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
                           <Text size="2" style={{ wordBreak: 'break-all', color: 'var(--blue-11)', cursor: 'pointer' }}>
                             @{ad.user.telegramUsername}
@@ -509,7 +530,7 @@ export default function AdDetail() {
                     )}
                     {ad.user.email && (
                       <Flex gap="2" align="center">
-                        <Text>📧</Text>
+                        <MailIcon width={16} height={16} color="var(--green-10)" />
                         <a href={`mailto:${ad.user.email}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                           <Text size="2" style={{ wordBreak: 'break-all', color: 'var(--blue-11)', cursor: 'pointer' }}>
                             {ad.user.email}
@@ -539,7 +560,7 @@ export default function AdDetail() {
                     size="2"
                     style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
                   >
-                    🔗 Поделиться
+                    <Flex align="center" gap="2"><ShareIcon width={16} height={16} />Поделиться</Flex>
                   </Button>
                 </>
               )}
@@ -550,7 +571,7 @@ export default function AdDetail() {
                 size="2"
                 style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
               >
-                📄 Экспортировать PDF
+                <Flex align="center" gap="2"><PrintIcon width={16} height={16} />Экспортировать PDF</Flex>
               </Button>
 
               {isOwner && ad.status !== 'ARCHIVED' && (
