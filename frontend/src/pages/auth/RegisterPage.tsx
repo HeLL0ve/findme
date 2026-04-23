@@ -5,6 +5,7 @@ import { Button, Dialog, Flex, Heading, Text, TextField } from '@radix-ui/themes
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { AuthShell } from './AuthShell';
+import { PasswordField } from '../../components/common/PasswordField';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     email: '',
     password: '',
+    repeatPassword: '',
     name: '',
     acceptTerms: false,
   });
@@ -23,11 +25,13 @@ export default function RegisterPage() {
     const name = form.name.trim();
     const email = form.email.trim();
     const password = form.password;
+    const repeatPassword = form.repeatPassword;
 
     if (!name) return 'Введите имя';
     // Basic email sanity check (HTML validation is helpful but not always triggered, e.g. autofill)
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) return 'Введите корректный email';
     if (!password || password.length < 6) return 'Пароль должен быть не менее 6 символов';
+    if (password !== repeatPassword) return 'Пароли не совпадают';
     if (!form.acceptTerms) return 'Необходимо принять пользовательское соглашение';
     return null;
   }
@@ -42,9 +46,10 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       await api.post('/auth/register', {
-        ...form,
         email: form.email.trim(),
         name: form.name.trim(),
+        password: form.password,
+        acceptTerms: form.acceptTerms,
       });
       navigate(`/login?registered=1&email=${encodeURIComponent(form.email.trim())}`);
     } catch (err) {
@@ -82,13 +87,21 @@ export default function RegisterPage() {
             onChange={(event) => setForm({ ...form, email: event.target.value })}
             required
           />
-          <TextField.Root
-            type="password"
+          <PasswordField
             placeholder="Пароль (минимум 6 символов)"
             value={form.password}
-            onChange={(event) => setForm({ ...form, password: event.target.value })}
+            onChange={(password) => setForm({ ...form, password })}
             required
             minLength={6}
+            autoComplete="new-password"
+          />
+          <PasswordField
+            placeholder="Повторите пароль"
+            value={form.repeatPassword}
+            onChange={(repeatPassword) => setForm({ ...form, repeatPassword })}
+            required
+            minLength={6}
+            autoComplete="new-password"
           />
 
             <Flex align="start" gap="2">

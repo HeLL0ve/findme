@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button, Flex, Text, TextField } from '@radix-ui/themes';
+import { Button, Flex, Text } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { AuthShell } from './AuthShell';
+import { PasswordField } from '../../components/common/PasswordField';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -50,21 +51,21 @@ export default function ResetPasswordPage() {
     <AuthShell title="Новый пароль" subtitle="Придумайте надежный пароль и подтвердите его." kicker="Безопасность" tone="orange">
       <form onSubmit={submit} className="form-root">
         <Flex direction="column" gap="3">
-          <TextField.Root
-            type="password"
+          <PasswordField
             placeholder="Новый пароль"
             value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
+            onChange={setNewPassword}
             required
             minLength={6}
+            autoComplete="new-password"
           />
-          <TextField.Root
-            type="password"
+          <PasswordField
             placeholder="Повторите новый пароль"
             value={repeatPassword}
-            onChange={(event) => setRepeatPassword(event.target.value)}
+            onChange={setRepeatPassword}
             required
             minLength={6}
+            autoComplete="new-password"
           />
 
           {error && (

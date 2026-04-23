@@ -7,6 +7,7 @@ import { extractApiErrorMessage } from '../shared/apiError';
 import { useAuthStore } from '../shared/authStore';
 import { config } from '../shared/config';
 import { roleLabel } from '../shared/labels';
+import { PasswordField } from '../components/common/PasswordField';
 import {
   UserIcon,
   InfoIcon,
@@ -539,32 +540,31 @@ export default function Profile() {
                       <Flex direction="column" gap="3">
                         <Flex direction="column" gap="2">
                           <Text size="2" weight="bold" color="gray">Текущий пароль *</Text>
-                          <TextField.Root
-                            type="password"
+                          <PasswordField
                             placeholder="Введите текущий пароль"
                             value={passwordForm.currentPassword}
-                            onChange={(event) =>
-                              setPasswordForm({ ...passwordForm, currentPassword: event.target.value })}
+                            onChange={(currentPassword) => setPasswordForm({ ...passwordForm, currentPassword })}
+                            autoComplete="current-password"
                           />
                         </Flex>
                         <Flex direction="column" gap="2">
                           <Text size="2" weight="bold" color="gray">Новый пароль * (минимум 6 символов)</Text>
-                          <TextField.Root
-                            type="password"
+                          <PasswordField
                             placeholder="Введите новый пароль"
                             value={passwordForm.newPassword}
-                            onChange={(event) =>
-                              setPasswordForm({ ...passwordForm, newPassword: event.target.value })}
+                            onChange={(newPassword) => setPasswordForm({ ...passwordForm, newPassword })}
+                            minLength={6}
+                            autoComplete="new-password"
                           />
                         </Flex>
                         <Flex direction="column" gap="2">
                           <Text size="2" weight="bold" color="gray">Подтверждение пароля *</Text>
-                          <TextField.Root
-                            type="password"
+                          <PasswordField
                             placeholder="Повторите новый пароль"
                             value={passwordForm.repeatPassword}
-                            onChange={(event) =>
-                              setPasswordForm({ ...passwordForm, repeatPassword: event.target.value })}
+                            onChange={(repeatPassword) => setPasswordForm({ ...passwordForm, repeatPassword })}
+                            minLength={6}
+                            autoComplete="new-password"
                           />
                         </Flex>
 

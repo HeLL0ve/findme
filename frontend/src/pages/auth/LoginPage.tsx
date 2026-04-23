@@ -5,6 +5,7 @@ import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { useAuthStore } from '../../shared/authStore';
 import { AuthShell } from './AuthShell';
+import { PasswordField } from '../../components/common/PasswordField';
 
 export default function LoginPage() {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
@@ -100,12 +101,12 @@ export default function LoginPage() {
             onChange={(event) => setForm({ ...form, email: event.target.value })}
             required
           />
-          <TextField.Root
-            type="password"
+          <PasswordField
             placeholder="Пароль"
             value={form.password}
-            onChange={(event) => setForm({ ...form, password: event.target.value })}
+            onChange={(password) => setForm({ ...form, password })}
             required
+            autoComplete="current-password"
           />
 
           {error && (
