@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { Button, Flex, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { AuthShell } from './AuthShell';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -21,7 +22,7 @@ export default function ResetPasswordPage() {
     setSuccess(null);
 
     if (!token) {
-      setError('Токен сброса не найден в ссылке');
+      setError('Ссылка для сброса пароля недействительна или устарела. Запросите новую.');
       return;
     }
     if (newPassword.length < 6) {
@@ -46,36 +47,52 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <Container size="2">
-      <Card>
-        <Heading size="7">Новый пароль</Heading>
-        <form onSubmit={submit} className="form-root" style={{ marginTop: 16 }}>
-          <Flex direction="column" gap="3">
-            <TextField.Root
-              type="password"
-              placeholder="Новый пароль"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              required
-            />
-            <TextField.Root
-              type="password"
-              placeholder="Повторите новый пароль"
-              value={repeatPassword}
-              onChange={(event) => setRepeatPassword(event.target.value)}
-              required
-            />
-            {error && <Text color="red">{error}</Text>}
-            {success && <Text color="green">{success}</Text>}
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Сохраняем...' : 'Сменить пароль'}
-            </Button>
-            <Text size="2">
+    <AuthShell title="Новый пароль" subtitle="Придумайте надежный пароль и подтвердите его." kicker="Безопасность" tone="orange">
+      <form onSubmit={submit} className="form-root">
+        <Flex direction="column" gap="3">
+          <TextField.Root
+            type="password"
+            placeholder="Новый пароль"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            required
+            minLength={6}
+          />
+          <TextField.Root
+            type="password"
+            placeholder="Повторите новый пароль"
+            value={repeatPassword}
+            onChange={(event) => setRepeatPassword(event.target.value)}
+            required
+            minLength={6}
+          />
+
+          {error && (
+            <div className="auth-alert auth-alert--error">
+              <Text color="red" size="2">
+                {error}
+              </Text>
+            </div>
+          )}
+          {success && (
+            <div className="auth-alert auth-alert--success">
+              <Text color="green" size="2">
+                {success}
+              </Text>
+            </div>
+          )}
+
+          <Button type="submit" disabled={submitting} style={{ fontWeight: 700 }}>
+            {submitting ? 'Сохраняем...' : 'Сменить пароль'}
+          </Button>
+
+          <div className="auth-links">
+            <Text size="2" color="gray">
               <Link to="/login">Назад ко входу</Link>
             </Text>
-          </Flex>
-        </form>
-      </Card>
-    </Container>
+          </div>
+        </Flex>
+      </form>
+    </AuthShell>
   );
 }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { Button, Flex, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { AuthShell } from './AuthShell';
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -59,28 +60,49 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <Container size="2">
-      <Card>
-        <Heading size="7">Подтверждение email</Heading>
-        <Flex direction="column" gap="3" mt="4">
-          {loading && <Text>Проверяем ссылку...</Text>}
-          {!loading && success && <Text color="green">{success}</Text>}
-          {!loading && error && <Text color="red">{error}</Text>}
+    <AuthShell
+      title="Подтверждение email"
+      subtitle="Проверяем ссылку или можем отправить письмо повторно."
+      kicker="Подтверждение"
+      tone="blue"
+    >
+      <Flex direction="column" gap="3">
+        {loading && (
+          <div className="auth-alert">
+            <Text size="2">Проверяем ссылку...</Text>
+          </div>
+        )}
+        {!loading && success && (
+          <div className="auth-alert auth-alert--success">
+            <Text color="green" size="2">
+              {success}
+            </Text>
+          </div>
+        )}
+        {!loading && error && (
+          <div className="auth-alert auth-alert--error">
+            <Text color="red" size="2">
+              {error}
+            </Text>
+          </div>
+        )}
 
-          <TextField.Root
-            type="email"
-            placeholder="Email для повторной отправки"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-          <Button type="button" variant="soft" onClick={() => void resend()} disabled={resending}>
-            {resending ? 'Отправка...' : 'Отправить письмо повторно'}
-          </Button>
-          <Text size="2">
+        <TextField.Root
+          type="email"
+          placeholder="Email для повторной отправки"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+        <Button type="button" variant="soft" onClick={() => void resend()} disabled={resending} style={{ fontWeight: 700 }}>
+          {resending ? 'Отправка...' : 'Отправить письмо повторно'}
+        </Button>
+
+        <div className="auth-links">
+          <Text size="2" color="gray">
             <Link to="/login">Перейти ко входу</Link>
           </Text>
-        </Flex>
-      </Card>
-    </Container>
+        </div>
+      </Flex>
+    </AuthShell>
   );
 }

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { Button, Flex, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { AuthShell } from './AuthShell';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -26,29 +27,48 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <Container size="2">
-      <Card>
-        <Heading size="7">Сброс пароля</Heading>
-        <form onSubmit={submit} className="form-root" style={{ marginTop: 16 }}>
-          <Flex direction="column" gap="3">
-            <TextField.Root
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-            {error && <Text color="red">{error}</Text>}
-            {success && <Text color="green">{success}</Text>}
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Отправка...' : 'Отправить ссылку'}
-            </Button>
-            <Text size="2">
+    <AuthShell
+      title="Сброс пароля"
+      subtitle="Отправим ссылку для восстановления, если email существует."
+      kicker="Восстановление"
+      tone="orange"
+    >
+      <form onSubmit={submit} className="form-root">
+        <Flex direction="column" gap="3">
+          <TextField.Root
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+
+          {error && (
+            <div className="auth-alert auth-alert--error">
+              <Text color="red" size="2">
+                {error}
+              </Text>
+            </div>
+          )}
+          {success && (
+            <div className="auth-alert auth-alert--success">
+              <Text color="green" size="2">
+                {success}
+              </Text>
+            </div>
+          )}
+
+          <Button type="submit" disabled={submitting} style={{ fontWeight: 700 }}>
+            {submitting ? 'Отправка...' : 'Отправить ссылку'}
+          </Button>
+
+          <div className="auth-links">
+            <Text size="2" color="gray">
               <Link to="/login">Назад ко входу</Link>
             </Text>
-          </Flex>
-        </form>
-      </Card>
-    </Container>
+          </div>
+        </Flex>
+      </form>
+    </AuthShell>
   );
 }

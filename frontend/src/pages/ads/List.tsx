@@ -5,7 +5,6 @@ import { api } from '../../api/axios';
 import AdCard, { type AdCardData } from '../../components/ads/AdCard';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import AdsMap from '../../shared/AdsMap';
-import { List } from '@radix-ui/themes/components/tabs';
 
 type Ad = AdCardData & {
   location?: {

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { Button, Flex, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { useAuthStore } from '../../shared/authStore';
+import { AuthShell } from './AuthShell';
 
 export default function LoginPage() {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
@@ -53,7 +54,8 @@ export default function LoginPage() {
       } else if (code === 'INVALID_CREDENTIALS') {
         setError('Неверный email или пароль');
       } else {
-        setError(extractApiErrorMessage(err, 'Ошибка входа'));
+        const message = extractApiErrorMessage(err, 'Ошибка входа');
+        setError(/token/i.test(message) ? 'Неверный email или пароль' : message);
       }
     } finally {
       setSubmitting(false);
@@ -80,49 +82,73 @@ export default function LoginPage() {
   }
 
   return (
-    <Container size="2">
-      <Card>
-        <Heading size="7">Вход</Heading>
-        <form onSubmit={onSubmit} className="form-root" style={{ marginTop: 16 }}>
-          <Flex direction="column" gap="3">
-            {registeredMessage && <Text color="green">{registeredMessage}</Text>}
-            <TextField.Root
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-              required
-            />
-            <TextField.Root
-              type="password"
-              placeholder="Пароль"
-              value={form.password}
-              onChange={(event) => setForm({ ...form, password: event.target.value })}
-              required
-            />
+    <AuthShell title="Вход" subtitle="Добро пожаловать обратно. Войдите, чтобы продолжить." kicker="Аккаунт" tone="violet">
+      <form onSubmit={onSubmit} className="form-root">
+        <Flex direction="column" gap="3">
+          {registeredMessage && (
+            <div className="auth-alert auth-alert--success">
+              <Text color="green" size="2">
+                {registeredMessage}
+              </Text>
+            </div>
+          )}
 
-            {error && <Text color="red">{error}</Text>}
-            {resendMessage && <Text color="green">{resendMessage}</Text>}
+          <TextField.Root
+            type="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
+            required
+          />
+          <TextField.Root
+            type="password"
+            placeholder="Пароль"
+            value={form.password}
+            onChange={(event) => setForm({ ...form, password: event.target.value })}
+            required
+          />
 
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Вход...' : 'Войти'}
+          {error && (
+            <div className="auth-alert auth-alert--error">
+              <Text color="red" size="2">
+                {error}
+              </Text>
+            </div>
+          )}
+          {resendMessage && (
+            <div className="auth-alert auth-alert--success">
+              <Text color="green" size="2">
+                {resendMessage}
+              </Text>
+            </div>
+          )}
+
+          <Button type="submit" disabled={submitting} style={{ fontWeight: 700 }}>
+            {submitting ? 'Вход...' : 'Войти'}
+          </Button>
+
+          {needsVerification && (
+            <Button
+              type="button"
+              variant="soft"
+              onClick={() => void resendVerification()}
+              disabled={resending}
+              style={{ fontWeight: 700 }}
+            >
+              {resending ? 'Отправка...' : 'Отправить письмо подтверждения еще раз'}
             </Button>
+          )}
 
-            {needsVerification && (
-              <Button type="button" variant="soft" onClick={() => void resendVerification()} disabled={resending}>
-                {resending ? 'Отправка...' : 'Отправить письмо подтверждения еще раз'}
-              </Button>
-            )}
-
+          <div className="auth-links">
             <Text size="2" color="gray">
               <Link to="/forgot-password">Забыли пароль?</Link>
             </Text>
             <Text size="2" color="gray">
               Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
             </Text>
-          </Flex>
-        </form>
-      </Card>
-    </Container>
+          </div>
+        </Flex>
+      </form>
+    </AuthShell>
   );
 }

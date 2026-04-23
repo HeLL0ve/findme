@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card, Container, Dialog, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { Button, Dialog, Flex, Heading, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { AuthShell } from './AuthShell';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -18,52 +19,77 @@ export default function RegisterPage() {
     acceptTerms: false,
   });
 
+  function validate() {
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const password = form.password;
+
+    if (!name) return 'Введите имя';
+    // Basic email sanity check (HTML validation is helpful but not always triggered, e.g. autofill)
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) return 'Введите корректный email';
+    if (!password || password.length < 6) return 'Пароль должен быть не менее 6 символов';
+    if (!form.acceptTerms) return 'Необходимо принять пользовательское соглашение';
+    return null;
+  }
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
-    if (!form.acceptTerms) {
-      setError('Необходимо принять пользовательское соглашение');
-      return;
-    }
+    const validationError = validate();
+    if (validationError) return void setError(validationError);
 
     setSubmitting(true);
     try {
-      await api.post('/auth/register', form);
-      navigate(`/login?registered=1&email=${encodeURIComponent(form.email)}`);
+      await api.post('/auth/register', {
+        ...form,
+        email: form.email.trim(),
+        name: form.name.trim(),
+      });
+      navigate(`/login?registered=1&email=${encodeURIComponent(form.email.trim())}`);
     } catch (err) {
-      setError(extractApiErrorMessage(err, 'Ошибка регистрации'));
+      const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code;
+      const message = extractApiErrorMessage(err, 'Ошибка регистрации');
+      if (code === 'INVALID_CREDENTIALS') {
+        setError('Проверьте email и пароль');
+      } else {
+        setError(/token/i.test(message) ? 'Проверьте email и пароль' : message);
+      }
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Container size="2">
-      <Card>
-        <Heading size="7">Создать аккаунт</Heading>
-        <form onSubmit={submit} className="form-root" style={{ marginTop: 16 }}>
-          <Flex direction="column" gap="3">
-            <TextField.Root
-              placeholder="Имя (необязательно)"
-              value={form.name}
-              onChange={(event) => setForm({ ...form, name: event.target.value })}
-            />
-            <TextField.Root
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-              required
-            />
-            <TextField.Root
-              type="password"
-              placeholder="Пароль"
-              value={form.password}
-              onChange={(event) => setForm({ ...form, password: event.target.value })}
-              required
-              minLength={6}
-            />
+    <AuthShell
+      title="Создать аккаунт"
+      subtitle="Регистрация займет минуту. После — подтвердите email."
+      kicker="Регистрация"
+      tone="green"
+    >
+      <form onSubmit={submit} className="form-root">
+        <Flex direction="column" gap="3">
+          <TextField.Root
+            placeholder="Имя *"
+            value={form.name}
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            required
+          />
+          <TextField.Root
+            type="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
+            required
+          />
+          <TextField.Root
+            type="password"
+            placeholder="Пароль (минимум 6 символов)"
+            value={form.password}
+            onChange={(event) => setForm({ ...form, password: event.target.value })}
+            required
+            minLength={6}
+          />
 
             <Flex align="start" gap="2">
               <Checkbox.Root
@@ -95,17 +121,24 @@ export default function RegisterPage() {
               </label>
             </Flex>
 
-            {error && <Text color="red">{error}</Text>}
+          {error && (
+            <div className="auth-alert auth-alert--error">
+              <Text color="red" size="2">
+                {error}
+              </Text>
+            </div>
+          )}
 
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Регистрация...' : 'Зарегистрироваться'}
-            </Button>
+          <Button type="submit" disabled={submitting} style={{ fontWeight: 700 }}>
+            {submitting ? 'Регистрация...' : 'Зарегистрироваться'}
+          </Button>
+          <div className="auth-links">
             <Text size="2" color="gray">
               Уже есть аккаунт? <Link to="/login">Войти</Link>
             </Text>
-          </Flex>
-        </form>
-      </Card>
+          </div>
+        </Flex>
+      </form>
 
       <Dialog.Root open={termsOpen} onOpenChange={setTermsOpen}>
         <Dialog.Content maxWidth="720px" style={{ maxHeight: '80vh', overflow: 'auto' }}>
@@ -184,6 +217,6 @@ export default function RegisterPage() {
           </Flex>
         </Dialog.Content>
       </Dialog.Root>
-    </Container>
+    </AuthShell>
   );
 }

@@ -82,6 +82,94 @@ h4 {
   gap: 12px;
 }
 
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 12px;
+  position: relative;
+  isolation: isolate;
+}
+
+.auth-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(900px 480px at 16% 18%, var(--auth-glow-1, transparent), transparent 60%),
+    radial-gradient(820px 420px at 86% 26%, var(--auth-glow-2, transparent), transparent 62%),
+    radial-gradient(820px 520px at 56% 92%, var(--auth-glow-3, transparent), transparent 58%),
+    linear-gradient(180deg, color-mix(in oklab, var(--surface) 30%, transparent), transparent);
+  pointer-events: none;
+}
+
+.auth-container {
+  width: 100%;
+}
+
+.auth-card {
+  border: 1px solid var(--gray-a5);
+  border-radius: 18px;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--surface) 84%, var(--accent-soft));
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.14),
+    0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.auth-card-header {
+  padding: 22px 22px 14px;
+  border-bottom: 1px solid var(--gray-a4);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--surface) 88%, var(--accent-soft)), var(--surface));
+}
+
+.auth-card-body {
+  padding: 18px 22px 22px;
+}
+
+.auth-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  background: var(--auth-kicker-bg, var(--gray-a3));
+  border: 1px solid var(--auth-kicker-border, var(--gray-a5));
+  color: var(--auth-kicker-text, var(--accent-11));
+}
+
+.auth-alert {
+  border-radius: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-a5);
+  background: var(--gray-a2);
+}
+
+.auth-alert--error {
+  border-color: var(--red-a6);
+  background: var(--red-a2);
+}
+
+.auth-alert--success {
+  border-color: var(--green-a6);
+  background: var(--green-a2);
+}
+
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-links a {
+  font-weight: 650;
+}
+
 .error {
   color: #ff6363;
 }
