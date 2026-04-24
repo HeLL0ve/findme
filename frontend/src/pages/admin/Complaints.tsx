@@ -76,17 +76,9 @@ export default function AdminComplaintsPage() {
     <Container size="3">
       <Flex direction="column" gap="4">
         <Flex justify="between" align="center" wrap="wrap" gap="2">
-          <Heading size="8">Жалобы и обращения</Heading>
+          <Heading size="8">Жалобы</Heading>
           <Flex gap="2" align="center" wrap="wrap">
             <Badge color="orange">Новых: {pendingCount}</Badge>
-            <Select.Root value={kindFilter} onValueChange={(value) => setKindFilter(value as 'ALL' | Complaint['kind'])}>
-              <Select.Trigger />
-              <Select.Content>
-                <Select.Item value="ALL">Все типы</Select.Item>
-                <Select.Item value="REPORT">Жалобы</Select.Item>
-                <Select.Item value="SUPPORT">Поддержка</Select.Item>
-              </Select.Content>
-            </Select.Root>
             <Select.Root value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'ALL' | Complaint['status'])}>
               <Select.Trigger />
               <Select.Content>
