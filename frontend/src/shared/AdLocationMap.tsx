@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { LayersControl, MapContainer, Marker, TileLayer } from 'react-leaflet';
 import { MAP_TILES } from './mapTiles';
 import { useGeolocationCenter } from './useGeolocationCenter';
+import { defaultIcon } from './mapIcons';
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -10,6 +11,7 @@ function isFiniteNumber(value: unknown): value is number {
 
 export function AdLocationMap(props: {
   location?: { latitude?: number | null; longitude?: number | null } | null;
+  type?: 'LOST' | 'FOUND' | string | null;
   height?: number;
 }) {
   const height = props.height ?? 320;
@@ -48,10 +50,9 @@ export function AdLocationMap(props: {
               </LayersControl.BaseLayer>
             ))}
           </LayersControl>
-          <Marker position={[point.lat, point.lng]} />
+          <Marker position={[point.lat, point.lng]} icon={defaultIcon} />
         </MapContainer>
       </div>
     </Card>
   );
 }
-

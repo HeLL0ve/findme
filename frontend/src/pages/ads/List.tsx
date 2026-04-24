@@ -295,14 +295,14 @@ export default function AdsList() {
             {/* Map View */}
             {viewMode === 'map' && (
               <Box style={{
-                height: 'calc(100vh - 400px)',
-                minHeight: '400px',
+                height: 'calc(100vh - 320px)',
+                minHeight: '480px',
                 borderRadius: 'var(--radius-2)',
                 overflow: 'hidden',
                 border: '1px solid var(--gray-a6)',
                 opacity: loading ? 0.6 : 1,
               }}>
-                {!loading && ads.length > 0 && <AdsMap ads={ads} />}
+                {!loading && ads.length > 0 && <AdsMap ads={ads} height="100%" />}
                 {loading && (
                   <Flex align="center" justify="center" style={{ height: '100%' }}>
                     <Text color="gray">⏳ Загрузка карты...</Text>

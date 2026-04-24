@@ -431,7 +431,7 @@ export default function AdDetail() {
                       </Flex>
                     )}
                   </Flex>
-                  <AdLocationMap location={ad.location} height={320} />
+                  <AdLocationMap location={ad.location} type={ad.type} height={320} />
                 </Flex>
               </Card>
             )}

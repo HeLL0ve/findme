@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { LayersControl, MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
 import { MAP_TILES } from './mapTiles';
 import { useGeolocationCenter } from './useGeolocationCenter';
+import { defaultIcon } from './mapIcons';
 
 type LatLng = { lat: number; lng: number };
 
@@ -68,7 +69,7 @@ export function LocationPickerMap(props: {
 
           <RecenterOnGeo enabled={!picked} center={geo.status === 'ready' ? geo.center : null} />
           <ClickToSetMarker onPick={(point) => props.onChange({ latitude: point.lat, longitude: point.lng })} />
-          {picked && <Marker position={[picked.lat, picked.lng]} />}
+          {picked && <Marker position={[picked.lat, picked.lng]} icon={defaultIcon} />}
         </MapContainer>
       </Box>
 
@@ -90,4 +91,3 @@ export function LocationPickerMap(props: {
     </Card>
   );
 }
-
