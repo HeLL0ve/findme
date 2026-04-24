@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Avatar, Badge, Box, Button, Card, Container, DropdownMenu, Flex, IconButton, Text } from '@radix-ui/themes';
+import { Avatar, Badge, Box, Button, Container, DropdownMenu, Flex, IconButton, Text } from '@radix-ui/themes';
 import { config } from '../shared/config';
 import { useAuthStore } from '../shared/authStore';
 import { roleLabel } from '../shared/labels';
@@ -84,23 +84,16 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
   ];
 
   return (
-    <Box style={{ 
-      position: 'sticky', 
-      top: 0, 
-      zIndex: 20, 
-      backdropFilter: 'blur(10px)',
-      background: 'linear-gradient(to bottom, var(--gray-surface), color-mix(in oklab, var(--gray-surface) 95%, var(--gray-a2)))',
-      borderBottom: '1px solid var(--gray-a4)',
-    }}>
-      <Container size="4" style={{ maxWidth: 1600, width: '100%', marginInline: 'auto' }}>
-        <Card style={{ 
-          marginTop: 10, 
-          marginBottom: 12, 
-          padding: 0,
-          background: 'transparent',
-          border: 'none',
-          boxShadow: 'none',
-        }}>
+    <>
+      <Box style={{ 
+        position: 'sticky', 
+        top: 0, 
+        zIndex: 20, 
+        backdropFilter: 'blur(10px)',
+        background: 'linear-gradient(to bottom, var(--gray-surface), color-mix(in oklab, var(--gray-surface) 95%, var(--gray-a2)))',
+        borderBottom: '1px solid var(--gray-a4)',
+      }}>
+        <Container size="4" style={{ maxWidth: 1600, width: '100%', marginInline: 'auto' }}>
           <Flex align="center" justify="between" gap="3" style={{ padding: '10px 14px' }}>
             <Flex align="center" gap="3" style={{ minWidth: 0 }}>
               <Link to="/" style={{ textDecoration: 'none' }}>
@@ -116,11 +109,12 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                       justifyContent: 'center',
                       color: 'white',
                       fontWeight: 800,
+                      flexShrink: 0,
                     }}
                   >
                     F
                   </Box>
-                  <Box display={{ initial: 'none', sm: 'block' }}>
+                  <Box>
                     <Text weight="bold" size="3">FindMe</Text>
                     <Text as="div" size="1" color="gray">поиск питомцев</Text>
                   </Box>
@@ -211,47 +205,64 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
               </Box>
             </Flex>
           </Flex>
+        </Container>
+      </Box>
 
-          {mobileOpen && (
-            <Box display={{ initial: 'block', lg: 'none' }} style={{ borderTop: '1px solid var(--gray-a5)', padding: 12 }}>
-              <Flex direction="column" gap="2">
-                {publicLinks.map((link) => (
-                  <Button key={link.to} variant="soft" asChild onClick={() => setMobileOpen(false)}>
-                    <Link to={link.to} className="truncate">{link.label}</Link>
-                  </Button>
-                ))}
-                {token && privateLinks.map((link) => (
-                  <Button key={link.to} variant="soft" asChild onClick={() => setMobileOpen(false)}>
-                    <Link to={link.to} className="truncate">{link.label}</Link>
-                  </Button>
-                ))}
-                {token && (
-                  <Button variant="soft" asChild onClick={() => setMobileOpen(false)}>
-                    <Link to="/notifications">Уведомления</Link>
-                  </Button>
-                )}
-                {!token && (
-                  <>
-                    <Button variant="soft" asChild onClick={() => setMobileOpen(false)}><Link to="/login">Вход</Link></Button>
-                    <Button asChild onClick={() => setMobileOpen(false)}><Link to="/register">Регистрация</Link></Button>
-                  </>
-                )}
-                {token && user?.role === 'ADMIN' && (
-                  <Button variant="soft" asChild onClick={() => setMobileOpen(false)}>
-                    <Link to="/admin">Админ</Link>
-                  </Button>
-                )}
-                {token && (
-                  <Button color="red" variant="soft" onClick={() => void logout()}>
-                    Выйти
-                  </Button>
-                )}
-              </Flex>
-            </Box>
-          )}
-        </Card>
-      </Container>
+      {/* Мобильное меню — fixed, поверх всего контента, не сдвигает страницу */}
+      {mobileOpen && (
+        <Box
+          display={{ initial: 'block', lg: 'none' }}
+          style={{
+            position: 'fixed',
+            top: 62,
+            left: 0,
+            right: 0,
+            zIndex: 19,
+            background: 'var(--gray-surface)',
+            borderBottom: '1px solid var(--gray-a5)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          }}
+        >
+          <Container size="4">
+            <Flex direction="column" gap="2" style={{ padding: '12px 16px' }}>
+              {publicLinks.map((link) => (
+                <Button key={link.to} variant="soft" asChild onClick={() => setMobileOpen(false)}>
+                  <Link to={link.to}>{link.label}</Link>
+                </Button>
+              ))}
+              {token && privateLinks.map((link) => (
+                <Button key={link.to} variant="soft" asChild onClick={() => setMobileOpen(false)}>
+                  <Link to={link.to}>{link.label}</Link>
+                </Button>
+              ))}
+              {token && (
+                <Button variant="soft" asChild onClick={() => setMobileOpen(false)}>
+                  <Link to="/notifications">Уведомления</Link>
+                </Button>
+              )}
+              {!token && (
+                <>
+                  <Button variant="soft" asChild onClick={() => setMobileOpen(false)}><Link to="/login">Вход</Link></Button>
+                  <Button asChild onClick={() => setMobileOpen(false)}><Link to="/register">Регистрация</Link></Button>
+                </>
+              )}
+              {token && user?.role === 'ADMIN' && (
+                <Button variant="soft" asChild onClick={() => setMobileOpen(false)}>
+                  <Link to="/admin">Админ</Link>
+                </Button>
+              )}
+              {token && (
+                <Button color="red" variant="soft" onClick={() => { void logout(); setMobileOpen(false); }}>
+                  Выйти
+                </Button>
+              )}
+            </Flex>
+          </Container>
+        </Box>
+      )}
+
       <NotificationsModal open={notificationsModalOpen} onOpenChange={setNotificationsModalOpen} />
-    </Box>
+    </>
   );
 }
