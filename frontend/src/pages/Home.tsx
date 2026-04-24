@@ -5,6 +5,7 @@ import { MessageIcon, SearchIcon, AddIcon, DescriptionIcon } from '../components
 import { api } from '../api/axios';
 import AdCard, { type AdCardData } from '../components/ads/AdCard';
 import { useOnlineCount } from '../shared/useOnlineCount';
+import { usePageTitle } from '../shared/usePageTitle';
 
 type Ad = AdCardData;
 
@@ -18,6 +19,7 @@ export default function Home() {
     chats: 0,
   });
   const online = useOnlineCount();
+  usePageTitle();
 
   useEffect(() => {
     let mounted = true;

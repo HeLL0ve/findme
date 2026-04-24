@@ -8,6 +8,7 @@ import { useAuthStore } from '../shared/authStore';
 import { config } from '../shared/config';
 import { roleLabel } from '../shared/labels';
 import { PasswordField } from '../components/common/PasswordField';
+import { usePageTitle } from '../shared/usePageTitle';
 import {
   UserIcon,
   InfoIcon,
@@ -52,6 +53,7 @@ function resolveAvatarSrc(avatarUrl?: string | null) {
 export default function Profile() {
   const setUser = useAuthStore((state) => state.setUser);
   const authUser = useAuthStore((state) => state.user);
+  usePageTitle('Профиль');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

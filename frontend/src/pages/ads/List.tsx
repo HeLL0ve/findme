@@ -5,6 +5,7 @@ import { api } from '../../api/axios';
 import AdCard, { type AdCardData } from '../../components/ads/AdCard';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import AdsMap from '../../shared/AdsMap';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type Ad = AdCardData & {
   location?: {
@@ -36,6 +37,7 @@ export default function AdsList() {
     type: 'ALL',
     status: 'APPROVED',
   });
+  usePageTitle('Поиск объявлений');
 
   async function fetchAds() {
     setLoading(true);

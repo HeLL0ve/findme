@@ -6,8 +6,10 @@ import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { AuthShell } from './AuthShell';
 import { PasswordField } from '../../components/common/PasswordField';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 export default function RegisterPage() {
+  usePageTitle('Регистрация');
   const navigate = useNavigate();
 
   const [error, setError] = useState<string | null>(null);

@@ -8,6 +8,7 @@ import { extractApiErrorMessage } from '../../shared/apiError';
 import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 import { config } from '../../shared/config';
 import { LocationPickerMap } from '../../shared/LocationPickerMap';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type EditAdDto = {
   id: string;
@@ -59,6 +60,7 @@ function resolvePhotoSrc(url: string) {
 }
 
 export default function EditAd() {
+  usePageTitle('Редактировать объявление');
   const { id } = useParams();
   const navigate = useNavigate();
 

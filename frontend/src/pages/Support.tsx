@@ -3,6 +3,7 @@ import { Badge, Button, Card, Container, Flex, Heading, Text, TextArea, TextFiel
 import { api } from '../api/axios';
 import { extractApiErrorMessage } from '../shared/apiError';
 import { complaintStatusLabel } from '../shared/labels';
+import { usePageTitle } from '../shared/usePageTitle';
 
 type SupportRequest = {
   id: string;
@@ -21,6 +22,7 @@ export default function SupportPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [requests, setRequests] = useState<SupportRequest[]>([]);
+  usePageTitle('Поддержка');
 
   async function loadRequests() {
     try {

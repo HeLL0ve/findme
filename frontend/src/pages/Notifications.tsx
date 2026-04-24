@@ -4,6 +4,7 @@ import { Badge, Button, Card, Container, Flex, Heading, Text } from '@radix-ui/t
 import { api } from '../api/axios';
 import { extractApiErrorMessage } from '../shared/apiError';
 import { notificationTypeLabel } from '../shared/labels';
+import { usePageTitle } from '../shared/usePageTitle';
 
 type NotificationItem = {
   id: string;
@@ -22,6 +23,7 @@ export default function NotificationsPage() {
   const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
   );
+  usePageTitle('Уведомления');
 
   async function load() {
     setLoading(true);

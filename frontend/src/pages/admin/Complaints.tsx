@@ -6,6 +6,7 @@ import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { complaintStatusLabel, complaintTargetLabel } from '../../shared/labels';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type Complaint = {
   id: string;
@@ -22,6 +23,7 @@ type Complaint = {
 };
 
 export default function AdminComplaintsPage() {
+  usePageTitle('Админ — Жалобы');
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

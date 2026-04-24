@@ -6,8 +6,10 @@ import { extractApiErrorMessage } from '../../shared/apiError';
 import { useAuthStore } from '../../shared/authStore';
 import { AuthShell } from './AuthShell';
 import { PasswordField } from '../../components/common/PasswordField';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 export default function LoginPage() {
+  usePageTitle('Вход');
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate();

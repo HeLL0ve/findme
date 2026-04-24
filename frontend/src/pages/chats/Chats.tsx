@@ -7,6 +7,7 @@ import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { useAuthStore } from '../../shared/authStore';
 import { config } from '../../shared/config';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type Chat = {
   id: string;
@@ -25,6 +26,7 @@ function resolveAvatarSrc(avatarUrl?: string | null) {
 }
 
 export default function ChatsPage() {
+  usePageTitle('Чаты');
   const currentUser = useAuthStore((state) => state.user);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

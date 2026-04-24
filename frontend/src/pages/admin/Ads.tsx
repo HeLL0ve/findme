@@ -6,6 +6,7 @@ import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { adStatusLabel, adTypeLabel } from '../../shared/labels';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type Ad = {
   id: string;
@@ -18,6 +19,7 @@ type Ad = {
 };
 
 export default function AdminAdsPage() {
+  usePageTitle('Админ — Объявления');
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

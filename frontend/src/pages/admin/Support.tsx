@@ -4,6 +4,7 @@ import { api } from '../../api/axios';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { SendIcon, AlertTriangleIcon } from '../../components/common/Icons';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type SupportMessage = {
   id: string;
@@ -16,6 +17,7 @@ type SupportMessage = {
 };
 
 export default function AdminSupportPage() {
+  usePageTitle('Админ — Поддержка');
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

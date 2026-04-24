@@ -4,8 +4,10 @@ import { Button, Flex, Text, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { AuthShell } from './AuthShell';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 export default function ForgotPasswordPage() {
+  usePageTitle('Восстановление пароля');
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

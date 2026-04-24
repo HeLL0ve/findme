@@ -9,6 +9,7 @@ import { useAuthStore } from '../../shared/authStore';
 import { config } from '../../shared/config';
 import { useWsConnection } from '../../shared/useWsConnection';
 import { sendWs, subscribeWs } from '../../shared/wsClient';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type Message = {
   id: string;
@@ -58,6 +59,8 @@ export default function ChatDetailPage() {
   const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  usePageTitle(chat?.ad?.petName ? `Чат — ${chat.ad.petName}` : 'Чат');
 
   useWsConnection();
 

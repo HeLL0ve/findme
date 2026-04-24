@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type TimelinePoint = {
   date: string;
@@ -37,6 +38,7 @@ type StatsDto = {
 };
 
 export default function AdminStatsPage() {
+  usePageTitle('Админ — Статистика');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState<RangeValue>('week');

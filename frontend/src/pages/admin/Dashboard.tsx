@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Card, Container, Flex, Grid, Heading, Text, Section } from '@radix-ui/themes';
 import { api } from '../../api/axios';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type AdminStats = {
   users?: { total: number; blocked: number };
@@ -11,6 +12,7 @@ type AdminStats = {
 };
 
 export default function AdminDashboard() {
+  usePageTitle('Админ — Дашборд');
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   useEffect(() => {

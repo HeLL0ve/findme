@@ -6,6 +6,7 @@ import AdPhotoPicker from '../../components/ads/AdPhotoPicker';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { AddIcon, PawIcon, ListIcon } from '../../components/common/Icons';
 import { LocationPickerMap } from '../../shared/LocationPickerMap';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type CreateAdFormState = {
   type: 'LOST' | 'FOUND';
@@ -35,6 +36,7 @@ function validateFiles(files: File[]) {
 }
 
 export default function CreateAd() {
+  usePageTitle('Создать объявление');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

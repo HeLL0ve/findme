@@ -6,6 +6,7 @@ import type { UserProfileType } from '../../components/user/UserProfileCard';
 import UserProfileCard from '../../components/user/UserProfileCard';
 import { useAuthStore } from '../../shared/authStore';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type User = UserProfileType & {
   phone?: string | null;
@@ -13,6 +14,7 @@ type User = UserProfileType & {
 };
 
 export default function AdminUsers() {
+  usePageTitle('Админ — Пользователи');
   const navigate = useNavigate();
   const currentUser = useAuthStore((state) => state.user);
   const [users, setUsers] = useState<User[]>([]);

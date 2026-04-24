@@ -6,6 +6,7 @@ import { api } from '../api/axios';
 import AdCard, { type AdCardData } from '../components/ads/AdCard';
 import ConfirmActionDialog from '../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../shared/apiError';
+import { usePageTitle } from '../shared/usePageTitle';
 
 type Ad = AdCardData;
 
@@ -14,6 +15,7 @@ export default function MyAdsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'APPROVED' | 'ARCHIVED'>('ALL');
+  usePageTitle('Мои объявления');
 
   useEffect(() => {
     let mounted = true;

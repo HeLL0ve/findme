@@ -10,6 +10,7 @@ import { useAuthStore } from '../../shared/authStore';
 import { config } from '../../shared/config';
 import { adStatusLabel } from '../../shared/labels';
 import { AdLocationMap } from '../../shared/AdLocationMap';
+import { usePageTitle } from '../../shared/usePageTitle';
 
 type Ad = {
   id: string;
@@ -62,6 +63,8 @@ export default function AdDetail() {
   const [complaintSubmitting, setComplaintSubmitting] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  usePageTitle(ad ? (ad.petName || (ad.type === 'LOST' ? 'Потерян питомец' : 'Найден питомец')) : 'Объявление');
 
   useEffect(() => {
     if (!id) return;

@@ -6,6 +6,7 @@ import AdCard, { type AdCardData } from '../components/ads/AdCard';
 import UserAvatarLink from '../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../shared/apiError';
 import { useAuthStore } from '../shared/authStore';
+import { usePageTitle } from '../shared/usePageTitle';
 import { UserIcon, DescriptionIcon, PhoneIcon, MailIcon, MessageIcon, AlertTriangleIcon } from '../components/common/Icons';
 
 type PublicUser = {
@@ -33,6 +34,8 @@ export default function UserProfilePage() {
   const [complaintReason, setComplaintReason] = useState('');
   const [complaintDescription, setComplaintDescription] = useState('');
   const [complaintSubmitting, setComplaintSubmitting] = useState(false);
+
+  usePageTitle(user ? (user.name || user.email || 'Пользователь') : 'Профиль пользователя');
 
   const isSelfProfile = !!authUser && authUser.id === id;
 
