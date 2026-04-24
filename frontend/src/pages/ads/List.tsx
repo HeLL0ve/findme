@@ -31,6 +31,7 @@ export default function AdsList() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<Filters>({
     q: '',
     city: '',
@@ -38,6 +39,8 @@ export default function AdsList() {
     status: 'APPROVED',
   });
   usePageTitle('Поиск объявлений');
+
+  const PAGE_SIZE = 9;
 
   async function fetchAds() {
     setLoading(true);
@@ -50,6 +53,7 @@ export default function AdsList() {
 
       const response = await api.get('/ads', { params });
       setAds(response.data);
+      setPage(1); // сбрасываем на первую страницу при новом поиске
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось загрузить объявления'));
     } finally {
@@ -62,6 +66,8 @@ export default function AdsList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const totalPages = Math.ceil(ads.length / PAGE_SIZE);
+  const paginatedAds = ads.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const resultsCount = ads.length;
 
   return (
@@ -272,26 +278,90 @@ export default function AdsList() {
 
             {/* List View */}
             {viewMode === 'list' && (
-              <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="4" style={{
-                opacity: loading ? 0.6 : 1,
-                pointerEvents: loading ? 'none' : 'auto',
-              }}>
-                {loading ? (
-                  [1, 2, 3, 4, 5, 6].map((i) => (
-                    <Card key={i} style={{
-                      height: '360px',
-                      background: 'var(--gray-a2)',
-                      animation: 'pulse 2s infinite',
-                    }}>
-                      <Box style={{ height: '100%' }} />
-                    </Card>
-                  ))
-                ) : (
-                  ads.map((ad) => (
-                    <AdCard key={ad.id} ad={ad} showDescription />
-                  ))
+              <>
+                <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="4" style={{
+                  opacity: loading ? 0.6 : 1,
+                  pointerEvents: loading ? 'none' : 'auto',
+                }}>
+                  {loading ? (
+                    [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+                      <Card key={i} style={{
+                        height: '360px',
+                        background: 'var(--gray-a2)',
+                        animation: 'pulse 2s infinite',
+                      }}>
+                        <Box style={{ height: '100%' }} />
+                      </Card>
+                    ))
+                  ) : (
+                    paginatedAds.map((ad) => (
+                      <AdCard key={ad.id} ad={ad} showDescription />
+                    ))
+                  )}
+                </Grid>
+
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                  <Flex justify="center" align="center" gap="2" style={{ marginTop: 'var(--space-4)' }}>
+                    <Button
+                      variant="soft"
+                      size="2"
+                      disabled={page === 1}
+                      onClick={() => { setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    >
+                      «
+                    </Button>
+                    <Button
+                      variant="soft"
+                      size="2"
+                      disabled={page === 1}
+                      onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    >
+                      ‹
+                    </Button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                      .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
+                        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis');
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((item, idx) =>
+                        item === 'ellipsis' ? (
+                          <Text key={`ellipsis-${idx}`} size="2" color="gray" style={{ padding: '0 4px' }}>…</Text>
+                        ) : (
+                          <Button
+                            key={item}
+                            size="2"
+                            variant={page === item ? 'solid' : 'soft'}
+                            onClick={() => { setPage(item as number); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          >
+                            {item}
+                          </Button>
+                        )
+                      )
+                    }
+
+                    <Button
+                      variant="soft"
+                      size="2"
+                      disabled={page === totalPages}
+                      onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    >
+                      ›
+                    </Button>
+                    <Button
+                      variant="soft"
+                      size="2"
+                      disabled={page === totalPages}
+                      onClick={() => { setPage(totalPages); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    >
+                      »
+                    </Button>
+                  </Flex>
                 )}
-              </Grid>
+              </>
             )}
 
             {/* Map View */}
