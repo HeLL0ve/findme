@@ -9,6 +9,7 @@ import { extractApiErrorMessage } from '../../shared/apiError';
 import { useAuthStore } from '../../shared/authStore';
 import { config } from '../../shared/config';
 import { adStatusLabel } from '../../shared/labels';
+import { AdLocationMap } from '../../shared/AdLocationMap';
 
 type Ad = {
   id: string;
@@ -430,6 +431,7 @@ export default function AdDetail() {
                       </Flex>
                     )}
                   </Flex>
+                  <AdLocationMap location={ad.location} height={320} />
                 </Flex>
               </Card>
             )}

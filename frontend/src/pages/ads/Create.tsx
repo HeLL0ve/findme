@@ -5,6 +5,7 @@ import { api } from '../../api/axios';
 import AdPhotoPicker from '../../components/ads/AdPhotoPicker';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { AddIcon, PawIcon, ListIcon } from '../../components/common/Icons';
+import { LocationPickerMap } from '../../shared/LocationPickerMap';
 
 type CreateAdFormState = {
   type: 'LOST' | 'FOUND';
@@ -108,6 +109,8 @@ export default function CreateAd() {
 
       const latitude = form.location.latitude ? Number(form.location.latitude) : undefined;
       const longitude = form.location.longitude ? Number(form.location.longitude) : undefined;
+      const hasCoords = typeof latitude === 'number' && Number.isFinite(latitude) && typeof longitude === 'number' && Number.isFinite(longitude);
+      const hasLocationText = Boolean(form.location.address.trim() || form.location.city.trim());
 
       const response = await api.post('/ads', {
         type: form.type,
@@ -117,12 +120,15 @@ export default function CreateAd() {
         color: form.color || undefined,
         description: form.description,
         photos: photoUrls,
-        location: {
-          address: form.location.address || undefined,
-          city: form.location.city || undefined,
-          latitude,
-          longitude,
-        },
+        location:
+          hasCoords || hasLocationText
+            ? {
+                address: form.location.address || undefined,
+                city: form.location.city || undefined,
+                latitude,
+                longitude,
+              }
+            : undefined,
       });
 
       navigate(`/ads/${response.data.id}`);
@@ -287,6 +293,24 @@ export default function CreateAd() {
                 </Flex>
 
                 <Flex direction="column" gap="3">
+                  <LocationPickerMap
+                    value={{
+                      latitude: form.location.latitude ? Number(form.location.latitude) : null,
+                      longitude: form.location.longitude ? Number(form.location.longitude) : null,
+                    }}
+                    onChange={(next) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        location: {
+                          ...prev.location,
+                          latitude: next ? String(next.latitude) : '',
+                          longitude: next ? String(next.longitude) : '',
+                        },
+                      }))
+                    }
+                    height={360}
+                  />
+
                   <Flex gap="3" direction={{ initial: 'column', md: 'row' }}>
                     <Flex direction="column" gap="2" style={{ flex: 1 }}>
                       <Text size="2" weight="bold" color="gray">Город</Text>
@@ -307,30 +331,14 @@ export default function CreateAd() {
                   </Flex>
 
                   <Flex direction="column" gap="2">
-                    <Text size="1" weight="bold" color="gray">Координаты GPS (опционально)</Text>
-                    <Flex gap="3">
-                      <Flex direction="column" gap="1" style={{ flex: 1 }}>
-                        <Text size="1" color="gray">Широта</Text>
-                        <TextField.Root
-                          type="number"
-                          placeholder="55.7558"
-                          step="0.00001"
-                          value={form.location.latitude}
-                          onChange={(event) => setForm({ ...form, location: { ...form.location, latitude: event.target.value } })}
-                        />
-                      </Flex>
-                      <Flex direction="column" gap="1" style={{ flex: 1 }}>
-                        <Text size="1" color="gray">Долгота</Text>
-                        <TextField.Root
-                          type="number"
-                          placeholder="37.6173"
-                          step="0.00001"
-                          value={form.location.longitude}
-                          onChange={(event) => setForm({ ...form, location: { ...form.location, longitude: event.target.value } })}
-                        />
-                      </Flex>
-                    </Flex>
-                    <Text size="1" color="gray">Помогает другим видеть точное место на карте</Text>
+                    <Text size="1" weight="bold" color="gray">
+                      Координаты (выбираются только на карте)
+                    </Text>
+                    <Text size="1" color="gray">
+                      {form.location.latitude && form.location.longitude
+                        ? `Широта: ${form.location.latitude}, долгота: ${form.location.longitude}`
+                        : 'Метка не выбрана'}
+                    </Text>
                   </Flex>
                 </Flex>
               </Flex>
@@ -392,16 +400,7 @@ export default function CreateAd() {
         </form>
       </Container>
 
-      <style>{`
-        .form-root input[type="number"]::-webkit-outer-spin-button,
-        .form-root input[type="number"]::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-        .form-root input[type="number"] {
-          -moz-appearance: textfield;
-        }
-      `}</style>
+      <style>{``}</style>
     </Flex>
   );
 }

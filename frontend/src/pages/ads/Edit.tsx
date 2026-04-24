@@ -7,6 +7,7 @@ import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 import { config } from '../../shared/config';
+import { LocationPickerMap } from '../../shared/LocationPickerMap';
 
 type EditAdDto = {
   id: string;
@@ -254,6 +255,23 @@ export default function EditAd() {
             <Text size="2" color="gray">
               Адрес и город
             </Text>
+            <LocationPickerMap
+              value={{
+                latitude: form.location.latitude ? Number(form.location.latitude) : null,
+                longitude: form.location.longitude ? Number(form.location.longitude) : null,
+              }}
+              onChange={(next) =>
+                setForm((prev) => ({
+                  ...prev,
+                  location: {
+                    ...prev.location,
+                    latitude: next ? String(next.latitude) : '',
+                    longitude: next ? String(next.longitude) : '',
+                  },
+                }))
+              }
+              height={320}
+            />
             <TextField.Root placeholder="Город" value={form.location.city} onChange={(event) => setForm({ ...form, location: { ...form.location, city: event.target.value } })} />
             <TextField.Root placeholder="Адрес" value={form.location.address} onChange={(event) => setForm({ ...form, location: { ...form.location, address: event.target.value } })} />
             <Flex gap="2">
