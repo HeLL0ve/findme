@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Avatar, Button, Card, Container, Flex, Heading, Text, TextField, Box, Section, Badge } from '@radix-ui/themes';
+import { Avatar, Badge, Button, Card, Container, Flex, Heading, Text, TextField, Section } from '@radix-ui/themes';
 import { api } from '../../api/axios';
-import { SearchIcon, MessageIcon, DeleteIcon } from '../../components/common/Icons';
-import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
+import { SearchIcon, MessageIcon } from '../../components/common/Icons';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { useAuthStore } from '../../shared/authStore';
 import { config } from '../../shared/config';
@@ -16,7 +15,12 @@ type Chat = {
   user2Id: string;
   user1: { id: string; name?: string | null; email: string; avatarUrl?: string | null };
   user2: { id: string; name?: string | null; email: string; avatarUrl?: string | null };
-  messages: Array<{ content: string; createdAt: string; sender?: { id: string; name?: string | null } }>;
+  messages: Array<{
+    content: string;
+    imageUrl?: string | null;
+    createdAt: string;
+    sender?: { id: string; name?: string | null };
+  }>;
 };
 
 function resolveAvatarSrc(avatarUrl?: string | null) {
@@ -65,59 +69,49 @@ export default function ChatsPage() {
     });
   }, [chats, currentUser?.id, query]);
 
-  async function deleteChat(chatId: string) {
-    try {
-      await api.delete(`/chats/${chatId}`);
-      setChats((prev) => prev.filter((chat) => chat.id !== chatId));
-    } catch (err) {
-      setError(extractApiErrorMessage(err, 'Не удалось удалить чат'));
-    }
-  }
-
   return (
-    <Flex direction="column" gap="0">
-      {/* Header */}
+    <Flex direction="column" gap="0" style={{ minHeight: 'calc(100vh - 120px)' }}>
+      {/* Header Section */}
       <Section size="2" style={{
         background: 'linear-gradient(135deg, var(--violet-2) 0%, var(--accent-soft) 100%)',
         borderBottom: '1px solid var(--gray-a5)',
       }}>
         <Container size="4">
-          <Flex align="center" gap="2">
-            <MessageIcon width={28} height={28} />
-            <Heading size="7" weight="bold">Мои сообщения</Heading>
+          <Flex direction="column" gap="2">
+            <Flex align="center" gap="2" justify="between">
+              <Flex align="center" gap="2">
+                <MessageIcon width={28} height={28} />
+                <Heading size="7" weight="bold">Сообщения</Heading>
+              </Flex>
+              <Badge size="2" color="violet" style={{ fontWeight: 600 }}>
+                {chats.length}
+              </Badge>
+            </Flex>
+            <Text color="gray" size="2">
+              Общайтесь с другими пользователями о потерянных и найденных питомцах
+            </Text>
           </Flex>
-          <Text color="gray" size="2">Общайтесь с другими пользователями о потерянных и найденных питомцах</Text>
         </Container>
       </Section>
 
       <Container size="4" style={{ paddingTop: 'var(--space-4)', paddingBottom: 'var(--space-6)' }}>
-        <Flex direction="column" gap="4" style={{ minHeight: 'calc(100vh - 280px)' }}>
-          {/* Search & Stats */}
-          <Flex gap="3" direction={{ initial: 'column', lg: 'row' }} align={{ initial: 'stretch', lg: 'end' }}>
-            <Flex direction="column" gap="2" style={{ flex: 1 }}>
-              <Flex align="center" gap="2">
-                <SearchIcon width={16} height={16} />
-                <Text size="2" weight="bold" color="gray">Поиск в чатах</Text>
-              </Flex>
-              <TextField.Root
-                placeholder="Поиск по имени, email, названию питомца..."
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
-            </Flex>
-            <Card style={{
-              background: 'var(--violet-a2)',
-              border: '1px solid var(--violet-a6)',
-              padding: 'var(--space-3)',
-              minWidth: '140px',
-              flexShrink: 0,
-            }}>
-              <Flex direction="row" gap="1" align="center" style={{height: '8px'}}>
-                <Text size="2" weight="bold">{chats.length}</Text>
-                <Text size="1" color="gray">чатов</Text>
-              </Flex>
-            </Card>
-          </Flex>
+        <Flex direction="column" gap="4">
+          {/* Search */}
+          <Card style={{
+            border: '1px solid var(--gray-a7)',
+            borderRadius: 'var(--radius-3)',
+          }}>
+            <TextField.Root
+              placeholder="Поиск по имени, кличке или сообщениям..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              size="3"
+            >
+              <TextField.Slot>
+                <SearchIcon width={18} height={18} />
+              </TextField.Slot>
+            </TextField.Root>
+          </Card>
 
           {/* Error */}
           {error && (
@@ -131,15 +125,17 @@ export default function ChatsPage() {
 
           {/* Loading State */}
           {loading && (
-            <Flex direction="column" gap="2">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} style={{
-                  height: '80px',
-                  background: 'var(--gray-a2)',
-                  animation: 'pulse 2s infinite',
-                }}>
-                  <Box style={{ height: '100%' }} />
-                </Card>
+            <Flex direction="column" gap="3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Card
+                  key={i}
+                  style={{
+                    height: '96px',
+                    background: 'var(--gray-a2)',
+                    animation: 'pulse 2s infinite',
+                    border: '1px solid var(--gray-a4)',
+                  }}
+                />
               ))}
             </Flex>
           )}
@@ -147,115 +143,102 @@ export default function ChatsPage() {
           {/* Empty State */}
           {!loading && filteredChats.length === 0 && (
             <Card style={{
-              background: 'var(--gray-a2)',
               textAlign: 'center',
               padding: 'var(--space-6)',
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              background: 'var(--gray-a2)',
             }}>
-              <Flex direction="column" gap="3" align="center">
-                <MessageIcon width={48} height={48} />
+              <Flex direction="column" gap="3" align="center" justify="center">
+                <MessageIcon width={64} height={64} color="var(--gray-9)" />
                 <Heading size="4" color="gray">
                   {query ? 'Чатов не найдено' : 'У вас пока нет чатов'}
                 </Heading>
                 <Text color="gray" size="2">
                   {query
                     ? 'Попробуйте изменить параметры поиска'
-                    : 'Начните общение, открыв объявление и нажав "Написать сообщение"'}
+                    : 'Начните общение, открыв объявление и написав автору'}
                 </Text>
-                <Button asChild>
-                  <Link to="/ads" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><SearchIcon width={16} height={16} />Найти объявления</Link>
-                </Button>
+                {!query && (
+                  <Button asChild variant="soft">
+                    <Link to="/ads">Найти объявления</Link>
+                  </Button>
+                )}
               </Flex>
             </Card>
           )}
 
           {/* Chats List */}
           {!loading && filteredChats.length > 0 && (
-            <Flex direction="column" gap="2">
+            <Flex direction="column" gap="3">
               {filteredChats.map((chat) => {
                 const peer = chat.user1.id === currentUser?.id ? chat.user2 : chat.user1;
                 const last = chat.messages[0];
-                const createdDate = last
-                  ? new Date(last.createdAt)
-                  : new Date();
+                const createdDate = last ? new Date(last.createdAt) : new Date();
                 const isToday = createdDate.toDateString() === new Date().toDateString();
                 const timeStr = isToday
                   ? createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   : createdDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
                 return (
-                  <Link to={`/chats/${chat.id}`} key={chat.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <Link
+                    to={`/chats/${chat.id}`}
+                    key={chat.id}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
                     <Card style={{
-                      padding: 'var(--space-3)',
-                      transition: 'all 0.2s ease',
+                      border: '1px solid var(--gray-a7)',
+                      borderRadius: 'var(--radius-3)',
                       cursor: 'pointer',
+                      transition: 'all 0.2s ease',
                     }} onMouseEnter={(e) => {
-                      const card = e.currentTarget as HTMLElement;
-                      card.style.transform = 'translateX(4px)';
-                      card.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.borderColor = 'var(--violet-8)';
+                      el.style.boxShadow = '0 2px 8px var(--shadow-2)';
+                      el.style.transform = 'translateY(-2px)';
                     }} onMouseLeave={(e) => {
-                      const card = e.currentTarget as HTMLElement;
-                      card.style.transform = 'translateX(0)';
-                      card.style.boxShadow = '';
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.borderColor = 'var(--gray-a7)';
+                      el.style.boxShadow = 'none';
+                      el.style.transform = 'translateY(0)';
                     }}>
-                      <Flex justify="between" align="start" gap="3">
-                        <Flex align="center" gap="3" style={{ flex: 1, minWidth: 0 }}>
-                          <Avatar
-                            src={resolveAvatarSrc(peer.avatarUrl)}
-                            fallback={(peer.name || peer.email).slice(0, 1).toUpperCase()}
-                            radius="full"
-                            size="5"
-                          />
+                      <Flex align="center" gap="3">
+                        <Avatar
+                          src={resolveAvatarSrc(peer.avatarUrl)}
+                          fallback={(peer.name || peer.email).slice(0, 1).toUpperCase()}
+                          radius="full"
+                          size="5"
+                          style={{ flexShrink: 0 }}
+                        />
 
-                          <Flex direction="column" style={{ flex: 1, minWidth: 0 }}>
-                            {/* User Name */}
-                            <Text weight="bold" size="2" className="truncate">
+                        <Flex direction="column" style={{ flex: 1, minWidth: 0 }} gap="1">
+                          <Flex align="center" justify="between" gap="2">
+                            <Text weight="bold" size="3" className="truncate">
                               {peer.name || peer.email}
                             </Text>
-
-                            {/* Ad Info */}
-                            <Flex gap="2" align="center" style={{ marginTop: 'var(--space-1)' }}>
-                              <Badge size="1" color={chat.ad.type === 'LOST' ? 'orange' : 'green'}>
-                                {chat.ad.type === 'LOST' ? 'Потерян' : 'Найден'}
-                              </Badge>
-                              <Text size="1" color="gray" className="truncate">
-                                {chat.ad.petName || 'Объявление без клички'}
-                              </Text>
-                            </Flex>
-
-                            {/* Last Message */}
-                            <Text size="2" color="gray" className="truncate" style={{ marginTop: 'var(--space-1)' }}>
-                              {last?.sender?.name ? `${last.sender.name}: ` : ''}
-                              {last?.content || 'Сообщений пока нет'}
+                            <Text size="1" color="gray" style={{ flexShrink: 0 }}>
+                              {timeStr}
                             </Text>
                           </Flex>
-                        </Flex>
 
-                        {/* Time & Delete */}
-                        <Flex direction="column" align="end" gap="2" style={{ flexShrink: 0 }}>
-                          <Text size="1" color="gray">{timeStr}</Text>
-                          <ConfirmActionDialog
-                            title="Удалить чат?"
-                            description="Чат удалится у обоих участников и все сообщения будут потеряны."
-                            confirmText="Удалить"
-                            color="red"
-                            onConfirm={() => deleteChat(chat.id)}
-                            trigger={
-                              <Button
-                                size="1"
-                                variant="soft"
-                                color="red"
-                                onClick={(e) => e.preventDefault()}
-                                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-                              >
-                                <DeleteIcon width={14} height={14} />
-                                Удалить
-                              </Button>
-                            }
-                          />
+                          <Flex align="center" gap="2">
+                            <Badge
+                              size="1"
+                              color={chat.ad.type === 'LOST' ? 'orange' : 'green'}
+                              style={{ flexShrink: 0 }}
+                            >
+                              {chat.ad.type === 'LOST' ? 'Потерян' : 'Найден'}
+                            </Badge>
+                            <Text size="2" color="gray" className="truncate">
+                              {chat.ad.petName || 'Без клички'}
+                            </Text>
+                          </Flex>
+
+                          <Text size="2" color="gray" className="truncate" style={{ marginTop: '4px' }}>
+                            {last
+                              ? last.imageUrl
+                                ? '📷 Изображение'
+                                : last.content
+                              : 'Сообщений пока нет'}
+                          </Text>
                         </Flex>
                       </Flex>
                     </Card>
@@ -273,9 +256,10 @@ export default function ChatsPage() {
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        
+
         @keyframes pulse {
-          0%, 100% {
+          0%,
+          100% {
             opacity: 1;
           }
           50% {

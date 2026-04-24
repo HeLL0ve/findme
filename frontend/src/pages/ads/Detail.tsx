@@ -62,7 +62,6 @@ export default function AdDetail() {
   const [complaintDescription, setComplaintDescription] = useState('');
   const [complaintSubmitting, setComplaintSubmitting] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   usePageTitle(ad ? (ad.petName || (ad.type === 'LOST' ? 'Потерян питомец' : 'Найден питомец')) : 'Объявление');
 
@@ -318,44 +317,117 @@ export default function AdDetail() {
             {/* Photo Gallery */}
             {selectedPhoto && (
               <Flex direction="column" gap="4">
-                <Flex
-                  direction="column"
+                <div
                   style={{
                     width: '100%',
-                    height: 'min(400px, 60vh)',
+                    height: 'min(500px, 60vh)',
                     borderRadius: 'var(--radius-3)',
                     overflow: 'hidden',
                     background: 'var(--gray-a2)',
-                    cursor: 'zoom-in',
                     position: 'relative',
                   }}
-                  onClick={() => setLightboxOpen(true)}
                 >
                   <img
                     src={selectedPhoto}
                     alt={ad.petName || 'Фото объявления'}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                   />
+                  
+                  {/* Navigation Arrows */}
                   {photos.length > 1 && (
-                    <Flex style={{
-                      position: 'absolute',
-                      top: 'var(--space-3)',
-                      right: 'var(--space-3)',
-                      background: 'rgba(0, 0, 0, 0.6)',
-                      color: 'white',
-                      padding: 'var(--space-2) var(--space-3)',
-                      borderRadius: 'var(--radius-2)',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                    }}>
-                      {selectedPhotoIndex + 1} / {photos.length}
-                    </Flex>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1))}
+                        style={{
+                          position: 'absolute',
+                          left: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'rgba(0, 0, 0, 0.6)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '48px',
+                          height: '48px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          fontSize: '24px',
+                          fontWeight: 'bold',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          const el = e.currentTarget as HTMLElement;
+                          el.style.background = 'rgba(0, 0, 0, 0.8)';
+                          el.style.transform = 'translateY(-50%) scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          const el = e.currentTarget as HTMLElement;
+                          el.style.background = 'rgba(0, 0, 0, 0.6)';
+                          el.style.transform = 'translateY(-50%) scale(1)';
+                        }}
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1))}
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'rgba(0, 0, 0, 0.6)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '48px',
+                          height: '48px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          fontSize: '24px',
+                          fontWeight: 'bold',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          const el = e.currentTarget as HTMLElement;
+                          el.style.background = 'rgba(0, 0, 0, 0.8)';
+                          el.style.transform = 'translateY(-50%) scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          const el = e.currentTarget as HTMLElement;
+                          el.style.background = 'rgba(0, 0, 0, 0.6)';
+                          el.style.transform = 'translateY(-50%) scale(1)';
+                        }}
+                      >
+                        ›
+                      </button>
+                      
+                      {/* Counter */}
+                      <Flex style={{
+                        position: 'absolute',
+                        top: 'var(--space-3)',
+                        right: 'var(--space-3)',
+                        background: 'rgba(0, 0, 0, 0.6)',
+                        color: 'white',
+                        padding: 'var(--space-2) var(--space-3)',
+                        borderRadius: 'var(--radius-2)',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                      }}>
+                        {selectedPhotoIndex + 1} / {photos.length}
+                      </Flex>
+                    </>
                   )}
-                </Flex>
+                </div>
 
                 {/* Photo Thumbnails */}
                 {photos.length > 1 && (
-                  <Flex gap="2" wrap="wrap" align="center">
+                  <Flex gap="2" wrap="wrap" align="center" justify="center">
                     {photos.map((photo, index) => (
                       <button
                         key={photo}
@@ -652,29 +724,6 @@ export default function AdDetail() {
               {complaintSubmitting ? 'Отправка...' : 'Отправить'}
             </Button>
           </Flex>
-        </Dialog.Content>
-      </Dialog.Root>
-
-      <Dialog.Root open={lightboxOpen} onOpenChange={setLightboxOpen}>
-        <Dialog.Content maxWidth="980px" style={{ padding: 10 }}>
-          <Dialog.Title>Просмотр фото</Dialog.Title>
-          {selectedPhoto && (
-            <div
-              style={{
-                width: '100%',
-                height: 'min(78vh, 760px)',
-                borderRadius: 12,
-                overflow: 'hidden',
-                background: 'var(--gray-a3)',
-              }}
-            >
-              <img
-                src={selectedPhoto}
-                alt="Увеличенное фото"
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
-            </div>
-          )}
         </Dialog.Content>
       </Dialog.Root>
     </Flex>

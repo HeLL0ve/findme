@@ -10,6 +10,7 @@ import {
   listMessagesController,
   sendMessageController,
 } from './controllers/chat.controller';
+import { uploadChatImageController, uploadImageMiddleware } from './controllers/upload.controller';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.get('/:id', authMiddleware, getChatController);
 router.delete('/:id', authMiddleware, deleteChatController);
 router.get('/:id/messages', authMiddleware, listMessagesController);
 router.post('/:id/messages', authMiddleware, sendMessageController);
+router.post('/:id/messages/image', authMiddleware, uploadImageMiddleware, uploadChatImageController);
 router.patch('/:id/messages/:messageId', authMiddleware, editMessageController);
 router.delete('/:id/messages/:messageId', authMiddleware, deleteMessageController);
 

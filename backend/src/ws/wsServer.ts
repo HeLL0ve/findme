@@ -120,6 +120,28 @@ export function initWsServer(server: HttpServer) {
 
           return;
         }
+
+        if (type === 'chat:typing') {
+          const chatId = msg.chatId as string;
+          const isTyping = msg.isTyping as boolean;
+          const userId = ws.data?.userId;
+
+          if (!userId) return;
+          if (!chatId) return;
+
+          const chat = await prisma.chat.findUnique({ where: { id: chatId } });
+          if (!chat) return;
+          if (chat.user1Id !== userId && chat.user2Id !== userId) return;
+
+          const recipientId = chat.user1Id === userId ? chat.user2Id : chat.user1Id;
+          const sockets = userConnections.get(recipientId);
+          if (!sockets) return;
+
+          const payload = { type: 'chat:typing', chatId, userId, isTyping };
+          for (const s of sockets) send(s, payload);
+
+          return;
+        }
       } catch (err) {
         send(ws, { type: 'error', code: 'BAD_REQUEST' });
       }
