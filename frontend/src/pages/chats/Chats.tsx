@@ -81,7 +81,7 @@ export default function ChatsPage() {
             <Flex align="center" gap="2" justify="between">
               <Flex align="center" gap="2">
                 <MessageIcon width={28} height={28} />
-                <Heading size="7" weight="bold">Сообщения</Heading>
+                <Heading size="7" weight="bold">Чаты</Heading>
               </Flex>
               <Badge size="2" color="violet" style={{ fontWeight: 600 }}>
                 {chats.length}

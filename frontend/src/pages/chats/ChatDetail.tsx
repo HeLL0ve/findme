@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Avatar, Button, Card, Container, Dialog, DropdownMenu, Flex, Text, TextArea, Section } from '@radix-ui/themes';
+import { Avatar, Button, Card, Container, Dialog, DropdownMenu, Flex, Text, TextArea } from '@radix-ui/themes';
 import { MoreIcon, SendIcon, AddIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
@@ -98,7 +98,13 @@ export default function ChatDetailPage() {
     if (!id) return;
     const unsubscribe = subscribeWs((msg) => {
       if (msg?.type === 'chat:new' && msg.chatId === id) {
-        setMessages((prev) => [...prev, msg.message]);
+        setMessages((prev) => {
+          // Проверяем, нет ли уже такого сообщения (избегаем дублирования)
+          if (prev.some(m => m.id === msg.message.id)) {
+            return prev;
+          }
+          return [...prev, msg.message];
+        });
       }
       if (msg?.type === 'chat:typing' && msg.chatId === id) {
         setTypingUsers((prev) => {
@@ -117,8 +123,17 @@ export default function ChatDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
+    if (messages.length > 0) {
+      // Прокручиваем вниз только при первой загрузке или когда пользователь отправил сообщение
+      // Не прокручиваем автоматически при получении новых сообщений
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.senderId === currentUser?.id) {
+        setTimeout(() => {
+          bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 100);
+      }
+    }
+  }, [messages, currentUser?.id]);
 
   const peer = useMemo(() => {
     if (!chat || !currentUser) return null;
@@ -246,27 +261,47 @@ export default function ChatDetailPage() {
 
   if (!chat)
     return (
-      <Container size="4" style={{ paddingTop: 'var(--space-6)' }}>
+      <Flex align="center" justify="center" style={{ height: '100vh' }}>
         <Text>{error || 'Загрузка...'}</Text>
-      </Container>
+      </Flex>
     );
 
   return (
-    <Flex direction="column" gap="0" style={{ minHeight: 'calc(100vh - 120px)' }}>
-      <Section size="2" style={{
-        background: 'linear-gradient(135deg, var(--violet-2) 0%, var(--accent-soft) 100%)',
-        borderBottom: '1px solid var(--gray-a5)',
-      }}>
+    <div style={{ 
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div
+        style={{
+          padding: '8px 16px',
+          background: 'linear-gradient(135deg, var(--violet-2) 0%, var(--accent-soft) 100%)',
+          borderBottom: '1px solid var(--gray-a5)',
+          flexShrink: 0,
+        }}
+      >
         <Container size="4">
           <Flex align="center" justify="between" gap="3">
-            <Flex align="center" gap="3" style={{ minWidth: 0, flex: 1 }}>
+            <Flex align="center" gap="2" style={{ minWidth: 0, flex: 1 }}>
               <Button
                 variant="ghost"
                 size="2"
                 onClick={() => navigate('/chats')}
-                style={{ flexShrink: 0 }}
+                style={{ 
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  height: '32px',
+                  padding: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                ←
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
               </Button>
               <Link
                 to={peer?.id ? `/users/${peer.id}` : '#'}
@@ -277,11 +312,11 @@ export default function ChatDetailPage() {
                     src={resolveAvatarSrc(peer?.avatarUrl)}
                     fallback={(peer?.name || peer?.email || 'U').slice(0, 1).toUpperCase()}
                     radius="full"
-                    size="4"
+                    size="3"
                     style={{ flexShrink: 0 }}
                   />
                   <Flex direction="column" style={{ minWidth: 0 }}>
-                    <Text weight="bold" size="3" className="truncate">
+                    <Text weight="bold" size="2" className="truncate">
                       {peer?.name || peer?.email || 'Пользователь'}
                     </Text>
                     <Text size="1" color="gray" className="truncate">
@@ -295,7 +330,7 @@ export default function ChatDetailPage() {
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
                 <Button variant="ghost" size="2" style={{ flexShrink: 0 }}>
-                  <MoreIcon width={20} height={20} />
+                  <MoreIcon width={18} height={18} />
                 </Button>
               </DropdownMenu.Trigger>
               <DropdownMenu.Content align="end">
@@ -306,174 +341,198 @@ export default function ChatDetailPage() {
             </DropdownMenu.Root>
           </Flex>
         </Container>
-      </Section>
+      </div>
 
-      <Container size="4" style={{ paddingTop: 'var(--space-4)', paddingBottom: 'var(--space-4)', flex: 1 }}>
-        <Flex direction="column" gap="4" style={{ height: '100%' }}>
+      {/* Main Content */}
+      <div style={{ 
+        flex: 1, 
+        display: 'flex', 
+        justifyContent: 'center',
+        alignItems: 'stretch',
+        padding: '0',
+      }}>
+        <Container size="4" style={{ 
+          width: '100%',
+          display: 'flex', 
+          flexDirection: 'column', 
+          padding: '16px',
+        }}>
           {error && (
             <Card style={{
               background: 'var(--red-2)',
               borderLeft: '3px solid var(--red-9)',
+              marginBottom: '12px',
+              flexShrink: 0,
             }}>
               <Text color="red" size="2">{error}</Text>
             </Card>
           )}
 
-          <Card style={{
-            flex: 1,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            border: '1px solid var(--gray-a7)',
-            borderRadius: 'var(--radius-3)',
-          }}>
+          {/* Messages Area */}
+          <div
+            className="chat-messages-scroll"
+            style={{
+              height: 'calc(100vh - 300px)',
+              minHeight: '400px',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              border: '1px solid var(--gray-a7)',
+              borderRadius: 'var(--radius-3)',
+              marginBottom: '12px',
+              padding: 'var(--space-4)',
+              background: 'white',
+            }}
+          >
             <Flex
               direction="column"
               gap="3"
-              style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: 'var(--space-4)',
-              }}
             >
-              {messages.map((message) => {
-                const mine = message.senderId === currentUser?.id;
-                const editable = mine && canEditMessage(message.createdAt);
+            {messages.map((message) => {
+              const mine = message.senderId === currentUser?.id;
+              const isImageMessage = !!message.imageUrl;
+              const editable = mine && !isImageMessage && canEditMessage(message.createdAt);
 
-                return (
+              return (
+                <Flex
+                  key={message.id}
+                  justify={mine ? 'end' : 'start'}
+                  style={{ width: '100%' }}
+                >
                   <Flex
-                    key={message.id}
-                    justify={mine ? 'end' : 'start'}
-                    style={{ width: '100%' }}
+                    direction="column"
+                    gap="1"
+                    style={{
+                      maxWidth: isImageMessage ? '320px' : '70%',
+                      background: mine ? 'var(--violet-9)' : 'var(--gray-a3)',
+                      color: mine ? 'white' : 'inherit',
+                      padding: 'var(--space-3)',
+                      borderRadius: 'var(--radius-3)',
+                      boxShadow: '0 1px 3px var(--shadow-1)',
+                      position: 'relative',
+                    }}
                   >
-                    <Flex
-                      direction="column"
-                      gap="1"
-                      style={{
-                        maxWidth: '70%',
-                        background: mine ? 'var(--violet-9)' : 'var(--gray-a3)',
-                        color: mine ? 'white' : 'inherit',
-                        padding: 'var(--space-3)',
-                        borderRadius: 'var(--radius-3)',
-                        boxShadow: '0 1px 3px var(--shadow-1)',
-                        position: 'relative',
-                      }}
-                    >
 
-                      {!mine && (
-                        <Text size="1" weight="bold" style={{ color: 'var(--violet-11)' }}>
-                          {message.sender?.name || 'Собеседник'}
-                        </Text>
-                      )}
-                      {message.imageUrl && (
-                        <img
-                          src={`${config.apiUrl || ''}${message.imageUrl}`}
-                          alt="Изображение"
-                          style={{
-                            maxWidth: '100%',
-                            maxHeight: '300px',
-                            borderRadius: 'var(--radius-2)',
-                            cursor: 'pointer',
-                            objectFit: 'contain',
-                          }}
-                          onClick={() => window.open(`${config.apiUrl || ''}${message.imageUrl}`, '_blank')}
-                        />
-                      )}
-                      {message.content && message.content !== '[Изображение]' && (
-                        <Text size="2" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                          {message.content}
-                        </Text>
-                      )}
-                      <Flex align="center" justify="between" gap="2">
-                        <Text size="1" style={{ color: mine ? 'rgba(255, 255, 255, 0.7)' : 'var(--gray-10)' }}>
-                          {new Date(message.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                          {message.editedAt ? ' · изменено' : ''}
-                        </Text>
+                    {!mine && (
+                      <Text size="1" weight="bold" style={{ color: 'var(--violet-11)' }}>
+                        {message.sender?.name || 'Собеседник'}
+                      </Text>
+                    )}
+                    {message.imageUrl && (
+                      <img
+                        src={`${config.apiUrl || ''}${message.imageUrl}`}
+                        alt="Изображение"
+                        style={{
+                          width: '100%',
+                          maxWidth: '300px',
+                          height: 'auto',
+                          maxHeight: '300px',
+                          borderRadius: 'var(--radius-2)',
+                          cursor: 'pointer',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                        onClick={() => window.open(`${config.apiUrl || ''}${message.imageUrl}`, '_blank')}
+                      />
+                    )}
+                    {message.content && message.content !== '[Изображение]' && (
+                      <Text size="2" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {message.content}
+                      </Text>
+                    )}
+                    <Flex align="center" justify="between" gap="2">
+                      <Text size="1" style={{ color: mine ? 'rgba(255, 255, 255, 0.7)' : 'var(--gray-10)' }}>
+                        {new Date(message.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                        {message.editedAt ? ' · изменено' : ''}
+                      </Text>
 
-                        {mine && (
-                          <DropdownMenu.Root>
-                            <DropdownMenu.Trigger>
-                              <button
-                                type="button"
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  color: 'rgba(255, 255, 255, 0.7)',
-                                  cursor: 'pointer',
-                                  padding: '2px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                }}
-                              >
-                                <MoreIcon width={14} height={14} />
-                              </button>
-                            </DropdownMenu.Trigger>
-                            <DropdownMenu.Content align="end">
-                              {editable && (
-                                <DropdownMenu.Item onClick={() => openEditDialog(message)}>
-                                  Редактировать
-                                </DropdownMenu.Item>
-                              )}
-                              <DropdownMenu.Item color="red" onClick={() => setDeleteMessageId(message.id)}>
-                                Удалить
+                      {mine && (
+                        <DropdownMenu.Root>
+                          <DropdownMenu.Trigger>
+                            <button
+                              type="button"
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                cursor: 'pointer',
+                                padding: '2px',
+                                display: 'flex',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <MoreIcon width={14} height={14} />
+                            </button>
+                          </DropdownMenu.Trigger>
+                          <DropdownMenu.Content align="end">
+                            {editable && (
+                              <DropdownMenu.Item onClick={() => openEditDialog(message)}>
+                                Редактировать
                               </DropdownMenu.Item>
-                            </DropdownMenu.Content>
-                          </DropdownMenu.Root>
-                        )}
-                      </Flex>
+                            )}
+                            <DropdownMenu.Item color="red" onClick={() => setDeleteMessageId(message.id)}>
+                              Удалить
+                            </DropdownMenu.Item>
+                          </DropdownMenu.Content>
+                        </DropdownMenu.Root>
+                      )}
                     </Flex>
                   </Flex>
-                );
-              })}
-
-              {messages.length === 0 && (
-                <Flex align="center" justify="center" style={{ flex: 1 }}>
-                  <Text color="gray">Сообщений пока нет</Text>
                 </Flex>
-              )}
+              );
+            })}
 
-              {typingUsers.size > 0 && (
-                <Flex justify="start">
-                  <Text size="2" color="gray" style={{ fontStyle: 'italic', padding: 'var(--space-2)' }}>
-                    {peer?.name || 'Собеседник'} печатает...
-                  </Text>
-                </Flex>
-              )}
+            {messages.length === 0 && (
+              <Flex align="center" justify="center" style={{ flex: 1 }}>
+                <Text color="gray">Сообщений пока нет</Text>
+              </Flex>
+            )}
+
+            {typingUsers.size > 0 && (
+              <Flex justify="start">
+                <Text size="2" color="gray" style={{ fontStyle: 'italic', padding: 'var(--space-2)' }}>
+                  {peer?.name || 'Собеседник'} печатает...
+                </Text>
+              </Flex>
+            )}
 
               <div ref={bottomRef} />
             </Flex>
-          </Card>
+          </div>
 
-          <Card style={{
-            border: '1px solid var(--gray-a7)',
-            borderRadius: 'var(--radius-3)',
-          }}>
-            <Flex align="end" gap="2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                style={{ display: 'none' }}
-              />
-              <Button
-                variant="soft"
-                size="3"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                style={{ flexShrink: 0 }}
-              >
-                <AddIcon width={20} height={20} />
-              </Button>
+          {/* Input Area */}
+          <div
+            style={{
+              padding: '12px 16px',
+              background: 'white',
+              border: '1px solid var(--gray-a7)',
+              borderRadius: 'var(--radius-3)',
+              flexShrink: 0,
+            }}
+          >
+            <Flex align="center" gap="2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+            <Flex style={{ flex: 1, position: 'relative' }}>
               <TextArea
                 placeholder={uploading ? 'Отправка...' : 'Введите сообщение...'}
                 value={input}
                 onChange={(event) => handleInputChange(event.target.value)}
                 disabled={uploading}
-                style={{ flex: 1, minHeight: '44px', maxHeight: '120px', resize: 'none' }}
+                style={{ 
+                  flex: 1, 
+                  minHeight: '44px', 
+                  maxHeight: '120px', 
+                  resize: 'none',
+                  paddingRight: '48px',
+                }}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' && !event.shiftKey) {
                     event.preventDefault();
@@ -482,17 +541,39 @@ export default function ChatDetailPage() {
                 }}
               />
               <Button
-                size="3"
-                onClick={() => void sendMessage()}
-                disabled={!input.trim() || uploading}
-                style={{ flexShrink: 0 }}
+                variant="ghost"
+                size="2"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                style={{ 
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  minWidth: '32px',
+                  height: '32px',
+                  padding: '0',
+                }}
               >
-                <SendIcon width={20} height={20} />
+                <AddIcon width={18} height={18} />
               </Button>
             </Flex>
-          </Card>
-        </Flex>
-      </Container>
+            <Button
+              size="2"
+              onClick={() => void sendMessage()}
+              disabled={!input.trim() || uploading}
+              style={{ 
+                flexShrink: 0,
+                minWidth: '44px',
+                height: '44px',
+              }}
+            >
+              <SendIcon width={18} height={18} />
+            </Button>
+            </Flex>
+          </div>
+        </Container>
+      </div>
 
       <Dialog.Root open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
         <Dialog.Content maxWidth="500px">
@@ -545,7 +626,42 @@ export default function ChatDetailPage() {
           overflow: hidden;
           text-overflow: ellipsis;
         }
+        
+        .chat-messages-scroll {
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+        }
+        
+        .chat-messages-scroll::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        .chat-messages-scroll::-webkit-scrollbar-track {
+          background: var(--gray-a3);
+          border-radius: 4px;
+        }
+        
+        .chat-messages-scroll::-webkit-scrollbar-thumb {
+          background: var(--gray-a7);
+          border-radius: 4px;
+        }
+        
+        .chat-messages-scroll::-webkit-scrollbar-thumb:hover {
+          background: var(--gray-a9);
+        }
+        
+        @media (max-width: 768px) {
+          .chat-messages-scroll {
+            height: calc(100vh - 250px) !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .chat-messages-scroll {
+            height: calc(100vh - 220px) !important;
+          }
+        }
       `}</style>
-    </Flex>
+    </div>
   );
 }
