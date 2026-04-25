@@ -277,16 +277,16 @@ export default function AdDetail() {
   return (
     <Flex direction="column" gap="0">
       {/* Header */}
-      <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-5)' }}>
-        <Card style={{
-          background: 'var(--gray-a1)',
-          border: '1px solid var(--gray-a7)',
-          borderRadius: 'var(--radius-4)',
-        }}>
+      <section style={{
+        background: 'linear-gradient(135deg, var(--violet-2) 0%, var(--accent-soft) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
+        padding: 'var(--space-5) 0',
+      }}>
+        <Container size="4">
           <Flex direction={{ initial: 'column', md: 'row' }} gap="4" justify="between" align={{ initial: 'start', md: 'center' }} wrap="wrap">
             <Flex direction="column" gap="2">
-              <Heading size="5" weight="bold">
-                {ad.petName || 'Питомец'}
+              <Heading size="7" weight="bold">
+                {ad.petName || (ad.type === 'LOST' ? 'Потерян питомец' : 'Найден питомец')}
               </Heading>
               <Flex gap="2" align="center" wrap="wrap">
                 <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
@@ -304,9 +304,7 @@ export default function AdDetail() {
               </Flex>
               {[ad.animalType, ad.breed, ad.color].filter(Boolean).length > 0 && (
                 <Text size="2" color="gray">
-                  {[ad.animalType, ad.breed, ad.color ? `${ad.color}` : null]
-                    .filter(Boolean)
-                    .join(' • ')}
+                  {[ad.animalType, ad.breed, ad.color ?? null].filter(Boolean).join(' • ')}
                 </Text>
               )}
             </Flex>
@@ -317,8 +315,8 @@ export default function AdDetail() {
               </Flex>
             )}
           </Flex>
-        </Card>
-      </Container>
+        </Container>
+      </section>
 
       <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
         <Flex direction={{ initial: 'column', md: 'row' }} gap="6">
