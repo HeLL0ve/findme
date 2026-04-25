@@ -3,7 +3,6 @@ import { Badge, Button, Card, Container, Dialog, Flex, Heading, Select, Text, Te
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
-import UserAvatarLink from '../../components/user/UserAvatarLink';
 import AdCard from '../../components/ads/AdCard';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { usePageTitle } from '../../shared/usePageTitle';
@@ -178,52 +177,8 @@ export default function AdminAdsPage() {
                   to={`/ads/${ad.id}`}
                   showDescription={true}
                   imageHeight={200}
-                  hideBadges={true}
+                  hideBadges={false}
                 />
-
-                {/* Status + Author block */}
-                <Card style={{ padding: 'var(--space-4)' }}>
-                  <Flex direction="column" gap="4">
-                    <Flex gap="2" align="center" wrap="wrap">
-                      <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
-                        {ad.type === 'LOST' ? 'Потерян' : 'Найден'}
-                      </Badge>
-                      <Badge
-                        color={
-                          ad.status === 'PENDING' ? 'amber' :
-                          ad.status === 'APPROVED' ? 'blue' :
-                          ad.status === 'ARCHIVED' ? 'green' : 'gray'
-                        }
-                        size="2"
-                        style={{ fontWeight: 600 }}
-                      >
-                        {ad.status === 'PENDING' && '⏳ На модерации'}
-                        {ad.status === 'APPROVED' && '✅ Опубликовано'}
-                        {ad.status === 'ARCHIVED' && '🎉 Найден'}
-                        {ad.status === 'REJECTED' && '❌ Отклонено'}
-                      </Badge>
-                    </Flex>
-                    {ad.user?.id && (
-                      <div style={{ 
-                        padding: 'var(--space-3)', 
-                        background: 'var(--gray-a2)', 
-                        borderRadius: 'var(--radius-2)',
-                        minHeight: '60px',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}>
-                        <UserAvatarLink
-                          userId={ad.user.id}
-                          name={ad.user.name}
-                          email={ad.user.email}
-                          avatarUrl={ad.user.avatarUrl}
-                          subtitle="Автор объявления"
-                          size="3"
-                        />
-                      </div>
-                    )}
-                  </Flex>
-                </Card>
 
                 {/* Admin Actions */}
                 <Flex direction="column" gap="2">
@@ -305,18 +260,94 @@ export default function AdminAdsPage() {
               >
                 ← Назад
               </Button>
+              
               <Flex gap="2" align="center">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={page === currentPage ? 'solid' : 'soft'}
-                    onClick={() => setCurrentPage(page)}
-                    style={{ minWidth: 40 }}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                {(() => {
+                  const pages = [];
+                  const maxVisiblePages = 7; // Максимум видимых кнопок страниц
+                  
+                  if (totalPages <= maxVisiblePages) {
+                    // Если страниц мало, показываем все
+                    for (let i = 1; i <= totalPages; i++) {
+                      pages.push(
+                        <Button
+                          key={i}
+                          variant={i === currentPage ? 'solid' : 'soft'}
+                          onClick={() => setCurrentPage(i)}
+                          style={{ minWidth: 40 }}
+                        >
+                          {i}
+                        </Button>
+                      );
+                    }
+                  } else {
+                    // Умная пагинация для большого количества страниц
+                    const startPage = Math.max(1, currentPage - 2);
+                    const endPage = Math.min(totalPages, currentPage + 2);
+                    
+                    // Первая страница
+                    if (startPage > 1) {
+                      pages.push(
+                        <Button
+                          key={1}
+                          variant={1 === currentPage ? 'solid' : 'soft'}
+                          onClick={() => setCurrentPage(1)}
+                          style={{ minWidth: 40 }}
+                        >
+                          1
+                        </Button>
+                      );
+                      
+                      if (startPage > 2) {
+                        pages.push(
+                          <Text key="ellipsis1" size="2" color="gray" style={{ padding: '0 8px' }}>
+                            ...
+                          </Text>
+                        );
+                      }
+                    }
+                    
+                    // Страницы вокруг текущей
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <Button
+                          key={i}
+                          variant={i === currentPage ? 'solid' : 'soft'}
+                          onClick={() => setCurrentPage(i)}
+                          style={{ minWidth: 40 }}
+                        >
+                          {i}
+                        </Button>
+                      );
+                    }
+                    
+                    // Последняя страница
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
+                        pages.push(
+                          <Text key="ellipsis2" size="2" color="gray" style={{ padding: '0 8px' }}>
+                            ...
+                          </Text>
+                        );
+                      }
+                      
+                      pages.push(
+                        <Button
+                          key={totalPages}
+                          variant={totalPages === currentPage ? 'solid' : 'soft'}
+                          onClick={() => setCurrentPage(totalPages)}
+                          style={{ minWidth: 40 }}
+                        >
+                          {totalPages}
+                        </Button>
+                      );
+                    }
+                  }
+                  
+                  return pages;
+                })()}
               </Flex>
+              
               <Button
                 variant="soft"
                 disabled={currentPage === totalPages}
