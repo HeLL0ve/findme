@@ -19,7 +19,7 @@ export function adStatusLabel(status?: string | null) {
     case 'REJECTED':
       return 'Отклонено';
     case 'ARCHIVED':
-      return 'В архиве';
+      return 'Питомец найден';
     default:
       return status || '—';
   }

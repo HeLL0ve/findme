@@ -33,6 +33,7 @@ import AdminStatsPage from '../pages/admin/Stats';
 import NotificationsPage from '../pages/Notifications';
 import SupportPage from '../pages/Support';
 import UserProfilePage from '../pages/UserProfile';
+import FavoritesPage from '../pages/Favorites';
 
 export default function App() {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
@@ -126,6 +127,7 @@ export default function App() {
           <Route path="/create-ad" element={<ProtectedRoute><CreateAd /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+          <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
           <Route path="/chats/:id" element={<ProtectedRoute><ChatDetailPage /></ProtectedRoute>} />
 

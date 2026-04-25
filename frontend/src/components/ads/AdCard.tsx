@@ -1,7 +1,9 @@
-import { Badge, Card, Flex, Text, Box, Heading } from '@radix-ui/themes';
+import { Badge, Card, Flex, Text, Box, Heading, IconButton, Tooltip } from '@radix-ui/themes';
 import { Link } from 'react-router-dom';
 import { type ReactNode } from 'react';
 import { config } from '../../shared/config';
+import { useFavoritesStore } from '../../shared/favoritesStore';
+import { HeartFilledIcon, HeartIcon, ShareIcon } from '../common/Icons';
 
 export type AdCardData = {
   id: string;
@@ -37,6 +39,25 @@ export default function AdCard({
   imageHeight = 240,
 }: AdCardProps) {
   const photoSrc = resolvePhotoSrc(ad.photos?.[0]?.photoUrl);
+  const isFavorite = useFavoritesStore((s) => s.isFavorite(ad.id));
+  const toggle = useFavoritesStore((s) => s.toggle);
+
+  function handleShare(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/ads/${ad.id}`;
+    if (navigator.share) {
+      void navigator.share({ title: ad.petName || 'Объявление FindMe', url });
+    } else {
+      void navigator.clipboard.writeText(url).then(() => alert('Ссылка скопирована!'));
+    }
+  }
+
+  function handleFavorite(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle(ad.id);
+  }
 
   return (
     <Card style={{
@@ -89,26 +110,68 @@ export default function AdCard({
                   />
                 </>
               ) : null}
+
+              {/* Action buttons overlay */}
+              <Flex
+                gap="1"
+                style={{
+                  position: 'absolute',
+                  top: 'var(--space-2)',
+                  right: 'var(--space-2)',
+                }}
+              >
+                <Tooltip content="Поделиться">
+                  <IconButton
+                    size="1"
+                    variant="solid"
+                    style={{ background: 'rgba(0,0,0,0.45)', cursor: 'pointer' }}
+                    onClick={handleShare}
+                  >
+                    <ShareIcon width={13} height={13} color="white" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip content={isFavorite ? 'Убрать из избранного' : 'В избранное'}>
+                  <IconButton
+                    size="1"
+                    variant="solid"
+                    style={{
+                      background: isFavorite ? 'rgba(239,68,68,0.85)' : 'rgba(0,0,0,0.45)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={handleFavorite}
+                  >
+                    {isFavorite
+                      ? <HeartFilledIcon width={13} height={13} color="white" />
+                      : <HeartIcon width={13} height={13} color="white" />
+                    }
+                  </IconButton>
+                </Tooltip>
+              </Flex>
             </Box>
 
             {/* Content */}
             <Flex direction="column" gap="2" style={{ minWidth: 0, flex: 1 }}>
               {/* Type & Status Badges - moved from image */}
               <Flex gap="2" wrap="wrap" align="center">
-                <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
-                  {ad.type === 'LOST' ? 'потерян' : 'найден'}
-                </Badge>
-                <Badge
-                  color={ad.status === 'APPROVED' ? 'blue' : ad.status === 'PENDING' ? 'amber' : 'gray'}
-                  variant="soft"
-                  size="1"
-                  style={{
-                    fontSize: '10px',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {ad.status === 'APPROVED' ? 'опубл.' : ad.status === 'PENDING' ? 'на модер.' : 'архив'}
-                </Badge>
+                {ad.status === 'ARCHIVED' ? (
+                  <Badge color="green" size="2" style={{ fontWeight: 700 }}>
+                    🎉 Питомец найден!
+                  </Badge>
+                ) : (
+                  <>
+                    <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
+                      {ad.type === 'LOST' ? 'потерян' : 'найден'}
+                    </Badge>
+                    <Badge
+                      color={ad.status === 'APPROVED' ? 'blue' : 'amber'}
+                      variant="soft"
+                      size="1"
+                      style={{ fontSize: '10px', textTransform: 'uppercase' }}
+                    >
+                      {ad.status === 'APPROVED' ? 'опубл.' : 'на модер.'}
+                    </Badge>
+                  </>
+                )}
               </Flex>
 
               {/* Pet Name */}

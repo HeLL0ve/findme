@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Badge, Button, Card, Container, Dialog, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
-import { MessageIcon, ArchiveIcon, AlertTriangleIcon, PawIcon, DescriptionIcon, LocationIcon, UserIcon, PrintIcon, ShareIcon, PhoneIcon, MailIcon } from '../../components/common/Icons';
+import { MessageIcon, AlertTriangleIcon, PawIcon, DescriptionIcon, LocationIcon, UserIcon, PrintIcon, ShareIcon, PhoneIcon, MailIcon, HeartFilledIcon, HeartIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
@@ -11,6 +11,7 @@ import { config } from '../../shared/config';
 import { adStatusLabel } from '../../shared/labels';
 import { AdLocationMap } from '../../shared/AdLocationMap';
 import { usePageTitle } from '../../shared/usePageTitle';
+import { useFavoritesStore } from '../../shared/favoritesStore';
 
 type Ad = {
   id: string;
@@ -54,6 +55,8 @@ export default function AdDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const isFavorite = useFavoritesStore((s) => id ? s.isFavorite(id) : false);
+  const toggleFavorite = useFavoritesStore((s) => s.toggle);
 
   const [ad, setAd] = useState<Ad | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -288,9 +291,15 @@ export default function AdDetail() {
                 <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
                   {ad.type === 'LOST' ? 'потерян' : 'найден'}
                 </Badge>
-                <Badge color={ad.status === 'APPROVED' ? 'blue' : ad.status === 'PENDING' ? 'amber' : 'gray'} variant="soft" size="2">
-                  {adStatusLabel(ad.status)}
-                </Badge>
+                {ad.status === 'ARCHIVED' ? (
+                  <Badge color="green" size="2" style={{ fontWeight: 700 }}>
+                    🎉 Питомец найден!
+                  </Badge>
+                ) : (
+                  <Badge color={ad.status === 'APPROVED' ? 'blue' : ad.status === 'PENDING' ? 'amber' : 'gray'} variant="soft" size="2">
+                    {adStatusLabel(ad.status)}
+                  </Badge>
+                )}
               </Flex>
               {[ad.animalType, ad.breed, ad.color].filter(Boolean).length > 0 && (
                 <Text size="2" color="gray">
@@ -651,23 +660,61 @@ export default function AdDetail() {
                 <Flex align="center" gap="2"><PrintIcon width={16} height={16} />Экспортировать PDF</Flex>
               </Button>
 
+              <Flex gap="2">
+                <Button
+                  variant="soft"
+                  onClick={() => void shareAd()}
+                  size="2"
+                  style={{ flex: 1, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <Flex align="center" gap="2"><ShareIcon width={16} height={16} />Поделиться</Flex>
+                </Button>
+                <Button
+                  variant={isFavorite ? 'solid' : 'soft'}
+                  color={isFavorite ? 'red' : 'gray'}
+                  onClick={() => id && toggleFavorite(id)}
+                  size="2"
+                  style={{ flex: 1, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <Flex align="center" gap="2">
+                    {isFavorite
+                      ? <><HeartFilledIcon width={16} height={16} color="white" />В избранном</>
+                      : <><HeartIcon width={16} height={16} />В избранное</>
+                    }
+                  </Flex>
+                </Button>
+              </Flex>
+
               {isOwner && ad.status !== 'ARCHIVED' && (
                 <ConfirmActionDialog
-                  title="Переместить объявление в архив?"
-                  description="Объявление перестанет отображаться в активном поиске."
-                  confirmText="В архив"
-                  color="orange"
+                  title="Питомец найден?"
+                  description="Объявление будет помечено как завершённое. Поздравляем с хорошим концом!"
+                  confirmText="Да, питомец найден!"
+                  color="green"
                   onConfirm={moveToArchive}
                   trigger={
                     <Button
-                      variant="outline"
-                      color="orange"
+                      color="green"
                       style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
                     >
-                      <Flex align="center" gap="2"><ArchiveIcon width={16} height={16} />Архивировать</Flex>
+                      <Flex align="center" gap="2">🎉 Питомец найден!</Flex>
                     </Button>
                   }
                 />
+              )}
+
+              {ad.status === 'ARCHIVED' && (
+                <Card style={{
+                  background: 'var(--green-a2)',
+                  border: '1px solid var(--green-a6)',
+                  borderRadius: 'var(--radius-3)',
+                  padding: 'var(--space-3)',
+                }}>
+                  <Flex align="center" gap="2" justify="center">
+                    <Text size="3">🎉</Text>
+                    <Text size="2" weight="bold" color="green">Питомец найден!</Text>
+                  </Flex>
+                </Card>
               )}
 
               {!user && (

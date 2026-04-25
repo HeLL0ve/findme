@@ -76,6 +76,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
   const publicLinks = [
     { to: '/', label: 'Главная' },
     { to: '/ads', label: 'Объявления' },
+    { to: '/favorites', label: 'Избранное' },
   ];
   const privateLinks = [
     { to: '/my-ads', label: 'Мои объявления' },
