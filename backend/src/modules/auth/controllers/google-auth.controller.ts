@@ -83,8 +83,8 @@ export async function googleAuthCallbackController(req: Request, res: Response, 
       // Set refresh token cookie
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https',
+        sameSite: 'none',
         maxAge: ttlSeconds * 1000,
         path: '/',
       });
