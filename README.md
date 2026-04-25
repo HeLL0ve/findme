@@ -85,7 +85,7 @@ cd backend
 npx prisma migrate dev --name название_миграции
 ```
 
-###Применяет все еще не выполненные миграции
+### Применяет все еще не выполненные миграции
 ```bash
 cd backend
 npx prisma migrate deploy
