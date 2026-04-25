@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card, Container, Flex, Grid, Heading, Select, Text, Section } from '@radix-ui/themes';
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
   Legend,
   Line,
@@ -12,10 +10,13 @@ import {
   XAxis,
   YAxis,
   Cell,
+  PieChart,
+  Pie,
 } from 'recharts';
 import { api } from '../../api/axios';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { usePageTitle } from '../../shared/usePageTitle';
+import { AnalyticsIcon } from '../../components/common/Icons';
 
 type TimelinePoint = {
   date: string;
@@ -66,7 +67,7 @@ export default function AdminStatsPage() {
       { name: 'На модерации', value: stats?.ads.pending || 0 },
       { name: 'Опубликовано', value: stats?.ads.approved || 0 },
       { name: 'Отклонено', value: stats?.ads.rejected || 0 },
-      { name: 'В архиве', value: stats?.ads.archived || 0 },
+      { name: 'Питомцы нашлись 🎉', value: stats?.ads.archived || 0 },
     ],
     [stats?.ads.approved, stats?.ads.archived, stats?.ads.pending, stats?.ads.rejected],
   );
@@ -74,7 +75,9 @@ export default function AdminStatsPage() {
   const metrics = useMemo(() => {
     if (!stats) return null;
 
-    const approvalRate = stats.ads.total > 0 ? ((stats.ads.approved / stats.ads.total) * 100).toFixed(1) : '0';
+    const approvalRate = stats.ads.total > 0
+      ? (((stats.ads.approved + stats.ads.archived) / stats.ads.total) * 100).toFixed(1)
+      : '0';
     const blockedRate = stats.users.total > 0 ? ((stats.users.blocked / stats.users.total) * 100).toFixed(1) : '0';
     const avgMessagesPerChat = stats.chats.total > 0 ? (stats.chats.messages / stats.chats.total).toFixed(1) : '0';
     const complaintResolveRate = stats.complaints.total > 0 
@@ -95,9 +98,9 @@ export default function AdminStatsPage() {
 
   const statusColors = {
     'На модерации': '#fbbf24',
-    'Опубликовано': '#10b981',
+    'Опубликовано': '#3b82f6',
     'Отклонено': '#ef4444',
-    'В архиве': '#6b7280',
+    'Питомцы нашлись 🎉': '#22c55e',
   };
 
   return (
@@ -109,7 +112,12 @@ export default function AdminStatsPage() {
       }}>
         <Container size="4">
           <Flex justify="between" align="center" wrap="wrap" gap="3">
-            <Heading size="8" weight="bold">📊 Аналитика</Heading>
+            <Heading size="8" weight="bold">
+              <Flex align="center" gap="3">
+                <AnalyticsIcon width={32} height={32} color="var(--violet-11)" />
+                Аналитика
+              </Flex>
+            </Heading>
             <Select.Root value={range} onValueChange={(value) => setRange(value as RangeValue)}>
               <Select.Trigger placeholder="Выберите период" />
               <Select.Content>
@@ -139,7 +147,7 @@ export default function AdminStatsPage() {
                     {metrics?.approvalRate}%
                   </Heading>
                   <Text size="1" color="gray">
-                    {stats.ads.approved} из {stats.ads.total} объявлений
+                    {stats.ads.approved + stats.ads.archived} из {stats.ads.total} объявлений (одобр. + найдены)
                   </Text>
                 </Flex>
               </Card>
@@ -227,29 +235,70 @@ export default function AdminStatsPage() {
             </Card>
           </Flex>
 
-          {/* Status Bar Chart */}
+          {/* Status Pie Chart */}
           <Flex direction="column" gap="3">
             <Heading size="5" weight="bold">Распределение статусов объявлений</Heading>
             <Card style={{ padding: 'var(--space-4)' }}>
-              <div style={{ width: '100%', height: 320 }}>
-                <ResponsiveContainer>
-                  <BarChart data={statusData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a5)" />
-                    <XAxis dataKey="name" stroke="var(--gray-a8)" />
-                    <YAxis stroke="var(--gray-a8)" allowDecimals={false} />
-                    <Tooltip contentStyle={{
-                      background: 'var(--gray-2)',
-                      border: '1px solid var(--gray-a6)',
-                      borderRadius: '8px',
-                    }} />
-                    <Bar dataKey="value" name="Количество" radius={[8, 8, 0, 0]}>
-                      {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={statusColors[entry.name as keyof typeof statusColors] || '#7c3aed'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <Flex direction={{ initial: 'column', sm: 'row' }} align="center" gap="6">
+                <div style={{ width: '100%', maxWidth: 320, height: 280 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        paddingAngle={0}
+                        strokeWidth={0}
+                      >
+                        {statusData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={statusColors[entry.name as keyof typeof statusColors] || '#7c3aed'}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          background: 'var(--gray-2)',
+                          border: '1px solid var(--gray-a6)',
+                          borderRadius: '8px',
+                        }}
+                        formatter={(value: number, name: string) => [value, name]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Legend */}
+                <Flex direction="column" gap="3" style={{ flex: 1 }}>
+                  {statusData.map((entry) => {
+                    const color = statusColors[entry.name as keyof typeof statusColors] || '#7c3aed';
+                    const total = statusData.reduce((sum, d) => sum + d.value, 0);
+                    const pct = total > 0 ? ((entry.value / total) * 100).toFixed(1) : '0';
+                    return (
+                      <Flex key={entry.name} align="center" justify="between" gap="3">
+                        <Flex align="center" gap="2">
+                          <div style={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: '50%',
+                            background: color,
+                            flexShrink: 0,
+                          }} />
+                          <Text size="2">{entry.name}</Text>
+                        </Flex>
+                        <Flex align="center" gap="2">
+                          <Text size="2" weight="bold">{entry.value}</Text>
+                          <Text size="1" color="gray">({pct}%)</Text>
+                        </Flex>
+                      </Flex>
+                    );
+                  })}
+                </Flex>
+              </Flex>
             </Card>
           </Flex>
 
@@ -260,8 +309,10 @@ export default function AdminStatsPage() {
               {[
                 { label: 'Всего пользователей', value: stats.users.total, color: 'var(--blue-a2)' },
                 { label: 'Всего объявлений', value: stats.ads.total, color: 'var(--green-a2)' },
+                { label: '🎉 Питомцев вернулись домой', value: stats.ads.archived, color: 'var(--amber-a2)' },
                 { label: 'Активных чатов', value: stats.chats.total, color: 'var(--purple-a2)' },
                 { label: 'Жалоб и обращений', value: stats.complaints.total, color: 'var(--orange-a2)' },
+                { label: 'На модерации', value: stats.ads.pending, color: 'var(--yellow-a2)' },
               ].map((item, idx) => (
                 <Card key={idx} style={{ background: item.color, border: '1px solid var(--gray-a6)' }}>
                   <Flex direction="column" gap="2" align="center">

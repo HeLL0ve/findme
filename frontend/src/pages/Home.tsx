@@ -149,32 +149,72 @@ export default function Home() {
 
       {/* Основной контент */}
       <Container size="4" style={{ paddingTop: '24px', paddingBottom: '32px' }}>
+
+        {/* Как это работает */}
+        <Flex direction="column" gap="5">
+          <Heading size="5" weight="bold">Как это работает?</Heading>
+          <Grid columns={{ initial: '1', md: '3' }} gap="4">
+            {[
+              {
+                icon: <SearchIcon width={32} height={32} color="var(--blue-11)" />,
+                title: 'Поиск',
+                description: 'Ищите потерянных питомцев по типу, породе и местоположению',
+                gradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
+              },
+              {
+                icon: <DescriptionIcon width={32} height={32} color="var(--green-11)" />,
+                title: 'Объявления',
+                description: 'Размещайте информацию о найденных животных с фото и контактами',
+                gradient: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)',
+              },
+              {
+                icon: <MessageIcon width={32} height={32} color="var(--violet-11)" />,
+                title: 'Общение',
+                description: 'Общайтесь с другими пользователями и помогайте друг другу',
+                gradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)',
+              },
+            ].map((item, idx) => (
+              <Box key={idx} style={{
+                padding: 'var(--space-5)',
+                borderRadius: 'var(--radius-3)',
+                background: item.gradient,
+                border: '1px solid var(--gray-a5)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              }} onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = 'translateY(-6px)';
+                el.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.08)';
+              }} onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = 'translateY(0)';
+                el.style.boxShadow = 'none';
+              }}>
+                <Flex direction="column" gap="3">
+                  <div style={{ opacity: 0.9 }}>{item.icon}</div>
+                  <Heading size="3" weight="bold">{item.title}</Heading>
+                  <Text size="2" color="gray">{item.description}</Text>
+                </Flex>
+              </Box>
+            ))}
+          </Grid>
+        </Flex>
+
         {/* Секция последних объявлений */}
-        <Flex direction="column" gap="6">
-          {/* Заголовок с кнопкой */}
+        <Flex direction="column" gap="6" style={{ marginTop: 'var(--space-8)' }}>
           <Flex justify="between" align="center" wrap="wrap" gap="4">
             <Flex direction="column" gap="2">
-              <Heading size="6" weight="bold">
-                Последние объявления
-              </Heading>
-              <Text size="2" color="gray">
-                Помогите вернуть домой потерянных питомцев
-              </Text>
+              <Heading size="6" weight="bold">Последние объявления</Heading>
+              <Text size="2" color="gray">Помогите вернуть домой потерянных питомцев</Text>
             </Flex>
             <Button variant="soft" asChild>
               <Link to="/ads">Смотреть все →</Link>
             </Button>
           </Flex>
 
-          {/* Сетка объявлений */}
           {loading ? (
             <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} style={{
-                  height: '320px',
-                  background: 'var(--gray-a2)',
-                  animation: 'pulse 2s infinite',
-                }}>
+                <Card key={i} style={{ height: '320px', background: 'var(--gray-a2)', animation: 'pulse 2s infinite' }}>
                   <Box style={{ height: '100%' }} />
                 </Card>
               ))}
@@ -186,17 +226,11 @@ export default function Home() {
               ))}
             </Grid>
           ) : (
-            <Card style={{
-              background: 'var(--gray-a1)',
-              textAlign: 'center',
-              padding: '24px',
-            }}>
+            <Card style={{ background: 'var(--gray-a1)', textAlign: 'center', padding: '24px' }}>
               <Flex direction="column" gap="3" align="center" justify="center">
                 <Heading size="4" color="gray">Объявлений нет</Heading>
                 <Text color="gray">Будьте первыми! Создайте объявление о потерянном питомце.</Text>
-                <Button asChild>
-                  <Link to="/create-ad">Создать объявление</Link>
-                </Button>
+                <Button asChild><Link to="/create-ad">Создать объявление</Link></Button>
               </Flex>
             </Card>
           )}
@@ -205,10 +239,7 @@ export default function Home() {
         {/* Happy Endings Section */}
         {foundAds.length > 0 && (
           <Flex direction="column" gap="4" style={{ marginTop: '64px' }}>
-            <Box style={{
-              borderTop: '1px solid var(--gray-a5)',
-              paddingTop: '48px',
-            }}>
+            <Box style={{ borderTop: '1px solid var(--gray-a5)', paddingTop: '48px' }}>
               <Flex justify="between" align="center" wrap="wrap" gap="4">
                 <Flex direction="column" gap="1">
                   <Heading size="6" weight="bold">🎉 Питомцы нашлись!</Heading>
@@ -232,11 +263,11 @@ export default function Home() {
           <Heading size="5" weight="bold">Статистика платформы</Heading>
           <Grid columns={{ initial: '1', md: '2', lg: '4' }} gap="4">
             {[
-              { label: 'Активных пользователей', value: stats.users, color: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)', borderColor: 'var(--blue-a6)', accentColor: 'var(--blue-11)' },
+              { label: 'Пользователей', value: stats.users, color: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)', borderColor: 'var(--blue-a6)', accentColor: 'var(--blue-11)' },
               { label: 'Объявлений размещено', value: stats.ads, color: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)', borderColor: 'var(--green-a6)', accentColor: 'var(--green-11)' },
-              { label: 'Найденных питомцев', value: stats.foundPets, color: 'linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%)', borderColor: 'var(--amber-a6)', accentColor: 'var(--amber-11)' },
+              { label: '🎉 Питомцев вернулись домой', value: stats.foundPets, color: 'linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%)', borderColor: 'var(--amber-a6)', accentColor: 'var(--amber-11)' },
               { label: 'Активных чатов', value: stats.chats, color: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)', borderColor: 'var(--purple-a6)', accentColor: 'var(--purple-11)' },
-            ].map((stat: { label: string; value: number; color: string; borderColor: string; accentColor: string }, idx) => (
+            ].map((stat, idx) => (
               <Card key={idx} style={{
                 background: stat.color,
                 border: `2px solid ${stat.borderColor}`,
@@ -254,65 +285,10 @@ export default function Home() {
                 el.style.boxShadow = 'none';
               }}>
                 <Flex direction="column" gap="2" align="center">
-                  <Heading size="6" weight="bold" style={{ color: stat.accentColor }}>
-                    {stat.value}
-                  </Heading>
+                  <Heading size="6" weight="bold" style={{ color: stat.accentColor }}>{stat.value}</Heading>
                   <Text size="2" color="gray">{stat.label}</Text>
                 </Flex>
               </Card>
-            ))}
-          </Grid>
-        </Flex>
-
-        {/* Информационные блоки */}
-        <Flex direction="column" gap="6" style={{ marginTop: 'var(--space-8)' }}>
-          <Heading size="5" weight="bold">Как это работает?</Heading>
-          <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="4">
-            {[
-              {
-                icon: <SearchIcon width={32} height={32} color="var(--blue-11)" />,
-                title: 'Поиск',
-                description: 'Ищите потерянных питомцев по типу, породе и местоположению',
-                gradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
-              },
-              {
-                icon: <DescriptionIcon width={32} height={32} color="var(--green-11)" />,
-                title: 'Объявления',
-                description: 'Размещайте информацию о найденных животных с фото и контактами',
-                gradient: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)',
-              },
-              {
-                icon: <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <MessageIcon width={24} height={24} />
-                </div>,
-                title: 'Общение',
-                description: 'Общайтесь с другими пользователями и помогайте друг другу',
-                gradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)',
-              },
-            ].map((item, idx) => (
-              <Box key={idx} style={{
-                padding: 'var(--space-5)',
-                borderRadius: 'var(--radius-3)',
-                background: item.gradient,
-                border: '1px solid var(--gray-a5)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
-              }} onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.transform = 'translateY(-6px)';
-                el.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.08)';
-              }} onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.transform = 'translateY(0)';
-                el.style.boxShadow = 'none';
-              }}>
-                <Flex direction="column" gap="3">
-                  <div style={{ opacity: 0.9 }}>{item.icon}</div>
-                  <Heading size="3" weight="bold">{item.title}</Heading>
-                  <Text size="2" color="gray">{item.description}</Text>
-                </Flex>
-              </Box>
             ))}
           </Grid>
         </Flex>

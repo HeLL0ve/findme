@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button, Card, Container, Flex, Grid, Heading, Text, Section } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import { usePageTitle } from '../../shared/usePageTitle';
+import { GearIcon, AnalyticsIcon } from '../../components/common/Icons';
 
 type AdminStats = {
   users?: { total: number; blocked: number };
@@ -39,7 +40,12 @@ export default function AdminDashboard() {
         borderBottom: '1px solid var(--gray-a5)',
       }}>
         <Container size="4">
-          <Heading size="8" weight="bold">⚙️ Админ-панель</Heading>
+          <Heading size="8" weight="bold">
+            <Flex align="center" gap="3">
+              <GearIcon width={36} height={36} color="var(--violet-11)" />
+              Админ-панель
+            </Flex>
+          </Heading>
           <Text color="gray" size="2">Управление пользователями, объявлениями, чатами и жалобами</Text>
         </Container>
       </Section>
@@ -281,7 +287,7 @@ export default function AdminDashboard() {
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
-                      📊
+                      <AnalyticsIcon width={28} height={28} color="currentColor" />
                     </div>
                     <Heading size="3">Аналитика</Heading>
                   </Flex>

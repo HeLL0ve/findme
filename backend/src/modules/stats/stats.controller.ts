@@ -10,17 +10,17 @@ export async function publicStatsController(
   next: NextFunction,
 ) {
   try {
-    const [usersTotal, adsTotal, adsApproved, chatsTotal] = await Promise.all([
+    const [usersTotal, adsTotal, adsArchived, chatsTotal] = await Promise.all([
       prisma.user.count(),
       prisma.ad.count(),
-      prisma.ad.count({ where: { status: 'APPROVED' } }),
+      prisma.ad.count({ where: { status: 'ARCHIVED' } }),
       prisma.chat.count(),
     ]);
 
     return res.json({
       users: usersTotal,
       ads: adsTotal,
-      foundPets: adsApproved,
+      foundPets: adsArchived,
       chats: chatsTotal,
     });
   } catch (err) {
