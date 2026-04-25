@@ -12,10 +12,31 @@
 
 ---
 
+## Переменные окружения
+
+В проекте три env-файла для разных сценариев запуска:
+
+| Файл | Когда нужен |
+|------|-------------|
+| `.env` | Docker Compose — содержит все переменные включая `POSTGRES_*` |
+| `backend/.env` | Локальный запуск без Docker (`REDIS_HOST=localhost`) |
+| `frontend/.env` | Опционально — только если API не на `localhost:3000` |
+
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+# frontend/.env нужен только если меняешь URL API
+```
+
+Заполни значения в скопированных файлах. Реальные секреты никогда не коммить.
+
+---
+
 ## Быстрый старт через Docker
 
 ```bash
-cp .env.example .env   # заполни переменные
+cp .env.example .env
+# заполни .env
 docker-compose up --build
 ```
 
@@ -23,7 +44,7 @@ docker-compose up --build
 - Фронтенд: http://localhost:5173
 - Бэкенд API: http://localhost:3000
 
-### Запустить только базы данных (для локальной разработки)
+### Запустить только базы данных
 
 ```bash
 docker-compose up postgres redis
@@ -50,6 +71,13 @@ docker-compose up frontend backend
 npm install
 ```
 
+### Настройка окружения
+
+```bash
+cp backend/.env.example backend/.env
+# заполни backend/.env
+```
+
 ### Запуск баз данных
 
 ```bash
@@ -69,7 +97,7 @@ npx prisma migrate deploy
 npm run dev
 ```
 
-Запускает бэкенд и фронтенд одновременно через `concurrently`.
+Запускает бэкенд (порт 3000) и фронтенд (порт 5173) одновременно через `concurrently`.
 
 ### Prisma Studio
 
@@ -86,47 +114,6 @@ docker-compose exec backend npx prisma migrate dev
 
 ---
 
-## Переменные окружения
-
-Создай `.env` в корне проекта на основе примера ниже.
-
-```env
-# PostgreSQL
-POSTGRES_USER=findme
-POSTGRES_PASSWORD=secret
-POSTGRES_DB=findme_db
-DATABASE_URL=postgresql://findme:secret@localhost:5432/findme_db
-
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# JWT
-JWT_ACCESS_SECRET=your_access_secret
-JWT_REFRESH_SECRET=your_refresh_secret
-
-# URLs
-CLIENT_ORIGIN=http://localhost:5173
-APP_URL=http://localhost:5173
-PUBLIC_API_URL=http://localhost:3000
-
-# Gmail (опционально)
-GMAIL_USER=your@gmail.com
-GMAIL_PASSWORD=your_app_password
-MAIL_BRAND_NAME=FindMe
-
-# Google OAuth (опционально)
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-
-# Telegram Bot (опционально)
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_CHANNEL_ID=
-TELEGRAM_BOT_USERNAME=
-```
-
----
-
 ## Структура проекта
 
 ```
@@ -134,20 +121,24 @@ findme/
 ├── backend/                # Express API
 │   ├── prisma/             # Схема БД и миграции
 │   ├── src/
-│   │   ├── modules/        # Модули (auth, ads, chats, ...)
+│   │   ├── modules/        # Модули (auth, ads, chats, notifications, ...)
 │   │   ├── shared/         # Общие утилиты и ошибки
 │   │   ├── ws/             # WebSocket сервер
 │   │   └── app.ts          # Express приложение
-│   └── uploads/            # Загруженные файлы (не в git)
+│   ├── uploads/            # Загруженные файлы (не в git)
+│   ├── .env.example        # Пример переменных для локального запуска
+│   └── Dockerfile
 ├── frontend/               # React приложение
 │   ├── public/             # Статические файлы
-│   └── src/
-│       ├── app/            # App, Header, Footer, роутинг
-│       ├── components/     # Переиспользуемые компоненты
-│       ├── pages/          # Страницы
-│       └── shared/         # Хуки, стор, утилиты
+│   ├── src/
+│   │   ├── app/            # App, Header, Footer
+│   │   ├── components/     # Переиспользуемые компоненты
+│   │   ├── pages/          # Страницы
+│   │   └── shared/         # Хуки, стор, утилиты
+│   └── .env.example        # Пример переменных (опционально)
+├── .env.example            # Пример переменных для Docker Compose
 ├── docker-compose.yml
-└── .env
+└── README.md
 ```
 
 ---
