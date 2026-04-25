@@ -331,62 +331,114 @@ export default function AdsList() {
 
                 {/* Pagination */}
                 {!loading && totalPages > 1 && (
-                  <Flex justify="center" align="center" gap="2" style={{ marginTop: 'var(--space-4)' }}>
-                    <Button
-                      variant="soft"
-                      size="2"
-                      disabled={page === 1}
-                      onClick={() => { setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    >
-                      «
-                    </Button>
+                  <Flex justify="center" gap="2" style={{ marginTop: 'var(--space-4)' }}>
                     <Button
                       variant="soft"
                       size="2"
                       disabled={page === 1}
                       onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     >
-                      ‹
+                      ← Назад
                     </Button>
-
-                    {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                      .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
-                        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis');
-                        acc.push(p);
-                        return acc;
-                      }, [])
-                      .map((item, idx) =>
-                        item === 'ellipsis' ? (
-                          <Text key={`ellipsis-${idx}`} size="2" color="gray" style={{ padding: '0 4px' }}>…</Text>
-                        ) : (
-                          <Button
-                            key={item}
-                            size="2"
-                            variant={page === item ? 'solid' : 'soft'}
-                            onClick={() => { setPage(item as number); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                          >
-                            {item}
-                          </Button>
-                        )
-                      )
-                    }
-
+                    
+                    <Flex gap="2" align="center">
+                      {(() => {
+                        const pages = [];
+                        const maxVisiblePages = 7; // Максимум видимых кнопок страниц
+                        
+                        if (totalPages <= maxVisiblePages) {
+                          // Если страниц мало, показываем все
+                          for (let i = 1; i <= totalPages; i++) {
+                            pages.push(
+                              <Button
+                                key={i}
+                                size="2"
+                                variant={i === page ? 'solid' : 'soft'}
+                                onClick={() => { setPage(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                style={{ minWidth: 40 }}
+                              >
+                                {i}
+                              </Button>
+                            );
+                          }
+                        } else {
+                          // Умная пагинация для большого количества страниц
+                          const startPage = Math.max(1, page - 2);
+                          const endPage = Math.min(totalPages, page + 2);
+                          
+                          // Первая страница
+                          if (startPage > 1) {
+                            pages.push(
+                              <Button
+                                key={1}
+                                size="2"
+                                variant={1 === page ? 'solid' : 'soft'}
+                                onClick={() => { setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                style={{ minWidth: 40 }}
+                              >
+                                1
+                              </Button>
+                            );
+                            
+                            if (startPage > 2) {
+                              pages.push(
+                                <Text key="ellipsis1" size="2" color="gray" style={{ padding: '0 8px' }}>
+                                  ...
+                                </Text>
+                              );
+                            }
+                          }
+                          
+                          // Страницы вокруг текущей
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(
+                              <Button
+                                key={i}
+                                size="2"
+                                variant={i === page ? 'solid' : 'soft'}
+                                onClick={() => { setPage(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                style={{ minWidth: 40 }}
+                              >
+                                {i}
+                              </Button>
+                            );
+                          }
+                          
+                          // Последняя страница
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                              pages.push(
+                                <Text key="ellipsis2" size="2" color="gray" style={{ padding: '0 8px' }}>
+                                  ...
+                                </Text>
+                              );
+                            }
+                            
+                            pages.push(
+                              <Button
+                                key={totalPages}
+                                size="2"
+                                variant={totalPages === page ? 'solid' : 'soft'}
+                                onClick={() => { setPage(totalPages); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                style={{ minWidth: 40 }}
+                              >
+                                {totalPages}
+                              </Button>
+                            );
+                          }
+                        }
+                        
+                        return pages;
+                      })()}
+                    </Flex>
+                    
                     <Button
                       variant="soft"
                       size="2"
                       disabled={page === totalPages}
                       onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     >
-                      ›
-                    </Button>
-                    <Button
-                      variant="soft"
-                      size="2"
-                      disabled={page === totalPages}
-                      onClick={() => { setPage(totalPages); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    >
-                      »
+                      Вперёд →
                     </Button>
                   </Flex>
                 )}
