@@ -98,7 +98,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
       }}>
         <Container size="4" style={{ maxWidth: 1600, width: '100%', marginInline: 'auto' }}>
           <Flex align="center" justify="between" gap="3" style={{ padding: '10px 14px' }}>
-            <Flex align="center" gap="3" style={{ minWidth: 0 }}>
+            <Flex align="center" gap="3" style={{ flexShrink: 0 }}>
               <Link to="/" style={{ textDecoration: 'none' }}>
                 <Flex align="center" gap="2">
                   <img src="/logo.svg" alt="FindMe" style={{ width: 34, height: 34, flexShrink: 0 }} />
@@ -109,13 +109,13 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                 </Flex>
               </Link>
 
-              <Flex gap="2" display={{ initial: 'none', lg: 'flex' }} style={{ minWidth: 0 }}>
+              <Flex gap="2" display={{ initial: 'none', lg: 'flex' }}>
                 {publicLinks.map((link) => (
-                  <NavLink key={link.to} to={link.to} className="truncate">{link.label}</NavLink>
+                  <NavLink key={link.to} to={link.to}>{link.label}</NavLink>
                 ))}
                 {token && privateLinks.map((link) => (
                   <Box key={link.to} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-                    <NavLink to={link.to} className="truncate">{link.label}</NavLink>
+                    <NavLink to={link.to}>{link.label}</NavLink>
                     {link.to === '/chats' && unreadChats > 0 && (
                       <Box style={{
                         position: 'absolute',
