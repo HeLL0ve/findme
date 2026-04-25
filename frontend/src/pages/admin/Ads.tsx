@@ -109,9 +109,9 @@ export default function AdminAdsPage() {
               <Select.Content>
                 <Select.Item value="ALL">Все статусы</Select.Item>
                 <Select.Item value="PENDING">На модерации</Select.Item>
-                <Select.Item value="APPROVED">Опубликовано</Select.Item>
+                <Select.Item value="APPROVED">Активные</Select.Item>
+                <Select.Item value="ARCHIVED">Найдены / В архиве</Select.Item>
                 <Select.Item value="REJECTED">Отклонено</Select.Item>
-                <Select.Item value="ARCHIVED">Архив</Select.Item>
               </Select.Content>
             </Select.Root>
             <Button variant="soft" onClick={() => void fetchAds()}>Обновить</Button>

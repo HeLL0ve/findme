@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button, Card, Container, Flex, Grid, Heading, Select, Text, TextField, Box, Section } from '@radix-ui/themes';
 import { SearchIcon, FilterIcon, ListIcon, MapIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
@@ -27,18 +28,22 @@ type Filters = {
 type ViewMode = 'list' | 'map';
 
 export default function AdsList() {
+  const [searchParams] = useSearchParams();
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<Filters>({
-    q: '',
-    city: '',
-    type: 'ALL',
-    status: 'APPROVED',
-    since: 'ALL',
+  const [filters, setFilters] = useState<Filters>(() => {
+    const statusParam = searchParams.get('status');
+    return {
+      q: '',
+      city: '',
+      type: 'ALL',
+      status: (statusParam === 'ARCHIVED' || statusParam === 'APPROVED') ? statusParam : 'APPROVED',
+      since: 'ALL',
+    };
   });
   usePageTitle('Поиск объявлений');
 
@@ -151,8 +156,8 @@ export default function AdsList() {
                   <Select.Root value={filters.status} onValueChange={(value) => setFilters((prev) => ({ ...prev, status: value as Filters['status'] }))}>
                     <Select.Trigger placeholder="Выберите статус" />
                     <Select.Content>
-                      <Select.Item value="APPROVED">Опубликовано</Select.Item>
-                      <Select.Item value="ARCHIVED">В архиве</Select.Item>
+                      <Select.Item value="APPROVED">Активные</Select.Item>
+                      <Select.Item value="ARCHIVED">Найдены</Select.Item>
                     </Select.Content>
                   </Select.Root>
                 </Flex>
@@ -224,8 +229,8 @@ export default function AdsList() {
                     <Select.Root value={filters.status} onValueChange={(value) => setFilters((prev) => ({ ...prev, status: value as Filters['status'] }))}>
                       <Select.Trigger placeholder="Статус" />
                       <Select.Content>
-                        <Select.Item value="APPROVED">Опубликовано</Select.Item>
-                        <Select.Item value="ARCHIVED">В архиве</Select.Item>
+                        <Select.Item value="APPROVED">Активные</Select.Item>
+                        <Select.Item value="ARCHIVED">Найдены</Select.Item>
                       </Select.Content>
                     </Select.Root>
                     <Select.Root value={filters.since} onValueChange={(value) => setFilters((prev) => ({ ...prev, since: value as Filters['since'] }))}>

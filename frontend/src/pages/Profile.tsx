@@ -183,7 +183,7 @@ export default function Profile() {
     // Если пытаемся включить, запросим разрешение у браузера
     if (value && typeof Notification !== 'undefined') {
       if (Notification.permission === 'denied') {
-        alert('Push-уведомления запрещены. Измените это в настройках браузера.');
+        // Тихо отключаем — браузер уже запретил, пользователь сам разберётся в настройках
         shouldEnable = false;
       } else if (Notification.permission === 'default') {
         try {

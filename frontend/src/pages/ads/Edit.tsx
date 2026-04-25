@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Badge, Button, Card, Container, Flex, Heading, Select, Text, TextArea, TextField } from '@radix-ui/themes';
+import { Button, Card, Container, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import AdPhotoPicker from '../../components/ads/AdPhotoPicker';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../../shared/apiError';
-import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 import { config } from '../../shared/config';
 import { LocationPickerMap } from '../../shared/LocationPickerMap';
 import { usePageTitle } from '../../shared/usePageTitle';
+import { PawIcon, ListIcon, AddIcon } from '../../components/common/Icons';
 
 type EditAdDto = {
   id: string;
@@ -36,21 +36,16 @@ type FormState = {
   breed: string;
   color: string;
   description: string;
-  location: {
-    address: string;
-    city: string;
-    latitude: string;
-    longitude: string;
-  };
+  location: { address: string; city: string; latitude: string; longitude: string };
 };
 
 const MAX_FILES = 8;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 function validateFiles(files: File[]) {
-  const invalidType = files.find((file) => !file.type.startsWith('image/'));
+  const invalidType = files.find((f) => !f.type.startsWith('image/'));
   if (invalidType) return 'Можно загружать только изображения';
-  const oversized = files.find((file) => file.size > MAX_FILE_SIZE);
+  const oversized = files.find((f) => f.size > MAX_FILE_SIZE);
   if (oversized) return 'Размер каждой фотографии должен быть до 5 МБ';
   return null;
 }
@@ -77,12 +72,7 @@ export default function EditAd() {
     breed: '',
     color: '',
     description: '',
-    location: {
-      address: '',
-      city: '',
-      latitude: '',
-      longitude: '',
-    },
+    location: { address: '', city: '', latitude: '', longitude: '' },
   });
 
   useEffect(() => {
@@ -94,7 +84,7 @@ export default function EditAd() {
         if (!mounted) return;
         const data = response.data as EditAdDto;
         setAd(data);
-        setPhotoUrls((data.photos || []).map((photo) => photo.photoUrl));
+        setPhotoUrls((data.photos || []).map((p) => p.photoUrl));
         setForm({
           type: data.type,
           petName: data.petName || '',
@@ -105,14 +95,8 @@ export default function EditAd() {
           location: {
             address: data.location?.address || '',
             city: data.location?.city || '',
-            latitude:
-              data.location?.latitude !== undefined && data.location?.latitude !== null
-                ? String(data.location.latitude)
-                : '',
-            longitude:
-              data.location?.longitude !== undefined && data.location?.longitude !== null
-                ? String(data.location.longitude)
-                : '',
+            latitude: data.location?.latitude != null ? String(data.location.latitude) : '',
+            longitude: data.location?.longitude != null ? String(data.location.longitude) : '',
           },
         });
       } catch (err) {
@@ -122,44 +106,29 @@ export default function EditAd() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [id]);
 
   function addNewFiles(selectedFiles: File[]) {
-    const next = [...newFiles, ...selectedFiles];
-    const unique = next.filter(
-      (file, index, arr) =>
-        arr.findIndex(
-          (candidate) =>
-            candidate.name === file.name &&
-            candidate.size === file.size &&
-            candidate.lastModified === file.lastModified,
-        ) === index,
+    const next = [...newFiles, ...selectedFiles].filter(
+      (f, i, arr) => arr.findIndex((c) => c.name === f.name && c.size === f.size && c.lastModified === f.lastModified) === i,
     );
-
-    if (photoUrls.length + unique.length > MAX_FILES) {
+    if (photoUrls.length + next.length > MAX_FILES) {
       setError(`Можно сохранить не более ${MAX_FILES} фотографий`);
       return;
     }
-
-    const validationError = validateFiles(unique);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
+    const err = validateFiles(next);
+    if (err) { setError(err); return; }
     setError(null);
-    setNewFiles(unique);
+    setNewFiles(next);
   }
 
   function removeNewFile(index: number) {
-    setNewFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index));
+    setNewFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
   function removeExistingPhoto(url: string) {
-    setPhotoUrls((prev) => prev.filter((current) => current !== url));
+    setPhotoUrls((prev) => prev.filter((u) => u !== url));
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -171,29 +140,27 @@ export default function EditAd() {
       setError('Описание должно содержать минимум 10 символов');
       return;
     }
-
     if (photoUrls.length + newFiles.length > MAX_FILES) {
       setError(`Можно сохранить не более ${MAX_FILES} фотографий`);
       return;
     }
-
-    const validationError = validateFiles(newFiles);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+    const fileErr = validateFiles(newFiles);
+    if (fileErr) { setError(fileErr); return; }
 
     setSaving(true);
     try {
       let uploadedUrls: string[] = [];
       if (newFiles.length > 0) {
         const payload = new FormData();
-        newFiles.forEach((file) => payload.append('photos', file));
+        newFiles.forEach((f) => payload.append('photos', f));
         const uploadResponse = await api.post('/ads/upload', payload, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         uploadedUrls = uploadResponse.data.urls;
       }
+
+      const latitude = form.location.latitude ? Number(form.location.latitude) : undefined;
+      const longitude = form.location.longitude ? Number(form.location.longitude) : undefined;
 
       await api.patch(`/ads/${id}`, {
         type: form.type,
@@ -206,8 +173,8 @@ export default function EditAd() {
         location: {
           address: form.location.address || undefined,
           city: form.location.city || undefined,
-          latitude: form.location.latitude ? Number(form.location.latitude) : undefined,
-          longitude: form.location.longitude ? Number(form.location.longitude) : undefined,
+          latitude,
+          longitude,
         },
       });
 
@@ -224,125 +191,242 @@ export default function EditAd() {
   if (!ad) return <Container size="3"><Text color="red">Объявление не найдено</Text></Container>;
 
   return (
-    <Container size="3">
-      <Card>
-        <Flex align="center" justify="between" wrap="wrap" gap="2">
-          <Heading size="8">Редактирование объявления</Heading>
-          <Flex gap="2">
-            <Badge>{adTypeLabel(ad.type)}</Badge>
-            <Badge color="gray">{adStatusLabel(ad.status)}</Badge>
+    <Flex direction="column" gap="0">
+      {/* Header */}
+      <Flex direction="column" gap="2" style={{
+        background: 'linear-gradient(135deg, var(--violet-2) 0%, var(--accent-soft) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
+        padding: 'var(--space-4)',
+      }}>
+        <Container size="3">
+          <Flex gap="2" align="center">
+            <AddIcon width={28} height={28} />
+            <Heading size="7" weight="bold" style={{ margin: 0 }}>Редактировать объявление</Heading>
           </Flex>
-        </Flex>
+          <Text color="gray" size="2">Внесите изменения и сохраните объявление</Text>
+        </Container>
+      </Flex>
 
-        <form onSubmit={onSubmit} className="form-root" style={{ marginTop: 16 }}>
-          <Flex direction="column" gap="3">
-            <Text size="2" color="gray">
-              Тип
-            </Text>
-            <Select.Root value={form.type} onValueChange={(value) => setForm({ ...form, type: value as 'LOST' | 'FOUND' })}>
-              <Select.Trigger />
-              <Select.Content>
-                <Select.Item value="LOST">Потерян</Select.Item>
-                <Select.Item value="FOUND">Найден</Select.Item>
-              </Select.Content>
-            </Select.Root>
-
-            <TextField.Root placeholder="Кличка питомца" value={form.petName} onChange={(event) => setForm({ ...form, petName: event.target.value })} />
-            <TextField.Root placeholder="Вид" value={form.animalType} onChange={(event) => setForm({ ...form, animalType: event.target.value })} />
-            <TextField.Root placeholder="Порода" value={form.breed} onChange={(event) => setForm({ ...form, breed: event.target.value })} />
-            <TextField.Root placeholder="Окрас" value={form.color} onChange={(event) => setForm({ ...form, color: event.target.value })} />
-
-            <TextArea placeholder="Описание" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
-
-            <Text size="2" color="gray">
-              Адрес и город
-            </Text>
-            <LocationPickerMap
-              value={{
-                latitude: form.location.latitude ? Number(form.location.latitude) : null,
-                longitude: form.location.longitude ? Number(form.location.longitude) : null,
-              }}
-              onChange={(next) =>
-                setForm((prev) => ({
-                  ...prev,
-                  location: {
-                    ...prev.location,
-                    latitude: next ? String(next.latitude) : '',
-                    longitude: next ? String(next.longitude) : '',
-                  },
-                }))
-              }
-              height={320}
-            />
-            <TextField.Root placeholder="Город" value={form.location.city} onChange={(event) => setForm({ ...form, location: { ...form.location, city: event.target.value } })} />
-            <TextField.Root placeholder="Адрес" value={form.location.address} onChange={(event) => setForm({ ...form, location: { ...form.location, address: event.target.value } })} />
-            <Flex gap="2">
-              <TextField.Root
-                type="number"
-                placeholder="Широта"
-                value={form.location.latitude}
-                onChange={(event) => setForm({ ...form, location: { ...form.location, latitude: event.target.value } })}
-              />
-              <TextField.Root
-                type="number"
-                placeholder="Долгота"
-                value={form.location.longitude}
-                onChange={(event) => setForm({ ...form, location: { ...form.location, longitude: event.target.value } })}
-              />
-            </Flex>
-
-            {photoUrls.length > 0 && (
-              <Flex direction="column" gap="2">
-                <Text size="2" color="gray">
-                  Текущие фотографии
-                </Text>
-                <div className="photo-grid">
-                  {photoUrls.map((url) => (
-                    <Card key={url} className="photo-card">
-                      <img src={resolvePhotoSrc(url)} alt="photo" className="photo-card-image" />
-                      <ConfirmActionDialog
-                        title="Удалить фото?"
-                        description="Фотография будет удалена после сохранения объявления."
-                        confirmText="Удалить"
-                        color="red"
-                        onConfirm={() => removeExistingPhoto(url)}
-                        trigger={(
-                          <Button
-                            size="1"
-                            type="button"
-                            color="red"
-                            variant="solid"
-                            className="photo-card-remove"
-                            aria-label="Удалить фото"
-                          >
-                            ×
-                          </Button>
-                        )}
-                      />
-                    </Card>
-                  ))}
-                </div>
-              </Flex>
+      <Container size="3" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+        <form onSubmit={onSubmit} className="form-root">
+          <Flex direction="column" gap="6">
+            {error && (
+              <Card style={{ background: 'var(--red-2)', borderLeft: '3px solid var(--red-9)' }}>
+                <Text color="red" size="2">{error}</Text>
+              </Card>
             )}
 
-            <Text size="2" color="gray">
-              Новые фотографии (до 8 всего)
-            </Text>
-            <AdPhotoPicker files={newFiles} onAddFiles={addNewFiles} onRemoveFile={removeNewFile} maxFiles={Math.max(0, MAX_FILES - photoUrls.length)} />
+            {/* Section 1: Type */}
+            <Card>
+              <Flex direction="column" gap="4">
+                <Flex direction="column" gap="1">
+                  <Heading size="4" weight="bold">Тип объявления</Heading>
+                  <Text size="2" color="gray">Выберите, потерян ли питомец или вы его нашли</Text>
+                </Flex>
+                <Flex gap="3" direction={{ initial: 'column', sm: 'row' }}>
+                  {([
+                    { value: 'LOST' as const, label: 'Потерян питомец', description: 'Мой питомец потерялся' },
+                    { value: 'FOUND' as const, label: 'Найден питомец', description: 'Я нашёл бездомного питомца' },
+                  ]).map(({ value, label, description }) => (
+                    <Card
+                      key={value}
+                      style={{
+                        flex: 1,
+                        cursor: 'pointer',
+                        background: form.type === value ? 'var(--violet-a2)' : 'var(--gray-a1)',
+                        border: form.type === value ? '2px solid var(--violet-8)' : '1px solid var(--gray-a6)',
+                        transition: 'all 0.2s ease',
+                        padding: 'var(--space-3)',
+                      }}
+                      onClick={() => setForm({ ...form, type: value })}
+                    >
+                      <Flex direction="column" gap="2" align="start">
+                        <Text weight="bold">{label}</Text>
+                        <Text size="1" color="gray">{description}</Text>
+                      </Flex>
+                    </Card>
+                  ))}
+                </Flex>
+              </Flex>
+            </Card>
 
-            {error && <Text color="red">{error}</Text>}
+            {/* Section 2: Pet Info */}
+            <Card>
+              <Flex direction="column" gap="4">
+                <Flex direction="column" gap="1">
+                  <Flex gap="2" align="center">
+                    <PawIcon width={20} height={20} />
+                    <Heading size="4" weight="bold" style={{ margin: 0 }}>Информация о питомце</Heading>
+                  </Flex>
+                  <Text size="2" color="gray">Укажите основные характеристики</Text>
+                </Flex>
+                <Flex direction="column" gap="3">
+                  <Flex direction="column" gap="2">
+                    <Text size="2" weight="bold" color="gray">Кличка питомца</Text>
+                    <TextField.Root
+                      placeholder="Например: Мурзик, Шарик"
+                      value={form.petName}
+                      onChange={(e) => setForm({ ...form, petName: e.target.value })}
+                    />
+                  </Flex>
+                  <Flex gap="3" direction={{ initial: 'column', md: 'row' }}>
+                    <Flex direction="column" gap="2" style={{ flex: 1 }}>
+                      <Text size="2" weight="bold" color="gray">Вид животного</Text>
+                      <TextField.Root
+                        placeholder="Например: Кот, Собака"
+                        value={form.animalType}
+                        onChange={(e) => setForm({ ...form, animalType: e.target.value })}
+                      />
+                    </Flex>
+                    <Flex direction="column" gap="2" style={{ flex: 1 }}>
+                      <Text size="2" weight="bold" color="gray">Порода</Text>
+                      <TextField.Root
+                        placeholder="Например: Персидский"
+                        value={form.breed}
+                        onChange={(e) => setForm({ ...form, breed: e.target.value })}
+                      />
+                    </Flex>
+                  </Flex>
+                  <Flex direction="column" gap="2">
+                    <Text size="2" weight="bold" color="gray">Окрас</Text>
+                    <TextField.Root
+                      placeholder="Например: Белый с чёрными пятнами"
+                      value={form.color}
+                      onChange={(e) => setForm({ ...form, color: e.target.value })}
+                    />
+                  </Flex>
+                </Flex>
+              </Flex>
+            </Card>
 
-            <Flex gap="2">
-              <Button type="submit" disabled={saving}>
-                {saving ? 'Сохранение...' : 'Сохранить изменения'}
+            {/* Section 3: Description */}
+            <Card>
+              <Flex direction="column" gap="4">
+                <Flex direction="column" gap="1">
+                  <Flex gap="2" align="center">
+                    <ListIcon width={20} height={20} />
+                    <Heading size="4" weight="bold" style={{ margin: 0 }}>Описание *</Heading>
+                  </Flex>
+                  <Text size="2" color="gray">Опишите обстоятельства и характерные приметы</Text>
+                </Flex>
+                <TextArea
+                  placeholder="Когда и где пропал/найден, особые приметы..."
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  style={{ minHeight: '140px' }}
+                />
+                <Text size="1" color="gray">Минимум 10 символов.</Text>
+              </Flex>
+            </Card>
+
+            {/* Section 4: Location */}
+            <Card>
+              <Flex direction="column" gap="4">
+                <Flex direction="column" gap="1">
+                  <Heading size="4" weight="bold">📍 Местоположение</Heading>
+                  <Text size="2" color="gray">Укажите место, где питомец был потерян или найден</Text>
+                </Flex>
+                <LocationPickerMap
+                  value={{
+                    latitude: form.location.latitude ? Number(form.location.latitude) : null,
+                    longitude: form.location.longitude ? Number(form.location.longitude) : null,
+                  }}
+                  onChange={(next) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      location: {
+                        ...prev.location,
+                        latitude: next ? String(next.latitude) : '',
+                        longitude: next ? String(next.longitude) : '',
+                      },
+                    }))
+                  }
+                  height={320}
+                />
+                <Flex gap="3" direction={{ initial: 'column', md: 'row' }}>
+                  <Flex direction="column" gap="2" style={{ flex: 1 }}>
+                    <Text size="2" weight="bold" color="gray">Город</Text>
+                    <TextField.Root
+                      placeholder="Например: Минск"
+                      value={form.location.city}
+                      onChange={(e) => setForm({ ...form, location: { ...form.location, city: e.target.value } })}
+                    />
+                  </Flex>
+                  <Flex direction="column" gap="2" style={{ flex: 1 }}>
+                    <Text size="2" weight="bold" color="gray">Адрес</Text>
+                    <TextField.Root
+                      placeholder="Например: ул. Пушкина, дом 10"
+                      value={form.location.address}
+                      onChange={(e) => setForm({ ...form, location: { ...form.location, address: e.target.value } })}
+                    />
+                  </Flex>
+                </Flex>
+                <Text size="1" color="gray">
+                  {form.location.latitude && form.location.longitude
+                    ? `Координаты: ${form.location.latitude}, ${form.location.longitude}`
+                    : 'Метка не выбрана'}
+                </Text>
+              </Flex>
+            </Card>
+
+            {/* Section 5: Photos */}
+            <Card>
+              <Flex direction="column" gap="4">
+                <Flex direction="column" gap="1">
+                  <Heading size="4" weight="bold">📸 Фотографии</Heading>
+                  <Text size="2" color="gray">До 8 фотографий (до 5 МБ каждая)</Text>
+                </Flex>
+
+                {/* Existing photos */}
+                {photoUrls.length > 0 && (
+                  <Flex direction="column" gap="2">
+                    <Text size="2" weight="bold" color="gray">Текущие фотографии</Text>
+                    <div className="photo-grid">
+                      {photoUrls.map((url) => (
+                        <Card key={url} className="photo-card">
+                          <img src={resolvePhotoSrc(url)} alt="photo" className="photo-card-image" />
+                          <ConfirmActionDialog
+                            title="Удалить фото?"
+                            description="Фотография будет удалена после сохранения."
+                            confirmText="Удалить"
+                            color="red"
+                            onConfirm={() => removeExistingPhoto(url)}
+                            trigger={
+                              <Button size="1" type="button" color="red" variant="solid" className="photo-card-remove" aria-label="Удалить фото">
+                                ×
+                              </Button>
+                            }
+                          />
+                        </Card>
+                      ))}
+                    </div>
+                  </Flex>
+                )}
+
+                <Flex direction="column" gap="2">
+                  <Text size="2" weight="bold" color="gray">Добавить новые фото</Text>
+                  <AdPhotoPicker
+                    files={newFiles}
+                    onAddFiles={addNewFiles}
+                    onRemoveFile={removeNewFile}
+                    maxFiles={Math.max(0, MAX_FILES - photoUrls.length)}
+                  />
+                </Flex>
+              </Flex>
+            </Card>
+
+            {/* Submit */}
+            <Flex gap="3" direction={{ initial: 'column', sm: 'row' }}>
+              <Button type="submit" disabled={saving} size="3" style={{ flex: 1, fontWeight: 600, cursor: 'pointer' }}>
+                {saving ? '⏳ Сохранение...' : '💾 Сохранить изменения'}
               </Button>
-              <Button variant="soft" type="button" onClick={() => navigate('/my-ads')}>
-                Отмена
+              <Button type="button" variant="soft" size="3" onClick={() => navigate('/my-ads')} style={{ flex: 1, fontWeight: 600, cursor: 'pointer' }}>
+                ← Отмена
               </Button>
             </Flex>
           </Flex>
         </form>
-      </Card>
-    </Container>
+      </Container>
+    </Flex>
   );
 }

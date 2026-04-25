@@ -319,3 +319,32 @@ h4 {
     min-width: 0;
   }
 }
+
+/* Header nav links */
+.header-nav a,
+.header-nav .rt-Box > a {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: var(--radius-2);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-11);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.header-nav a:hover,
+.header-nav .rt-Box > a:hover {
+  background: var(--gray-a3);
+  color: var(--gray-12);
+  opacity: 1;
+}
+
+.header-nav a.active,
+.header-nav .rt-Box > a.active {
+  background: var(--violet-a3);
+  color: var(--violet-11);
+  font-weight: 600;
+}

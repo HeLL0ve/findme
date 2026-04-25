@@ -137,98 +137,244 @@ export default function AdDetail() {
   async function exportToPdf() {
     if (!ad || !id) return;
 
-    const title = ad.petName || 'Питомец';
+    const title = ad.petName ? `${ad.type === 'LOST' ? 'ПРОПАЛ' : 'НАЙДЕН'}: ${ad.petName.toUpperCase()}` : (ad.type === 'LOST' ? 'ПРОПАЛ ПИТОМЕЦ' : 'НАЙДЕН ПИТОМЕЦ');
     const adUrl = `${window.location.origin}/ads/${id}`;
-    const timestamp = new Date().toLocaleString('ru-RU');
+    const isLost = ad.type === 'LOST';
+    const accentColor = isLost ? '#dc2626' : '#16a34a';
+    const accentLight = isLost ? '#fef2f2' : '#f0fdf4';
+    const accentBorder = isLost ? '#fca5a5' : '#86efac';
 
-    // Create HTML content for PDF
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>${title}</title>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
-            .header { border-bottom: 2px solid #7c3aed; padding-bottom: 10px; margin-bottom: 20px; }
-            .title { font-size: 28px; font-weight: bold; color: #7c3aed; margin: 10px 0; }
-            .badge { display: inline-block; padding: 4px 12px; margin-right: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-            .badge-lost { background: #fed7aa; color: #92400e; }
-            .badge-found { background: #bbf7d0; color: #065f46; }
-            .badge-approved { background: #bfdbfe; color: #1e3a8a; }
-            .section { margin-bottom: 20px; }
-            .section-title { font-size: 14px; font-weight: bold; color: #7c3aed; margin-bottom: 8px; }
-            .info-row { display: flex; margin-bottom: 8px; }
-            .info-label { font-weight: bold; width: 120px; }
-            .info-value { flex: 1; }
-            .description { background: #f3f4f6; padding: 12px; border-radius: 8px; margin-top: 10px; }
-            .footer { border-top: 1px solid #e5e7eb; padding-top: 10px; margin-top: 20px; font-size: 12px; color: #666; }
-            .qr-code { text-align: center; margin-top: 20px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="title">${title}</div>
-            <div style="margin-top: 10px;">
-              <span class="badge ${ad.type === 'LOST' ? 'badge-lost' : 'badge-found'}">
-                ${ad.type === 'LOST' ? 'ПОТЕРЯН' : 'НАЙДЕН'}
-              </span>
-              <span class="badge badge-approved">
-                ${ad.status === 'APPROVED' ? 'ОПУБЛИКОВАНО' : ad.status}
-              </span>
-            </div>
+    // Resolve photo URLs — convert relative to absolute
+    const photoUrls = (ad.photos || []).slice(0, 3).map(p => {
+      if (p.photoUrl.startsWith('http')) return p.photoUrl;
+      return `${window.location.origin.replace('5173', '3000')}${p.photoUrl}`;
+    });
+
+    const photosHtml = photoUrls.length > 0 ? `
+      <div class="photos">
+        ${photoUrls.map(url => `<img src="${url}" alt="Фото питомца" class="photo" />`).join('')}
+      </div>` : '';
+
+    const infoRows = [
+      ad.animalType ? ['Вид', ad.animalType] : null,
+      ad.breed ? ['Порода', ad.breed] : null,
+      ad.color ? ['Окрас', ad.color] : null,
+      ad.location?.city ? ['Город', ad.location.city] : null,
+      ad.location?.address ? ['Адрес', ad.location.address] : null,
+    ].filter(Boolean) as [string, string][];
+
+    const contacts = [
+      ad.user?.phone ? `📞 ${ad.user.phone}` : null,
+      ad.user?.telegramUsername ? `✈️ @${ad.user.telegramUsername}` : null,
+      ad.user?.email ? `✉️ ${ad.user.email}` : null,
+    ].filter(Boolean);
+
+    const htmlContent = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1a1a1a;
+      background: white;
+      max-width: 794px;
+      margin: 0 auto;
+    }
+
+    /* TOP BANNER */
+    .banner {
+      background: ${accentColor};
+      color: white;
+      text-align: center;
+      padding: 14px 20px 10px;
+      border-radius: 8px 8px 0 0;
+    }
+    .banner-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: 0.9;
+      margin-bottom: 4px;
+    }
+    .banner-title {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: 1.1;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+      border: 2px solid ${accentColor};
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 16px;
+      display: flex;
+      gap: 16px;
+    }
+
+    /* LEFT: photos */
+    .left { flex: 0 0 auto; width: 240px; }
+    .photos { display: flex; flex-direction: column; gap: 8px; }
+    .photo {
+      width: 240px;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+    }
+    .photos .photo:first-child {
+      height: 200px;
+    }
+    .no-photo {
+      width: 240px;
+      height: 240px;
+      background: ${accentLight};
+      border: 2px dashed ${accentBorder};
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+
+    /* RIGHT: info */
+    .right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-table td { padding: 5px 8px; font-size: 13px; border-bottom: 1px solid #f3f4f6; }
+    .info-table td:first-child { font-weight: 700; color: #6b7280; width: 80px; white-space: nowrap; }
+    .info-table td:last-child { color: #111827; }
+
+    .desc-box {
+      background: ${accentLight};
+      border-left: 3px solid ${accentColor};
+      border-radius: 0 6px 6px 0;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #374151;
+      flex: 1;
+    }
+    .desc-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: ${accentColor};
+      margin-bottom: 5px;
+    }
+
+    /* CONTACTS */
+    .contacts {
+      background: #1e1b4b;
+      color: white;
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+    .contacts-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 6px;
+    }
+    .contacts-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+    }
+    .contact-item {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* FOOTER */
+    .footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: #9ca3af;
+      border-top: 1px solid #f3f4f6;
+      padding-top: 8px;
+    }
+    .footer a { color: #7c3aed; text-decoration: none; }
+    .reward {
+      background: #fef9c3;
+      border: 1px solid #fde047;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #854d0e;
+      text-align: center;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <div class="banner-label">${isLost ? '⚠ внимание — помогите найти' : '✓ найден питомец — ищем хозяина'}</div>
+    <div class="banner-title">${title}</div>
+  </div>
+
+  <div class="main">
+    <div class="left">
+      ${photoUrls.length > 0 ? photosHtml : '<div class="no-photo">🐾</div>'}
+    </div>
+
+    <div class="right">
+      ${infoRows.length > 0 ? `
+        <table class="info-table">
+          ${infoRows.map(([label, value]) => `
+            <tr><td>${label}</td><td>${value}</td></tr>
+          `).join('')}
+        </table>
+      ` : ''}
+
+      <div class="desc-box">
+        <div class="desc-label">Описание</div>
+        ${ad.description}
+      </div>
+
+      ${contacts.length > 0 ? `
+        <div class="contacts">
+          <div class="contacts-label">Если вы видели — свяжитесь с нами</div>
+          <div class="contacts-list">
+            ${contacts.map(c => `<span class="contact-item">${c}</span>`).join('')}
           </div>
+        </div>
+      ` : ''}
 
-          <div class="section">
-            <div class="section-title">Информация о питомце</div>
-            ${ad.animalType ? `<div class="info-row"><div class="info-label">Вид животного:</div><div class="info-value">${ad.animalType}</div></div>` : ''}
-            ${ad.breed ? `<div class="info-row"><div class="info-label">Порода:</div><div class="info-value">${ad.breed}</div></div>` : ''}
-            ${ad.color ? `<div class="info-row"><div class="info-label">Окрас:</div><div class="info-value">${ad.color}</div></div>` : ''}
-          </div>
+      ${isLost ? '<div class="reward">🙏 Просим всех, кто видел питомца, сообщить по контактам выше</div>' : '<div class="reward">🏠 Если это ваш питомец — свяжитесь с нами!</div>'}
 
-          ${ad.location ? `
-            <div class="section">
-              <div class="section-title">Местоположение</div>
-              ${ad.location.city ? `<div class="info-row"><div class="info-label">Город:</div><div class="info-value">${ad.location.city}</div></div>` : ''}
-              ${ad.location.address ? `<div class="info-row"><div class="info-label">Адрес:</div><div class="info-value">${ad.location.address}</div></div>` : ''}
-            </div>
-          ` : ''}
+      <div class="footer">
+        <span>FindMe · ${new Date().toLocaleDateString('ru-RU')}</span>
+        <a href="${adUrl}">${adUrl}</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
 
-          <div class="section">
-            <div class="section-title">Описание</div>
-            <div class="description">${ad.description}</div>
-          </div>
-
-          ${ad.user ? `
-            <div class="section">
-              <div class="section-title">Контактные данные</div>
-              ${ad.user.name ? `<div class="info-row"><div class="info-label">Имя:</div><div class="info-value">${ad.user.name}</div></div>` : ''}
-              ${ad.user.phone ? `<div class="info-row"><div class="info-label">Телефон:</div><div class="info-value">${ad.user.phone}</div></div>` : ''}
-              ${ad.user.email ? `<div class="info-row"><div class="info-label">Email:</div><div class="info-value">${ad.user.email}</div></div>` : ''}
-            </div>
-          ` : ''}
-
-          <div class="footer">
-            <div>Объявление на FindMe</div>
-            <div>ID объявления: ${id}</div>
-            <div>Ссылка: <a href="${adUrl}">${adUrl}</a></div>
-            <div>Экспортировано: ${timestamp}</div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    // Open in new window and print
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      // Wait for content to load, then print
       printWindow.onload = () => {
-        printWindow.print();
+        setTimeout(() => printWindow.print(), 500);
       };
     } else {
-      alert('Не удалось открыть окно печати');
+      alert('Не удалось открыть окно печати. Разрешите всплывающие окна.');
     }
   }
 

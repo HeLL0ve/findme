@@ -109,7 +109,10 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                 </Flex>
               </Link>
 
-              <Flex gap="2" display={{ initial: 'none', lg: 'flex' }}>
+              {/* Divider */}
+              <Box style={{ width: 1, height: 28, background: 'var(--gray-a5)', flexShrink: 0 }} display={{ initial: 'none', lg: 'block' }} />
+
+              <Flex gap="1" display={{ initial: 'none', lg: 'flex' }} className="header-nav">
                 {publicLinks.map((link) => (
                   <NavLink key={link.to} to={link.to}>{link.label}</NavLink>
                 ))}
@@ -138,7 +141,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                     )}
                   </Box>
                 ))}
-                {token && user?.role === 'ADMIN' && <NavLink to="/admin">Админ</NavLink>}
+
               </Flex>
             </Flex>
 

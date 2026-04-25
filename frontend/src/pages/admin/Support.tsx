@@ -134,7 +134,6 @@ export default function AdminSupportPage() {
                   <UserAvatarLink userId={chat.user.id} name={chat.user.name} email={chat.user.email} avatarUrl={chat.user.avatarUrl} size="1" />
                   <Flex direction="column" style={{ flex: 1, minWidth: 0 }}>
                     <Text size="1" weight="medium" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {chat.user.name || chat.user.email}
                     </Text>
                     <Text size="1" color="gray" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {chat.lastMessage?.text}
@@ -157,14 +156,6 @@ export default function AdminSupportPage() {
               {/* Chat header */}
               <Flex pb="3" style={{ borderBottom: '1px solid var(--gray-a5)' }} align="center" gap="2">
                 <UserAvatarLink userId={selectedChat.user.id} name={selectedChat.user.name} email={selectedChat.user.email} avatarUrl={selectedChat.user.avatarUrl} />
-                <Flex direction="column" style={{ minWidth: 0 }}>
-                  <Text size="2" weight="medium" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {selectedChat.user.name || selectedChat.user.email}
-                  </Text>
-                  <Text size="1" color="gray" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {selectedChat.user.email}
-                  </Text>
-                </Flex>
               </Flex>
 
               {/* Messages */}

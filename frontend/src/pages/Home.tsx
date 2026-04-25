@@ -265,7 +265,7 @@ export default function Home() {
             {[
               { label: 'Пользователей', value: stats.users, color: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)', borderColor: 'var(--blue-a6)', accentColor: 'var(--blue-11)' },
               { label: 'Объявлений размещено', value: stats.ads, color: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)', borderColor: 'var(--green-a6)', accentColor: 'var(--green-11)' },
-              { label: '🎉 Питомцев вернулись домой', value: stats.foundPets, color: 'linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%)', borderColor: 'var(--amber-a6)', accentColor: 'var(--amber-11)' },
+              { label: 'Питомцев вернулись домой', value: stats.foundPets, color: 'linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%)', borderColor: 'var(--amber-a6)', accentColor: 'var(--amber-11)' },
               { label: 'Активных чатов', value: stats.chats, color: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)', borderColor: 'var(--purple-a6)', accentColor: 'var(--purple-11)' },
             ].map((stat, idx) => (
               <Card key={idx} style={{

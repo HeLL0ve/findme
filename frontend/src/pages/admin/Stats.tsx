@@ -67,7 +67,7 @@ export default function AdminStatsPage() {
       { name: 'На модерации', value: stats?.ads.pending || 0 },
       { name: 'Опубликовано', value: stats?.ads.approved || 0 },
       { name: 'Отклонено', value: stats?.ads.rejected || 0 },
-      { name: 'Питомцы нашлись 🎉', value: stats?.ads.archived || 0 },
+      { name: 'Питомцы нашлись', value: stats?.ads.archived || 0 },
     ],
     [stats?.ads.approved, stats?.ads.archived, stats?.ads.pending, stats?.ads.rejected],
   );
@@ -100,7 +100,7 @@ export default function AdminStatsPage() {
     'На модерации': '#fbbf24',
     'Опубликовано': '#3b82f6',
     'Отклонено': '#ef4444',
-    'Питомцы нашлись 🎉': '#22c55e',
+    'Питомцы нашлись': '#22c55e',
   };
 
   return (
@@ -309,7 +309,7 @@ export default function AdminStatsPage() {
               {[
                 { label: 'Всего пользователей', value: stats.users.total, color: 'var(--blue-a2)' },
                 { label: 'Всего объявлений', value: stats.ads.total, color: 'var(--green-a2)' },
-                { label: '🎉 Питомцев вернулись домой', value: stats.ads.archived, color: 'var(--amber-a2)' },
+                { label: 'Питомцев вернулись домой', value: stats.ads.archived, color: 'var(--amber-a2)' },
                 { label: 'Активных чатов', value: stats.chats.total, color: 'var(--purple-a2)' },
                 { label: 'Жалоб и обращений', value: stats.complaints.total, color: 'var(--orange-a2)' },
                 { label: 'На модерации', value: stats.ads.pending, color: 'var(--yellow-a2)' },
