@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Card, Container, Dialog, Flex, Heading, Select, Text, TextArea, Section } from '@radix-ui/themes';
+import { Button, Container, Dialog, Flex, Heading, Select, Text, TextArea, Section } from '@radix-ui/themes';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
@@ -102,9 +102,8 @@ export default function AdminAdsPage() {
         reason: rejectReason.trim(),
       });
 
-      if (response.data?.deleted) {
-        setAds((prev) => prev.filter((ad) => ad.id !== rejectTarget.id));
-      }
+      const updated = response.data as Ad;
+      setAds((prev) => prev.map((ad) => (ad.id === rejectTarget.id ? { ...ad, status: updated.status } : ad)));
 
       setRejectReason('');
       setRejectTarget(null);
@@ -218,6 +217,27 @@ export default function AdminAdsPage() {
                       onConfirm={() => restoreFromArchive(ad.id)}
                       trigger={<Button variant="outline" size="3" style={{ width: '100%', minHeight: 40 }}>Достать из архива</Button>}
                     />
+                  )}
+
+                  {ad.status === 'REJECTED' && (
+                    <Flex gap="2">
+                      <ConfirmActionDialog
+                        title="Одобрить объявление?"
+                        description="Объявление будет одобрено и появится в общем списке."
+                        confirmText="Одобрить"
+                        color="violet"
+                        onConfirm={() => moderate(ad.id, 'APPROVED')}
+                        trigger={<Button size="3" style={{ flex: 1, minHeight: 40 }}>Одобрить</Button>}
+                      />
+                      <ConfirmActionDialog
+                        title="Удалить объявление?"
+                        description="Это действие нельзя отменить. Объявление будет удалено навсегда."
+                        confirmText="Удалить"
+                        color="red"
+                        onConfirm={() => deleteAd(ad.id)}
+                        trigger={<Button variant="soft" color="red" size="3" style={{ flex: 1, minHeight: 40 }}>Удалить</Button>}
+                      />
+                    </Flex>
                   )}
 
                   <Flex gap="2">
@@ -365,7 +385,7 @@ export default function AdminAdsPage() {
         <Dialog.Content maxWidth="560px">
           <Dialog.Title>Отклонить объявление</Dialog.Title>
           <Dialog.Description size="2" mb="3">
-            Укажите причину отклонения. Объявление будет удалено, а автор получит уведомление.
+            Укажите причину отклонения. Автор получит уведомление с указанной причиной.
           </Dialog.Description>
           <Flex direction="column" gap="3">
             <TextArea
@@ -378,7 +398,7 @@ export default function AdminAdsPage() {
                 <Button variant="soft" type="button">Отмена</Button>
               </Dialog.Close>
               <Button color="red" type="button" disabled={rejectLoading} onClick={() => void rejectAd()}>
-                {rejectLoading ? 'Сохранение...' : 'Отклонить и удалить'}
+                {rejectLoading ? 'Сохранение...' : 'Отклонить'}
               </Button>
             </Flex>
           </Flex>

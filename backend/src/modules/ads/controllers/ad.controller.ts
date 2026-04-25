@@ -267,6 +267,16 @@ export async function updateAdController(req: Request<AdParams>, res: Response, 
     if (data.description !== undefined) updateData.description = data.description.trim();
     if (data.status !== undefined) updateData.status = data.status;
 
+    // Если пользователь (не админ) редактирует одобренное объявление, отправляем его на модерацию
+    const isContentUpdate = data.type !== undefined || data.petName !== undefined || 
+                           data.animalType !== undefined || data.breed !== undefined || 
+                           data.color !== undefined || data.description !== undefined || 
+                           data.location !== undefined || data.photos !== undefined;
+    
+    if (isOwner && !isAdmin && existing.status === 'APPROVED' && isContentUpdate) {
+      updateData.status = 'PENDING';
+    }
+
     if (data.location) {
       const locationUpdate: Prisma.LocationUpdateWithoutAdInput = {};
       if (data.location.address !== undefined) locationUpdate.address = normalizeNullable(data.location.address);
@@ -303,6 +313,17 @@ export async function updateAdController(req: Request<AdParams>, res: Response, 
         user: { select: { id: true, name: true, phone: true, email: true, avatarUrl: true } },
       },
     });
+
+    // Уведомления
+    if (isOwner && !isAdmin && existing.status === 'APPROVED' && isContentUpdate && ad.status === 'PENDING') {
+      await createNotification({
+        userId: ad.userId,
+        type: 'AD_MODERATION_SUBMITTED',
+        title: 'Объявление отправлено на модерацию',
+        message: `Объявление ${ad.petName ? `«${ad.petName}»` : ''} изменено и отправлено на повторную модерацию.`,
+        link: `/ads/${ad.id}`,
+      });
+    }
 
     const restoredFromArchive = existing.status === 'ARCHIVED' && ad.status === 'APPROVED';
     if (restoredFromArchive) {
@@ -374,8 +395,17 @@ export async function moderateAdController(req: Request<AdParams>, res: Response
         message: `Объявление ${ad.petName ? `«${ad.petName}» ` : ''}отклонено. Причина: ${reason!.trim()}`,
       });
 
-      await prisma.ad.delete({ where: { id: ad.id } });
-      return res.json({ deleted: true, id: ad.id });
+      const updatedAd = await prisma.ad.update({
+        where: { id },
+        data: { status: 'REJECTED' },
+        include: {
+          photos: true,
+          location: true,
+          user: { select: { id: true, name: true, phone: true, email: true, avatarUrl: true } },
+        },
+      });
+
+      return res.json(updatedAd);
     }
 
     const updatedAd = await prisma.ad.update({
