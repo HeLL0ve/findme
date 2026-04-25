@@ -6,6 +6,19 @@ build/
 coverage/
 .DS_Store
 
-# docker
+# docker volumes
 postgres-data/
 redis-data/
+
+# backend uploads (user-generated files)
+backend/uploads/
+
+# backend build artifacts
+backend/dist/
+backend/prisma.config.d.ts
+backend/prisma.config.d.ts.map
+backend/prisma.config.js
+backend/prisma.config.js.map
+
+# generated prisma client
+backend/src/generated/
