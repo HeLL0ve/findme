@@ -1,26 +1,31 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Card, Container, Dialog, Flex, Heading, Select, Text, TextArea, Section } from '@radix-ui/themes';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
+import AdCard from '../../components/ads/AdCard';
 import { extractApiErrorMessage } from '../../shared/apiError';
-import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 import { usePageTitle } from '../../shared/usePageTitle';
-import { PackageIcon } from '../../components/common/Icons';
+import { PackageIcon, PencilIcon, DeleteIcon } from '../../components/common/Icons';
 
 type Ad = {
   id: string;
   petName?: string | null;
   animalType?: string | null;
+  breed?: string | null;
+  color?: string | null;
   description: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
   type: 'LOST' | 'FOUND';
+  photos?: Array<{ photoUrl: string }>;
+  createdAt?: string | null;
   user?: { id: string; name?: string | null; email?: string; avatarUrl?: string | null };
 };
 
 export default function AdminAdsPage() {
   usePageTitle('Админ — Объявления');
+  const navigate = useNavigate();
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +33,8 @@ export default function AdminAdsPage() {
   const [rejectTarget, setRejectTarget] = useState<Ad | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectLoading, setRejectLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   async function fetchAds() {
     setLoading(true);
@@ -50,6 +57,16 @@ export default function AdminAdsPage() {
     () => (statusFilter === 'ALL' ? ads : ads.filter((ad) => ad.status === statusFilter)),
     [ads, statusFilter],
   );
+
+  const totalPages = Math.ceil(filteredAds.length / itemsPerPage);
+  const paginatedAds = useMemo(
+    () => filteredAds.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [filteredAds, currentPage, itemsPerPage],
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter]);
 
   async function moderate(id: string, status: 'APPROVED' | 'ARCHIVED') {
     try {
@@ -99,6 +116,19 @@ export default function AdminAdsPage() {
     }
   }
 
+  async function deleteAd(id: string) {
+    try {
+      await api.delete(`/ads/${id}`);
+      setAds((prev) => prev.filter((ad) => ad.id !== id));
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось удалить объявление'));
+    }
+  }
+
+  function handleEdit(ad: Ad) {
+    navigate(`/my-ads/${ad.id}/edit?from=admin`);
+  }
+
   return (
     <>
       <Section size="2" style={{
@@ -136,54 +166,81 @@ export default function AdminAdsPage() {
           {error && <Text color="red">{error}</Text>}
           {!loading && filteredAds.length === 0 && <Text color="gray">Ничего не найдено.</Text>}
 
-          <Flex direction="column" gap="3">
-          {filteredAds.map((ad) => (
-            <Card key={ad.id}>
-              <Flex direction="column" gap="2">
-                <Flex justify="between" align="center" wrap="wrap" gap="2">
-                  <Link to={`/ads/${ad.id}`} style={{ minWidth: 0 }}>
-                    <Text weight="bold" className="truncate">{ad.petName || 'Без клички'}</Text>
-                  </Link>
-                  <Badge color={ad.status === 'APPROVED' ? 'blue' : ad.status === 'PENDING' ? 'amber' : 'gray'}>
-                    {adStatusLabel(ad.status)}
-                  </Badge>
-                </Flex>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 'var(--space-4)',
+          }}>
+            {paginatedAds.map((ad) => (
+              <div key={ad.id} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                <AdCard
+                  ad={ad}
+                  to={`/ads/${ad.id}`}
+                  showDescription={true}
+                  imageHeight={200}
+                  hideBadges={true}
+                />
 
-                <Text size="2" color="gray">
-                  {[ad.animalType || 'Не указано', adTypeLabel(ad.type)].join(' · ')}
-                </Text>
+                {/* Status + Author block */}
+                <Card style={{ padding: 'var(--space-4)' }}>
+                  <Flex direction="column" gap="4">
+                    <Flex gap="2" align="center" wrap="wrap">
+                      <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
+                        {ad.type === 'LOST' ? 'Потерян' : 'Найден'}
+                      </Badge>
+                      <Badge
+                        color={
+                          ad.status === 'PENDING' ? 'amber' :
+                          ad.status === 'APPROVED' ? 'blue' :
+                          ad.status === 'ARCHIVED' ? 'green' : 'gray'
+                        }
+                        size="2"
+                        style={{ fontWeight: 600 }}
+                      >
+                        {ad.status === 'PENDING' && '⏳ На модерации'}
+                        {ad.status === 'APPROVED' && '✅ Опубликовано'}
+                        {ad.status === 'ARCHIVED' && '🎉 Найден'}
+                        {ad.status === 'REJECTED' && '❌ Отклонено'}
+                      </Badge>
+                    </Flex>
+                    {ad.user?.id && (
+                      <div style={{ 
+                        padding: 'var(--space-3)', 
+                        background: 'var(--gray-a2)', 
+                        borderRadius: 'var(--radius-2)',
+                        minHeight: '60px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
+                        <UserAvatarLink
+                          userId={ad.user.id}
+                          name={ad.user.name}
+                          email={ad.user.email}
+                          avatarUrl={ad.user.avatarUrl}
+                          subtitle="Автор объявления"
+                          size="3"
+                        />
+                      </div>
+                    )}
+                  </Flex>
+                </Card>
 
-                {ad.user?.id ? (
-                  <UserAvatarLink
-                    userId={ad.user.id}
-                    name={ad.user.name}
-                    email={ad.user.email}
-                    avatarUrl={ad.user.avatarUrl}
-                    subtitle="Автор объявления"
-                  />
-                ) : (
-                  <Text size="2" color="gray">Автор: —</Text>
-                )}
-
-                <Text size="2" className="truncate-2">
-                  {ad.description}
-                </Text>
-
-                <Flex gap="2" wrap="wrap">
+                {/* Admin Actions */}
+                <Flex direction="column" gap="2">
                   {ad.status === 'PENDING' && (
-                    <>
+                    <Flex gap="2">
                       <ConfirmActionDialog
                         title="Одобрить объявление?"
                         description="После одобрения объявление появится в общем списке."
                         confirmText="Одобрить"
                         color="violet"
                         onConfirm={() => moderate(ad.id, 'APPROVED')}
-                        trigger={<Button>Одобрить</Button>}
+                        trigger={<Button size="3" style={{ flex: 1, minHeight: 40 }}>Одобрить</Button>}
                       />
-                      <Button variant="soft" color="red" onClick={() => setRejectTarget(ad)}>
+                      <Button variant="soft" color="red" size="3" onClick={() => setRejectTarget(ad)} style={{ flex: 1, minHeight: 40 }}>
                         Отклонить
                       </Button>
-                    </>
+                    </Flex>
                   )}
 
                   {ad.status === 'APPROVED' && (
@@ -193,7 +250,7 @@ export default function AdminAdsPage() {
                       confirmText="В архив"
                       color="orange"
                       onConfirm={() => moderate(ad.id, 'ARCHIVED')}
-                      trigger={<Button variant="soft" color="gray">В архив</Button>}
+                      trigger={<Button variant="soft" color="gray" size="3" style={{ width: '100%', minHeight: 40 }}>В архив</Button>}
                     />
                   )}
 
@@ -204,17 +261,75 @@ export default function AdminAdsPage() {
                       confirmText="Восстановить"
                       color="violet"
                       onConfirm={() => restoreFromArchive(ad.id)}
-                      trigger={<Button variant="outline">Достать из архива</Button>}
+                      trigger={<Button variant="outline" size="3" style={{ width: '100%', minHeight: 40 }}>Достать из архива</Button>}
                     />
                   )}
+
+                  <Flex gap="2">
+                    <Button
+                      variant="soft"
+                      size="3"
+                      onClick={() => handleEdit(ad)}
+                      style={{ flex: 1, minHeight: 40 }}
+                    >
+                      <PencilIcon width={16} height={16} />
+                      Редактировать
+                    </Button>
+
+                    <ConfirmActionDialog
+                      title="Удалить объявление?"
+                      description="Это действие нельзя отменить. Объявление будет удалено навсегда."
+                      confirmText="Удалить"
+                      color="red"
+                      onConfirm={() => deleteAd(ad.id)}
+                      trigger={
+                        <Button variant="soft" color="red" size="3" style={{ flex: 1, minHeight: 40 }}>
+                          <DeleteIcon width={16} height={16} />
+                          Удалить
+                        </Button>
+                      }
+                    />
+                  </Flex>
                 </Flex>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Flex justify="center" gap="2" style={{ marginTop: 'var(--space-6)' }}>
+              <Button
+                variant="soft"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                ← Назад
+              </Button>
+              <Flex gap="2" align="center">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? 'solid' : 'soft'}
+                    onClick={() => setCurrentPage(page)}
+                    style={{ minWidth: 40 }}
+                  >
+                    {page}
+                  </Button>
+                ))}
               </Flex>
-            </Card>
-          ))}
-          </Flex>
+              <Button
+                variant="soft"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Вперёд →
+              </Button>
+            </Flex>
+          )}
         </Flex>
       </Container>
 
+      {/* Reject Dialog */}
       <Dialog.Root open={!!rejectTarget} onOpenChange={(open) => !open && setRejectTarget(null)}>
         <Dialog.Content maxWidth="560px">
           <Dialog.Title>Отклонить объявление</Dialog.Title>

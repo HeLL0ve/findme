@@ -8,6 +8,7 @@ import {
   listMyAdsController,
   listPendingAdsController,
   markFoundController,
+  deleteAdController,
 } from './controllers/ad.controller';
 import { authMiddleware, adminOnly, optionalAuthMiddleware } from '../auth/middleware/auth.middleware';
 import { uploadPhotosController, uploadMiddleware } from './controllers/upload.controller';
@@ -24,5 +25,6 @@ router.post('/upload', authMiddleware, uploadMiddleware, uploadPhotosController)
 router.post('/:id/moderate', authMiddleware, adminOnly, moderateAdController);
 router.post('/:id/found', authMiddleware, markFoundController);
 router.patch('/:id', authMiddleware, updateAdController);
+router.delete('/:id', authMiddleware, deleteAdController);
 
 export default router;

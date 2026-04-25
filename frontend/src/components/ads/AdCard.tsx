@@ -25,6 +25,7 @@ type AdCardProps = {
   actions?: ReactNode;
   showDescription?: boolean;
   imageHeight?: number;
+  hideBadges?: boolean;
 };
 
 function resolvePhotoSrc(photoUrl?: string) {
@@ -39,6 +40,7 @@ export default function AdCard({
   actions,
   showDescription = true,
   imageHeight = 240,
+  hideBadges = false,
 }: AdCardProps) {
   const photoSrc = resolvePhotoSrc(ad.photos?.[0]?.photoUrl);
   const isFavorite = useFavoritesStore((s) => s.isFavorite(ad.id));
@@ -154,27 +156,29 @@ export default function AdCard({
             {/* Content */}
             <Flex direction="column" gap="2" style={{ minWidth: 0, flex: 1 }}>
               {/* Type & Status Badges - moved from image */}
-              <Flex gap="2" wrap="wrap" align="center">
-                {ad.status === 'ARCHIVED' ? (
-                  <Badge color="green" size="2" style={{ fontWeight: 700 }}>
-                    🎉 Питомец найден!
-                  </Badge>
-                ) : (
-                  <>
-                    <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
-                      {ad.type === 'LOST' ? 'Потерян' : 'Найден'}
+              {!hideBadges && (
+                <Flex gap="2" wrap="wrap" align="center">
+                  {ad.status === 'ARCHIVED' ? (
+                    <Badge color="green" size="2" style={{ fontWeight: 700 }}>
+                      🎉 Питомец найден!
                     </Badge>
-                    <Badge
-                      color={ad.status === 'APPROVED' ? 'blue' : 'amber'}
-                      variant="soft"
-                      size="1"
-                      style={{ fontSize: '10px', textTransform: 'uppercase' }}
-                    >
-                      {ad.status === 'APPROVED' ? 'опубл.' : 'на модер.'}
-                    </Badge>
-                  </>
-                )}
-              </Flex>
+                  ) : (
+                    <>
+                      <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
+                        {ad.type === 'LOST' ? 'Потерян' : 'Найден'}
+                      </Badge>
+                      <Badge
+                        color={ad.status === 'APPROVED' ? 'blue' : 'amber'}
+                        variant="soft"
+                        size="1"
+                        style={{ fontSize: '10px', textTransform: 'uppercase' }}
+                      >
+                        {ad.status === 'APPROVED' ? 'опубл.' : 'на модер.'}
+                      </Badge>
+                    </>
+                  )}
+                </Flex>
+              )}
 
               {/* Pet Name */}
               <Heading size="3" weight="bold" className="truncate" style={{

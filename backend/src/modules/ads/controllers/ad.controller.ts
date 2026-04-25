@@ -412,3 +412,22 @@ export async function moderateAdController(req: Request<AdParams>, res: Response
     return next(err);
   }
 }
+
+export async function deleteAdController(req: Request<AdParams>, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const ad = await prisma.ad.findUnique({ where: { id } });
+    
+    if (!ad) return next(ApiError.notFound('Объявление не найдено'));
+
+    const isOwner = req.user?.userId === ad.userId;
+    const isAdmin = req.user?.role === 'ADMIN';
+    if (!isOwner && !isAdmin) return next(ApiError.forbidden('Недостаточно прав'));
+
+    await prisma.ad.delete({ where: { id } });
+    
+    return res.json({ deleted: true, id });
+  } catch (err) {
+    return next(err);
+  }
+}

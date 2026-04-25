@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Button, Card, Container, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import AdPhotoPicker from '../../components/ads/AdPhotoPicker';
@@ -58,6 +58,7 @@ export default function EditAd() {
   usePageTitle('Редактировать объявление');
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -178,7 +179,13 @@ export default function EditAd() {
         },
       });
 
-      navigate('/my-ads');
+      // Check if user came from admin page
+      const fromAdmin = searchParams.get('from') === 'admin';
+      if (fromAdmin) {
+        navigate('/admin/ads');
+      } else {
+        navigate('/my-ads');
+      }
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось сохранить изменения'));
     } finally {
@@ -420,7 +427,14 @@ export default function EditAd() {
               <Button type="submit" disabled={saving} size="3" style={{ flex: 1, fontWeight: 600, cursor: 'pointer' }}>
                 {saving ? '⏳ Сохранение...' : '💾 Сохранить изменения'}
               </Button>
-              <Button type="button" variant="soft" size="3" onClick={() => navigate('/my-ads')} style={{ flex: 1, fontWeight: 600, cursor: 'pointer' }}>
+              <Button type="button" variant="soft" size="3" onClick={() => {
+                const fromAdmin = searchParams.get('from') === 'admin';
+                if (fromAdmin) {
+                  navigate('/admin/ads');
+                } else {
+                  navigate('/my-ads');
+                }
+              }} style={{ flex: 1, fontWeight: 600, cursor: 'pointer' }}>
                 ← Отмена
               </Button>
             </Flex>
