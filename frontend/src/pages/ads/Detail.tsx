@@ -290,7 +290,7 @@ export default function AdDetail() {
               </Heading>
               <Flex gap="2" align="center" wrap="wrap">
                 <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
-                  {ad.type === 'LOST' ? 'потерян' : 'найден'}
+                  {ad.type === 'LOST' ? 'Потерян' : 'Найден'}
                 </Badge>
                 {ad.status === 'ARCHIVED' ? (
                   <Badge color="green" size="2" style={{ fontWeight: 700 }}>

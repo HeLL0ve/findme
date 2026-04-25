@@ -162,7 +162,7 @@ export default function AdCard({
                 ) : (
                   <>
                     <Badge color={ad.type === 'LOST' ? 'orange' : 'green'} size="2" style={{ fontWeight: 600 }}>
-                      {ad.type === 'LOST' ? 'потерян' : 'найден'}
+                      {ad.type === 'LOST' ? 'Потерян' : 'Найден'}
                     </Badge>
                     <Badge
                       color={ad.status === 'APPROVED' ? 'blue' : 'amber'}
