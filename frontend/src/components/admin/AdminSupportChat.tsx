@@ -172,18 +172,22 @@ export default function AdminSupportChat() {
       {isOpen && (
         <Card
           style={{
-            position: 'absolute',
-            bottom: '80px',
-            right: 0,
-            width: '420px',
-            height: '600px',
-            maxHeight: 'calc(100vh - 120px)',
+            position: 'fixed',
+            bottom: '90px',
+            right: '16px',
+            left: '16px',
+            width: 'auto',
+            maxWidth: '420px',
+            marginLeft: 'auto',
+            height: '70vh',
+            maxHeight: '600px',
             display: 'flex',
             flexDirection: 'column',
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
             borderRadius: 'var(--radius-3)',
             overflow: 'hidden',
             padding: 0,
+            zIndex: 1001,
           }}
         >
           {/* Header */}

@@ -95,13 +95,24 @@ export default function AdminSupportPage() {
   if (loading) return <Container size="4"><Text>Загрузка...</Text></Container>;
 
   return (
-    <Container size="4" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Heading size="6" mb="4" style={{margin: '15px'}}>Чаты поддержки</Heading>
+    <Container size="4" style={{ paddingTop: 'var(--space-4)', paddingBottom: 'var(--space-6)' }}>
+      <Heading size="6" mb="4">Чаты поддержки</Heading>
 
-      <Flex gap="4" style={{ flex: 1, minHeight: 0 }}>
+      {error && <Text color="red" as="p" mb="3">{error}</Text>}
+
+      {/* Mobile: show user list or chat */}
+      <Flex gap="4" direction={{ initial: 'column', md: 'row' }} style={{ minHeight: '70vh' }}>
         {/* Users list */}
-        <Card style={{ width: '280px', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--gray-2)' }}>
-          <ScrollArea>
+        <Card style={{
+          width: '100%',
+          maxWidth: '280px',
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'var(--gray-2)',
+        }}>
+          <Text size="2" weight="bold" color="gray" mb="2">Пользователи</Text>
+          <ScrollArea style={{ flex: 1 }}>
             {userChats.length === 0 ? (
               <Text as="p" size="2" color="gray">Нет чатов</Text>
             ) : (
@@ -110,7 +121,7 @@ export default function AdminSupportPage() {
                   key={chat.userId}
                   onClick={() => setSelectedUserId(chat.userId)}
                   style={{
-                    padding: '12px',
+                    padding: '10px',
                     cursor: 'pointer',
                     borderRadius: '6px',
                     marginBottom: '4px',
@@ -122,8 +133,12 @@ export default function AdminSupportPage() {
                 >
                   <UserAvatarLink userId={chat.user.id} name={chat.user.name} email={chat.user.email} avatarUrl={chat.user.avatarUrl} size="1" />
                   <Flex direction="column" style={{ flex: 1, minWidth: 0 }}>
-                    {/* <Text weight="medium" size="2" truncate>{chat.user.name || chat.user.email}</Text> */}
-                    <Text size="1" color="gray" truncate>{chat.lastMessage?.text}</Text>
+                    <Text size="1" weight="medium" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {chat.user.name || chat.user.email}
+                    </Text>
+                    <Text size="1" color="gray" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {chat.lastMessage?.text}
+                    </Text>
                   </Flex>
                 </Flex>
               ))
@@ -132,32 +147,34 @@ export default function AdminSupportPage() {
         </Card>
 
         {/* Chat view */}
-        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--gray-1)' }}>
+        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--gray-1)', minHeight: '400px' }}>
           {!selectedChat ? (
             <Flex direction="column" align="center" justify="center" style={{ flex: 1 }}>
-              <Text color="gray" align="center">Нет выбранного чата</Text>
+              <Text color="gray" align="center">Выберите чат слева</Text>
             </Flex>
           ) : (
             <>
               {/* Chat header */}
               <Flex pb="3" style={{ borderBottom: '1px solid var(--gray-a5)' }} align="center" gap="2">
                 <UserAvatarLink userId={selectedChat.user.id} name={selectedChat.user.name} email={selectedChat.user.email} avatarUrl={selectedChat.user.avatarUrl} />
-                <Flex direction="column">
-                  {/* <Text weight="medium">{selectedChat.user.name || selectedChat.user.email}</Text> */}
-                  <Text size="1" color="gray">{selectedChat.user.email}</Text>
+                <Flex direction="column" style={{ minWidth: 0 }}>
+                  <Text size="2" weight="medium" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selectedChat.user.name || selectedChat.user.email}
+                  </Text>
+                  <Text size="1" color="gray" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selectedChat.user.email}
+                  </Text>
                 </Flex>
               </Flex>
 
               {/* Messages */}
-              <ScrollArea style={{ flex: 1, marginBottom: '12px', minHeight: '300px', height: '500px' }}>
+              <ScrollArea style={{ flex: 1, minHeight: '200px', maxHeight: '50vh' }}>
                 {selectedMessages.length === 0 ? (
-                  <Flex direction="column" align="center" justify="center" style={{ height: '300px', padding: '20px' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>
-                      <AlertTriangleIcon width={48} height={48} />
-                    </div>
-                    <Heading size="4" align="center">Нет сообщений</Heading>
-                    <Text color="gray" align="center" style={{ marginTop: '8px' }}>
-                      Первое сообщение появится, когда клиент запустит чат поддержки
+                  <Flex direction="column" align="center" justify="center" style={{ height: '200px', padding: '20px' }}>
+                    <AlertTriangleIcon width={48} height={48} />
+                    <Heading size="4" align="center" mt="3">Нет сообщений</Heading>
+                    <Text color="gray" align="center" size="2" mt="2">
+                      Первое сообщение появится, когда пользователь напишет в поддержку
                     </Text>
                   </Flex>
                 ) : (
@@ -171,11 +188,10 @@ export default function AdminSupportPage() {
                           gap="1"
                           style={{
                             alignSelf: msg.sender.role === 'ADMIN' ? 'flex-end' : 'flex-start',
-                            maxWidth: '60%',
+                            maxWidth: '75%',
                             padding: '8px 12px',
                             borderRadius: '8px',
                             backgroundColor: msg.sender.role === 'ADMIN' ? 'var(--violet-4)' : 'var(--gray-3)',
-                            color: msg.sender.role === 'ADMIN' ? 'var(--gray-12)' : 'var(--gray-12)',
                           }}
                         >
                           {showSenderName && (
@@ -195,16 +211,16 @@ export default function AdminSupportPage() {
               </ScrollArea>
 
               {/* Reply input */}
-              <Flex gap="2" style={{ borderTop: '1px solid var(--gray-a4)', paddingTop: '12px', backgroundColor: 'var(--gray-1)', padding: '12px' }}>
+              <Flex gap="2" style={{ borderTop: '1px solid var(--gray-a4)', padding: '12px', backgroundColor: 'var(--gray-1)' }}>
                 <TextArea
                   placeholder="Ответить..."
                   value={replyText}
                   onChange={e => setReplyText(e.target.value)}
-                  style={{ flex: 1, minHeight: 44, maxHeight: 120}}
+                  style={{ flex: 1, minHeight: 44, maxHeight: 120 }}
                   disabled={sendingReply}
                 />
                 <Button
-                  onClick={() => handleSendReply()}
+                  onClick={() => void handleSendReply()}
                   disabled={!replyText.trim() || sendingReply}
                   style={{ height: 50, alignSelf: 'stretch' }}
                 >
@@ -215,12 +231,6 @@ export default function AdminSupportPage() {
           )}
         </Card>
       </Flex>
-
-      {error && (
-        <Text color="red" as="p" mt="3">
-          {error}
-        </Text>
-      )}
     </Container>
   );
 }

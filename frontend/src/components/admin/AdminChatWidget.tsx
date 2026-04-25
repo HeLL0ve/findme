@@ -163,11 +163,14 @@ export default function AdminChatWidget() {
       {isOpen && (
         <div
           style={{
-            position: 'absolute',
-            bottom: '80px',
-            right: 0,
-            width: 'min(340px, calc(100vw - 32px))',
-            height: '480px',
+            position: 'fixed',
+            bottom: '90px',
+            right: '16px',
+            left: '16px',
+            maxWidth: '340px',
+            marginLeft: 'auto',
+            height: '70vh',
+            maxHeight: '480px',
             background: 'var(--surface)',
             borderRadius: '16px',
             border: '1px solid var(--gray-a5)',
@@ -176,6 +179,7 @@ export default function AdminChatWidget() {
             flexDirection: 'column',
             overflow: 'hidden',
             animation: 'slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            zIndex: 1001,
           }}
         >
           {/* Header */}
