@@ -101,22 +101,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
             <Flex align="center" gap="3" style={{ minWidth: 0 }}>
               <Link to="/" style={{ textDecoration: 'none' }}>
                 <Flex align="center" gap="2">
-                  <Box
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 10,
-                      background: 'linear-gradient(140deg, var(--violet-8), var(--iris-9))',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 800,
-                      flexShrink: 0,
-                    }}
-                  >
-                    F
-                  </Box>
+                  <img src="/logo.svg" alt="FindMe" style={{ width: 34, height: 34, flexShrink: 0 }} />
                   <Box>
                     <Text weight="bold" size="3">FindMe</Text>
                     <Text as="div" size="1" color="gray">поиск питомцев</Text>
