@@ -38,6 +38,7 @@ type Ad = {
     longitude?: number;
   } | null;
   photos?: Array<{ photoUrl: string }>;
+  views?: number;
 };
 
 type ComplaintTarget = {
@@ -313,6 +314,12 @@ export default function AdDetail() {
               <Flex gap="2" align="center" style={{ color: 'var(--gray-11)' }}>
                 <LocationIcon width={18} height={18} color="var(--violet-10)" />
                 <Text size="2" weight="medium">{ad.location.city}</Text>
+              </Flex>
+            )}
+            {typeof ad.views === 'number' && (
+              <Flex gap="1" align="center" style={{ color: 'var(--gray-10)' }}>
+                <Text size="1">👁</Text>
+                <Text size="1" color="gray">{ad.views} просмотров</Text>
               </Flex>
             )}
           </Flex>

@@ -1,7 +1,6 @@
-import { Badge, Button, Card, Flex, Text } from '@radix-ui/themes';
-import { Link } from 'react-router-dom';
-import { useEffect, useMemo } from 'react';
-import { LayersControl, MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { Card, Text } from '@radix-ui/themes';
+import { useMemo } from 'react';
+import { LayersControl, MapContainer, TileLayer } from 'react-leaflet';
 import { MAP_TILES } from './mapTiles';
 import { useGeolocationCenter } from './useGeolocationCenter';
 import { lostIcon, foundIcon, defaultIcon } from './mapIcons';
@@ -109,11 +108,6 @@ export default function AdsMap({ ads, height }: { ads: MapAd[]; height?: string 
   const geo = useGeolocationCenter({ timeoutMs: 2500 });
   const fallbackMinsk = { lat: 53.902334, lng: 27.5618791 };
 
-  const bounds = useMemo(
-    () => points.map((p) => [p.lat, p.lng] as [number, number]),
-    [points],
-  );
-
   const markers = useMemo(
     () =>
       points.map((p) => ({
@@ -127,25 +121,13 @@ export default function AdsMap({ ads, height }: { ads: MapAd[]; height?: string 
     [points.map((p) => p.id).join(',')],
   );
 
-  function FitBoundsOnce() {
-    const map = useMap();
-    useEffect(() => {
-      if (bounds.length === 1) {
-        map.setView(bounds[0], 13, { animate: false });
-        return;
-      }
-      map.fitBounds(bounds, { padding: [24, 24] });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    return null;
-  }
-
   const mapHeight = height ?? '100%';
+  const center = (geo.status === 'ready' ? geo.center : null) ?? fallbackMinsk;
 
   return (
     <div style={{ height: mapHeight, width: '100%' }}>
       <MapContainer
-        center={(geo.status === 'ready' ? geo.center : null) ?? fallbackMinsk}
+        center={center}
         zoom={10}
         style={{ height: '100%', width: '100%' }}
         attributionControl={false}
@@ -157,7 +139,6 @@ export default function AdsMap({ ads, height }: { ads: MapAd[]; height?: string 
             </LayersControl.BaseLayer>
           ))}
         </LayersControl>
-        <FitBoundsOnce />
         <MarkerClusterGroup markers={markers} />
       </MapContainer>
     </div>

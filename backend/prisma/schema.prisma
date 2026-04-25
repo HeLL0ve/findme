@@ -71,6 +71,8 @@ model Ad {
   color       String?
   description String
 
+  views Int @default(0)
+
   location   Location?
   photos     AdPhoto[]
   chats      Chat[]

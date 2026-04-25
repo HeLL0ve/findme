@@ -21,6 +21,7 @@ type ListAdsQuery = {
   my?: string | string[];
   take?: string | string[];
   skip?: string | string[];
+  since?: string | string[]; // 'week' | 'month'
 };
 
 function getSingleQueryValue(value: string | string[] | undefined) {
@@ -55,6 +56,7 @@ export async function listAdsController(
     const my = getSingleQueryValue(req.query.my);
     const take = getSingleQueryValue(req.query.take);
     const skip = getSingleQueryValue(req.query.skip);
+    const since = getSingleQueryValue(req.query.since);
     const isAdmin = req.user?.role === 'ADMIN';
     const isMy = parseBool(my);
 
@@ -65,6 +67,12 @@ export async function listAdsController(
     if (breed) where.breed = { contains: breed, mode: 'insensitive' };
     if (color) where.color = { contains: color, mode: 'insensitive' };
     if (city) where.location = { city: { contains: city, mode: 'insensitive' } };
+
+    if (since === 'week') {
+      where.createdAt = { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) };
+    } else if (since === 'month') {
+      where.createdAt = { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) };
+    }
 
     if (q) {
       where.OR = [
@@ -168,6 +176,9 @@ export async function getAdController(req: Request<AdParams>, res: Response, nex
     if (!isAdmin && !isOwner && !PUBLIC_STATUSES.has(ad.status)) {
       return next(ApiError.notFound('Объявление не найдено'));
     }
+
+    // Increment views (fire-and-forget, don't block response)
+    void prisma.ad.update({ where: { id }, data: { views: { increment: 1 } } }).catch(() => {});
 
     return res.json(ad);
   } catch (err) {

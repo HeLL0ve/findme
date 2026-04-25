@@ -21,6 +21,7 @@ type Filters = {
   city: string;
   type: 'ALL' | 'LOST' | 'FOUND';
   status: 'APPROVED' | 'ARCHIVED';
+  since: 'ALL' | 'week' | 'month';
 };
 
 type ViewMode = 'list' | 'map';
@@ -37,6 +38,7 @@ export default function AdsList() {
     city: '',
     type: 'ALL',
     status: 'APPROVED',
+    since: 'ALL',
   });
   usePageTitle('Поиск объявлений');
 
@@ -50,6 +52,7 @@ export default function AdsList() {
       if (filters.q.trim()) params.q = filters.q.trim();
       if (filters.city.trim()) params.city = filters.city.trim();
       if (filters.type !== 'ALL') params.type = filters.type;
+      if (filters.since !== 'ALL') params.since = filters.since;
 
       const response = await api.get('/ads', { params });
       setAds(response.data);
@@ -154,6 +157,19 @@ export default function AdsList() {
                   </Select.Root>
                 </Flex>
 
+                {/* Date Filter */}
+                <Flex direction="column" gap="2">
+                  <Text size="2" weight="bold" color="gray">Дата публикации</Text>
+                  <Select.Root value={filters.since} onValueChange={(value) => setFilters((prev) => ({ ...prev, since: value as Filters['since'] }))}>
+                    <Select.Trigger placeholder="Любое время" />
+                    <Select.Content>
+                      <Select.Item value="ALL">Любое время</Select.Item>
+                      <Select.Item value="week">За последние 7 дней</Select.Item>
+                      <Select.Item value="month">За последний месяц</Select.Item>
+                    </Select.Content>
+                  </Select.Root>
+                </Flex>
+
                 <Button onClick={() => void fetchAds()} disabled={loading} style={{
                   width: '100%',
                   fontWeight: 600,
@@ -210,6 +226,14 @@ export default function AdsList() {
                       <Select.Content>
                         <Select.Item value="APPROVED">Опубликовано</Select.Item>
                         <Select.Item value="ARCHIVED">В архиве</Select.Item>
+                      </Select.Content>
+                    </Select.Root>
+                    <Select.Root value={filters.since} onValueChange={(value) => setFilters((prev) => ({ ...prev, since: value as Filters['since'] }))}>
+                      <Select.Trigger placeholder="Дата" />
+                      <Select.Content>
+                        <Select.Item value="ALL">Любое время</Select.Item>
+                        <Select.Item value="week">За 7 дней</Select.Item>
+                        <Select.Item value="month">За месяц</Select.Item>
                       </Select.Content>
                     </Select.Root>
                     <Button onClick={() => void fetchAds()} disabled={loading} style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}>
