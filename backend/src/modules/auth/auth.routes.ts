@@ -9,6 +9,7 @@ import {
   resetPasswordController,
   verifyEmailController,
 } from './controllers/email-auth.controller';
+import { googleAuthInitController, googleAuthCallbackController } from './controllers/google-auth.controller';
 
 const router = Router();
 
@@ -20,5 +21,8 @@ router.post('/verify-email', verifyEmailController);
 router.post('/resend-verification', resendVerificationController);
 router.post('/forgot-password', forgotPasswordController);
 router.post('/reset-password', resetPasswordController);
+
+router.get('/google', googleAuthInitController);
+router.get('/google/callback', googleAuthCallbackController);
 
 export default router;

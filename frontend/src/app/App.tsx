@@ -23,6 +23,7 @@ import Profile from '../pages/Profile';
 import MyAdsPage from '../pages/MyAds';
 import ChatsPage from '../pages/chats/Chats';
 import ChatDetailPage from '../pages/chats/ChatDetail';
+import GoogleCallbackPage from '../pages/auth/GoogleCallbackPage';
 import AdminDashboard from '../pages/admin/Dashboard';
 import AdminUsers from '../pages/admin/Users';
 import AdminAdsPage from '../pages/admin/Ads';
@@ -117,6 +118,7 @@ export default function App() {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
 
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/my-ads" element={<ProtectedRoute><MyAdsPage /></ProtectedRoute>} />

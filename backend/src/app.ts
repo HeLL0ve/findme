@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import passport from 'passport';
 import { env } from './config/env';
 import healthRoutes from './modules/health/health.routes';
 import authRoutes from './modules/auth/auth.routes';
@@ -16,6 +17,9 @@ import supportMessagesRoutes from './modules/supportMessages/supportMessages.rou
 import { errorHandler } from './middlewares/error.middleware';
 import path from 'path';
 
+// Initialize Google OAuth strategy
+import './modules/auth/controllers/google-auth.controller';
+
 export const app = express();
 
 app.use(cors({
@@ -25,6 +29,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(passport.initialize());
 
 app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);

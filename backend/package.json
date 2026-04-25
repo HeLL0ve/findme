@@ -23,22 +23,27 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "ioredis": "^5.9.2",
+    "jsonwebtoken": "^9.0.3",
     "nodemailer": "^6.9.7",
-    "zod": "^4.3.6",
-    "ws": "^8.18.0"
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "ws": "^8.18.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^1.4.11",
     "@types/node": "^24.10.1",
     "@types/nodemailer": "^6.4.14",
+    "@types/passport": "^1.0.17",
+    "@types/passport-google-oauth20": "^2.0.17",
+    "@types/ws": "^8.18.1",
     "prisma": "^7.3.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3",
-    "@types/ws": "^8.18.1"
+    "typescript": "^5.9.3"
   }
 }
-

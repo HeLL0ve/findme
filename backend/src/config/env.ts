@@ -25,6 +25,9 @@ export const env = {
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChannelId: process.env.TELEGRAM_CHANNEL_ID || '',
   telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || '',
+
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
 };
 
 if (!env.databaseUrl) {

@@ -7,6 +7,7 @@ import { useAuthStore } from '../../shared/authStore';
 import { AuthShell } from './AuthShell';
 import { PasswordField } from '../../components/common/PasswordField';
 import { usePageTitle } from '../../shared/usePageTitle';
+import { GoogleAuthButton } from '../../components/common/GoogleAuthButton';
 
 export default function LoginPage() {
   usePageTitle('Вход');
@@ -129,6 +130,14 @@ export default function LoginPage() {
           <Button type="submit" disabled={submitting} style={{ fontWeight: 700 }}>
             {submitting ? 'Вход...' : 'Войти'}
           </Button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0' }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--gray-a5)' }} />
+            <Text size="1" color="gray">или</Text>
+            <div style={{ flex: 1, height: 1, background: 'var(--gray-a5)' }} />
+          </div>
+
+          <GoogleAuthButton label="Войти через Google" />
 
           {needsVerification && (
             <Button
