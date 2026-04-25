@@ -8,96 +8,68 @@
 
 **Frontend:** React 19, TypeScript, Vite, Radix UI, Zustand, React Router, Leaflet, Recharts, Axios
 
-**Инфраструктура:** Docker, Docker Compose
+**Инфраструктура:** Docker (только базы данных), Docker Compose
 
 ---
 
 ## Переменные окружения
 
-В проекте три env-файла для разных сценариев запуска:
-
 | Файл | Когда нужен |
 |------|-------------|
-| `.env` | Docker Compose — содержит все переменные включая `POSTGRES_*` |
-| `backend/.env` | Локальный запуск без Docker (`REDIS_HOST=localhost`) |
+| `backend/.env` | Всегда — переменные бэкенда |
 | `frontend/.env` | Опционально — только если API не на `localhost:3000` |
+| `.env` | Только для Docker Compose (содержит `POSTGRES_*`) |
 
 ```bash
-cp .env.example .env
 cp backend/.env.example backend/.env
-# frontend/.env нужен только если меняешь URL API
-```
+# заполни backend/.env
 
-Заполни значения в скопированных файлах. Реальные секреты никогда не коммить.
-
----
-
-## Быстрый старт через Docker
-
-```bash
+# .env в корне нужен только для docker-compose up
 cp .env.example .env
-# заполни .env
-docker-compose up --build
-```
-
-Приложение будет доступно:
-- Фронтенд: http://localhost:5173
-- Бэкенд API: http://localhost:3000
-
-### Запустить только базы данных
-
-```bash
-docker-compose up postgres redis
-```
-
-### Запустить только бэкенд и фронтенд в контейнерах
-
-```bash
-docker-compose up frontend backend
 ```
 
 ---
 
-## Локальная разработка
+## Запуск
 
-### Требования
-
-- Node.js 20+
-- Docker (для PostgreSQL и Redis)
-
-### Установка
+### 1. Установить зависимости
 
 ```bash
 npm install
 ```
 
-### Настройка окружения
+### 2. Запустить базы данных через Docker
 
 ```bash
-cp backend/.env.example backend/.env
-# заполни backend/.env
+docker-compose up -d
 ```
 
-### Запуск баз данных
+Поднимает PostgreSQL (порт 5432) и Redis (порт 6379).
 
-```bash
-docker-compose up postgres redis
-```
-
-### Применить миграции
+### 3. Применить миграции
 
 ```bash
 cd backend
 npx prisma migrate deploy
 ```
 
-### Запуск dev-серверов
+### 4. Запустить dev-серверы
 
 ```bash
 npm run dev
 ```
 
-Запускает бэкенд (порт 3000) и фронтенд (порт 5173) одновременно через `concurrently`.
+Запускает бэкенд (порт 3000) и фронтенд (порт 5173) одновременно.
+
+---
+
+## Полезные команды
+
+### Остановить базы данных
+
+```bash
+docker-compose down
+```
 
 ### Prisma Studio
 
@@ -106,10 +78,11 @@ cd backend
 npx prisma studio --config ./prisma.config.ts
 ```
 
-### Миграция внутри Docker-контейнера
+### Создать новую миграцию
 
 ```bash
-docker-compose exec backend npx prisma migrate dev
+cd backend
+npx prisma migrate dev --name название_миграции
 ```
 
 ---
@@ -124,20 +97,19 @@ findme/
 │   │   ├── modules/        # Модули (auth, ads, chats, notifications, ...)
 │   │   ├── shared/         # Общие утилиты и ошибки
 │   │   ├── ws/             # WebSocket сервер
-│   │   └── app.ts          # Express приложение
+│   │   └── app.ts
 │   ├── uploads/            # Загруженные файлы (не в git)
-│   ├── .env.example        # Пример переменных для локального запуска
-│   └── Dockerfile
+│   └── .env.example
 ├── frontend/               # React приложение
-│   ├── public/             # Статические файлы
+│   ├── public/
 │   ├── src/
 │   │   ├── app/            # App, Header, Footer
 │   │   ├── components/     # Переиспользуемые компоненты
 │   │   ├── pages/          # Страницы
 │   │   └── shared/         # Хуки, стор, утилиты
-│   └── .env.example        # Пример переменных (опционально)
-├── .env.example            # Пример переменных для Docker Compose
-├── docker-compose.yml
+│   └── .env.example
+├── .env.example            # Переменные для Docker Compose
+├── docker-compose.yml      # Только PostgreSQL и Redis
 └── README.md
 ```
 

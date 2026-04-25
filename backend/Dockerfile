@@ -8,8 +8,8 @@ RUN npm install
 COPY . .
 
 RUN npx prisma generate
-##RUN npx prisma migrate dev
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+# Применяем миграции и запускаем сервер
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
