@@ -4,6 +4,7 @@ import { type ReactNode } from 'react';
 import { config } from '../../shared/config';
 import { useFavoritesStore } from '../../shared/favoritesStore';
 import { HeartFilledIcon, HeartIcon, ShareIcon } from '../common/Icons';
+import { timeAgo } from '../../shared/timeAgo';
 
 export type AdCardData = {
   id: string;
@@ -15,6 +16,7 @@ export type AdCardData = {
   status: string;
   type: 'LOST' | 'FOUND';
   photos?: Array<{ photoUrl: string }>;
+  createdAt?: string | null;
 };
 
 type AdCardProps = {
@@ -203,6 +205,13 @@ export default function AdCard({
                   marginTop: 'var(--space-1)',
                 }}>
                   {ad.description}
+                </Text>
+              )}
+
+              {/* Date */}
+              {ad.createdAt && (
+                <Text size="1" color="gray" style={{ marginTop: 'auto', paddingTop: 'var(--space-1)' }}>
+                  🕐 {timeAgo(ad.createdAt)}
                 </Text>
               )}
             </Flex>

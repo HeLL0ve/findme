@@ -490,37 +490,6 @@ export default function AdDetail() {
               </Flex>
             </Card>
 
-            {/* Location */}
-            {ad.location && (
-              <Card style={{
-                background: 'var(--gray-a1)',
-                border: '1px solid var(--gray-a7)',
-                borderRadius: 'var(--radius-3)',
-              }}>
-                <Flex direction="column" gap="3">
-                  <Flex gap="2" align="center">
-                    <LocationIcon width={20} height={20} color="var(--violet-10)" />
-                    <Heading size="4" weight="bold">Местоположение</Heading>
-                  </Flex>
-                  <Flex direction="column" gap="2">
-                    {ad.location.city && (
-                      <Flex justify="between">
-                        <Text weight="bold" color="gray">Город:</Text>
-                        <Text>{ad.location.city}</Text>
-                      </Flex>
-                    )}
-                    {ad.location.address && (
-                      <Flex justify="between">
-                        <Text weight="bold" color="gray">Адрес:</Text>
-                        <Text>{ad.location.address}</Text>
-                      </Flex>
-                    )}
-                  </Flex>
-                  <AdLocationMap location={ad.location} type={ad.type} height={320} />
-                </Flex>
-              </Card>
-            )}
-
             {/* Pet Info */}
             <Card style={{
               background: 'var(--gray-a1)',
@@ -554,6 +523,37 @@ export default function AdDetail() {
                 </Flex>
               </Flex>
             </Card>
+
+            {/* Location */}
+            {ad.location && (
+              <Card style={{
+                background: 'var(--gray-a1)',
+                border: '1px solid var(--gray-a7)',
+                borderRadius: 'var(--radius-3)',
+              }}>
+                <Flex direction="column" gap="3">
+                  <Flex gap="2" align="center">
+                    <LocationIcon width={20} height={20} color="var(--violet-10)" />
+                    <Heading size="4" weight="bold">Местоположение</Heading>
+                  </Flex>
+                  <Flex direction="column" gap="2">
+                    {ad.location.city && (
+                      <Flex justify="between">
+                        <Text weight="bold" color="gray">Город:</Text>
+                        <Text>{ad.location.city}</Text>
+                      </Flex>
+                    )}
+                    {ad.location.address && (
+                      <Flex justify="between">
+                        <Text weight="bold" color="gray">Адрес:</Text>
+                        <Text>{ad.location.address}</Text>
+                      </Flex>
+                    )}
+                  </Flex>
+                  <AdLocationMap location={ad.location} type={ad.type} height={320} />
+                </Flex>
+              </Card>
+            )}
           </Flex>
 
           {/* Right Column - User & Actions */}

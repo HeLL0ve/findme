@@ -5,6 +5,7 @@ import { config } from '../shared/config';
 import { useAuthStore } from '../shared/authStore';
 import { roleLabel } from '../shared/labels';
 import { useUnreadNotifications } from '../shared/useUnreadNotifications';
+import { useUnreadChats } from '../shared/useUnreadChats';
 import NotificationsModal from '../components/common/NotificationsModal';
 
 type Props = {
@@ -65,6 +66,7 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const unreadNotifications = useUnreadNotifications();
+  const unreadChats = useUnreadChats();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsModalOpen, setNotificationsModalOpen] = useState(false);
@@ -127,7 +129,29 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
                   <NavLink key={link.to} to={link.to} className="truncate">{link.label}</NavLink>
                 ))}
                 {token && privateLinks.map((link) => (
-                  <NavLink key={link.to} to={link.to} className="truncate">{link.label}</NavLink>
+                  <Box key={link.to} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                    <NavLink to={link.to} className="truncate">{link.label}</NavLink>
+                    {link.to === '/chats' && unreadChats > 0 && (
+                      <Box style={{
+                        position: 'absolute',
+                        top: -4,
+                        right: -8,
+                        minWidth: 16,
+                        height: 16,
+                        borderRadius: 999,
+                        background: 'var(--violet-9)',
+                        color: 'white',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0 4px',
+                      }}>
+                        {unreadChats > 9 ? '9+' : unreadChats}
+                      </Box>
+                    )}
+                  </Box>
                 ))}
                 {token && user?.role === 'ADMIN' && <NavLink to="/admin">Админ</NavLink>}
               </Flex>
@@ -234,7 +258,28 @@ export default function Header({ appearance, onToggleAppearance }: Props) {
               ))}
               {token && privateLinks.map((link) => (
                 <Button key={link.to} variant="soft" asChild onClick={() => setMobileOpen(false)}>
-                  <Link to={link.to}>{link.label}</Link>
+                  <Link to={link.to}>
+                    <Flex align="center" gap="2">
+                      {link.label}
+                      {link.to === '/chats' && unreadChats > 0 && (
+                        <Box style={{
+                          minWidth: 18,
+                          height: 18,
+                          borderRadius: 999,
+                          background: 'var(--violet-9)',
+                          color: 'white',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '0 5px',
+                        }}>
+                          {unreadChats > 9 ? '9+' : unreadChats}
+                        </Box>
+                      )}
+                    </Flex>
+                  </Link>
                 </Button>
               ))}
               {token && (

@@ -11,6 +11,7 @@ type Ad = AdCardData;
 
 export default function Home() {
   const [ads, setAds] = useState<Ad[]>([]);
+  const [foundAds, setFoundAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     users: 0,
@@ -26,12 +27,14 @@ export default function Home() {
     (async () => {
       try {
         setLoading(true);
-        const [adsResponse, statsResponse] = await Promise.all([
+        const [adsResponse, foundAdsResponse, statsResponse] = await Promise.all([
           api.get('/ads', { params: { take: 6 } }),
+          api.get('/ads', { params: { take: 3, status: 'ARCHIVED' } }),
           api.get('/stats').catch(() => null),
         ]);
         if (!mounted) return;
         setAds(adsResponse.data);
+        setFoundAds(foundAdsResponse.data);
 
         // Обновляем статистику из публичного API
         if (statsResponse?.data) {
@@ -199,23 +202,30 @@ export default function Home() {
           )}
         </Flex>
 
-        {/* Banner/Image Section - место для картинки */}
-        <Card style={{
-          background: 'linear-gradient(135deg, var(--violet-a2) 0%, var(--blue-a2) 100%)',
-          overflow: 'hidden',
-          height: '280px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '2px dashed var(--violet-a5)',
-          marginTop: '32px',
-        }}>
-          <Flex direction="column" gap="3" align="center" justify="center">
-            <div style={{ fontSize: '48px' }}>🖼️</div>
-            <Text color="gray" weight="bold">Место для баннера</Text>
-            <Text size="2" color="gray">Здесь можно разместить привлекательное изображение</Text>
+        {/* Happy Endings Section */}
+        {foundAds.length > 0 && (
+          <Flex direction="column" gap="4" style={{ marginTop: '64px' }}>
+            <Box style={{
+              borderTop: '1px solid var(--gray-a5)',
+              paddingTop: '48px',
+            }}>
+              <Flex justify="between" align="center" wrap="wrap" gap="4">
+                <Flex direction="column" gap="1">
+                  <Heading size="6" weight="bold">🎉 Питомцы нашлись!</Heading>
+                  <Text size="2" color="gray">Счастливые истории — питомцы вернулись домой</Text>
+                </Flex>
+                <Button variant="soft" color="green" asChild>
+                  <Link to="/ads?status=ARCHIVED">Смотреть все →</Link>
+                </Button>
+              </Flex>
+              <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="4" style={{ marginTop: 'var(--space-4)' }}>
+                {foundAds.map((ad) => (
+                  <AdCard key={ad.id} ad={ad} showDescription />
+                ))}
+              </Grid>
+            </Box>
           </Flex>
-        </Card>
+        )}
 
         {/* Statistics Section */}
         <Flex direction="column" gap="4" style={{ marginTop: 'var(--space-8)' }}>
