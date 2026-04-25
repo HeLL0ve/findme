@@ -5,6 +5,7 @@ dist/
 build/
 coverage/
 .DS_Store
+.vscode/
 
 # docker volumes
 postgres-data/
