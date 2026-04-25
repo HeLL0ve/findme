@@ -555,7 +555,7 @@ export default function AdDetail() {
           </Flex>
 
           {/* Right Column - User & Actions */}
-          <Flex direction="column" gap="4" style={{ flex: 1, minWidth: '280px' }}>
+          <Flex direction="column" gap="4" style={{ flex: 1, minWidth: 0 }}>
             {/* User Card */}
             <Card style={{
               background: 'var(--violet-1)',

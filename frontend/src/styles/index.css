@@ -299,3 +299,23 @@ h4 {
     padding: 0 0 32px;
   }
 }
+
+/* Mobile padding fixes */
+@media (max-width: 640px) {
+  /* Radix Container padding on small screens */
+  .rt-Container {
+    padding-left: var(--space-3) !important;
+    padding-right: var(--space-3) !important;
+  }
+
+  /* Section headers with gradient background */
+  section {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  /* Prevent right column overflow on detail page */
+  .rt-Flex > .rt-Flex {
+    min-width: 0;
+  }
+}

@@ -11,7 +11,7 @@ export default function Footer() {
       marginTop: '60px',
     }}>
       <Container size="4">
-        <Box style={{ padding: '16px 0' }}>
+        <Box style={{ padding: 'var(--space-4) 0' }}>
           <Flex 
             gap={{ initial: '6', sm: '8' }} 
             direction={{ initial: 'column', sm: 'row' }} 
