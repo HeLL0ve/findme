@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Badge, Button, Card, Container, Dialog, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
-import { MessageIcon, AlertTriangleIcon, PawIcon, DescriptionIcon, LocationIcon, UserIcon, PrintIcon, ShareIcon, PhoneIcon, MailIcon, HeartFilledIcon, HeartIcon } from '../../components/common/Icons';
+import { MessageIcon, AlertTriangleIcon, PawIcon, DescriptionIcon, LocationIcon, UserIcon, PrintIcon, ShareIcon, PhoneIcon, MailIcon, HeartFilledIcon, HeartIcon, EyeIcon } from '../../components/common/Icons';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
@@ -314,12 +314,6 @@ export default function AdDetail() {
               <Flex gap="2" align="center" style={{ color: 'var(--gray-11)' }}>
                 <LocationIcon width={18} height={18} color="var(--violet-10)" />
                 <Text size="2" weight="medium">{ad.location.city}</Text>
-              </Flex>
-            )}
-            {typeof ad.views === 'number' && (
-              <Flex gap="1" align="center" style={{ color: 'var(--gray-10)' }}>
-                <Text size="1">👁</Text>
-                <Text size="1" color="gray">{ad.views} просмотров</Text>
               </Flex>
             )}
           </Flex>
@@ -636,9 +630,23 @@ export default function AdDetail() {
               </Card>
             )}
 
+            {/* Views counter */}
+            {typeof ad.views === 'number' && (
+              <Card style={{
+                background: 'var(--gray-a1)',
+                border: '1px solid var(--gray-a5)',
+                borderRadius: 'var(--radius-3)',
+                padding: 'var(--space-2) var(--space-3)',
+              }}>
+                <Flex align="center" gap="2">
+                  <EyeIcon width={15} height={15} color="var(--gray-10)" />
+                  <Text size="1" color="gray">{ad.views} просмотров</Text>
+                </Flex>
+              </Card>
+            )}
+
             {/* Actions */}
-            <Flex direction="column" gap="2">
-              {!isOwner && user && (
+            <Flex direction="column" gap="2">              {!isOwner && user && (
                 <>
                   <Button
                     onClick={() => void startChat()}
