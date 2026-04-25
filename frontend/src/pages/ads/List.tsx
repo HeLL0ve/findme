@@ -89,7 +89,7 @@ export default function AdsList() {
           <Flex direction="column" gap="2">
             <Flex align="center" gap="2">
               <SearchIcon width={28} height={28} />
-              <Heading size="7" weight="bold">Поиск потерянных питомцев</Heading>
+              <Heading size="7" weight="bold" style={{margin:'0px'}}>Поиск потерянных питомцев</Heading>
             </Flex>
             <Text color="gray" size="2">
               Найдите потерянного или найденного питомца по типу, породе и местоположению
@@ -114,7 +114,7 @@ export default function AdsList() {
               <Flex direction="column" gap="4">
                 <Flex gap="2" align="center">
                   <SearchIcon width={20} height={20}/>
-                  <Heading size="4" weight="bold">Фильтры</Heading>
+                  <Heading size="4" weight="bold" style={{margin:'0px'}}>Фильтры</Heading>
                 </Flex>
 
                 {/* Search Input */}

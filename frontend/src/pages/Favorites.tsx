@@ -47,7 +47,7 @@ export default function FavoritesPage() {
         <Container size="4">
           <Flex align="center" gap="2">
             <HeartFilledIcon width={28} height={28} color="var(--red-9)" />
-            <Heading size="7" weight="bold">Избранное</Heading>
+            <Heading size="7" weight="bold" style={{margin:'0px'}}>Избранное</Heading>
           </Flex>
           <Text color="gray" size="2">Сохранённые объявления о питомцах</Text>
         </Container>

@@ -294,7 +294,7 @@ export default function Profile() {
         <Container size="4">
           <Flex gap="2" align="center">
             <UserIcon width={28} height={28} />
-            <Heading size="7" weight="bold">Профиль</Heading>
+            <Heading size="7" weight="bold" style={{margin:'0px'}}>Профиль</Heading>
           </Flex>
           <Text color="gray" size="2">Управляйте вашими данными, настройками и объявлениями</Text>
         </Container>
@@ -352,7 +352,7 @@ export default function Profile() {
                 <Flex direction="column" gap="4">
                   <Flex gap="2" align="center">
                     <InfoIcon width={20} height={20} />
-                    <Heading size="4" weight="bold">Основная информация</Heading>
+                    <Heading size="4" weight="bold" style={{margin:'0px'}}>Основная информация</Heading>
                   </Flex>
 
                   <Flex direction="column" gap="3">
@@ -467,7 +467,7 @@ export default function Profile() {
               <Flex direction="column" gap="4">
                 <Flex gap="2" align="center">
                   <BellIcon width={20} height={20} />
-                  <Heading size="4" weight="bold">Уведомления</Heading>
+                  <Heading size="4" weight="bold" style={{margin:'0px'}}>Уведомления</Heading>
                 </Flex>
 
                 <Flex direction="column" gap="3">
@@ -520,7 +520,7 @@ export default function Profile() {
               <Flex direction="column" gap="4">
                 <Flex gap="2" align="center">
                   <LockIcon width={20} height={20} />
-                  <Heading size="4" weight="bold">Безопасность</Heading>
+                  <Heading size="4" weight="bold" style={{margin:'0px'}}>Безопасность</Heading>
                 </Flex>
 
                 <Flex direction="column" gap="2">
@@ -611,7 +611,7 @@ export default function Profile() {
                 <Flex justify="between" align="center" wrap="wrap" gap="2">
                   <Flex gap="2" align="center">
                     <DescriptionIcon width={20} height={20} />
-                    <Heading size="4" weight="bold">Мои объявления ({myAds.length})</Heading>
+                    <Heading size="4" weight="bold" style={{margin:'0px'}}>Мои объявления ({myAds.length})</Heading>
                   </Flex>
                   <Button asChild size="2">
                     <a href="/create-ad" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}><AddIcon width={18} height={18} /> Новое</a>
