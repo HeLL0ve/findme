@@ -313,6 +313,8 @@ export default function AdminStatsPage() {
                 { label: 'Активных чатов', value: stats.chats.total, color: 'var(--purple-a2)' },
                 { label: 'Жалоб и обращений', value: stats.complaints.total, color: 'var(--orange-a2)' },
                 { label: 'На модерации', value: stats.ads.pending, color: 'var(--yellow-a2)' },
+                { label: 'Отклонено', value: stats.ads.rejected, color: 'var(--red-a2)' },
+                { label: 'Всего сообщений', value: stats.chats.messages, color: 'var(--cyan-a2)' },
               ].map((item, idx) => (
                 <Card key={idx} style={{ background: item.color, border: '1px solid var(--gray-a6)' }}>
                   <Flex direction="column" gap="2" align="center">

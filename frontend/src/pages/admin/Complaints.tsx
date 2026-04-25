@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Card, Container, Flex, Heading, Select, Text, TextArea } from '@radix-ui/themes';
+import { Badge, Button, Card, Container, Flex, Heading, Select, Text, TextArea, Section } from '@radix-ui/themes';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
@@ -7,6 +7,7 @@ import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { complaintStatusLabel, complaintTargetLabel } from '../../shared/labels';
 import { usePageTitle } from '../../shared/usePageTitle';
+import { AlertTriangleIcon } from '../../components/common/Icons';
 
 type Complaint = {
   id: string;
@@ -73,29 +74,42 @@ export default function AdminComplaintsPage() {
   }
 
   return (
-    <Container size="3">
-      <Flex direction="column" gap="4">
-        <Flex justify="between" align="center" wrap="wrap" gap="2">
-          <Heading size="8">Жалобы</Heading>
-          <Flex gap="2" align="center" wrap="wrap">
-            <Badge color="orange">Новых: {pendingCount}</Badge>
-            <Select.Root value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'ALL' | Complaint['status'])}>
-              <Select.Trigger />
-              <Select.Content>
-                <Select.Item value="ALL">Все статусы</Select.Item>
-                <Select.Item value="PENDING">Новые</Select.Item>
-                <Select.Item value="RESOLVED">Решенные</Select.Item>
-                <Select.Item value="REJECTED">Отклоненные</Select.Item>
-              </Select.Content>
-            </Select.Root>
+    <>
+      <Section size="2" style={{
+        background: 'linear-gradient(135deg, var(--orange-2) 0%, var(--accent-soft) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
+      }}>
+        <Container size="3">
+          <Flex justify="between" align="center" wrap="wrap" gap="3">
+            <Heading size="8" weight="bold">
+              <Flex align="center" gap="3">
+                <AlertTriangleIcon width={32} height={32} color="var(--orange-11)" />
+                Жалобы
+              </Flex>
+            </Heading>
+            <Flex gap="2" align="center" wrap="wrap">
+              <Badge color="orange">Новых: {pendingCount}</Badge>
+              <Select.Root value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'ALL' | Complaint['status'])}>
+                <Select.Trigger />
+                <Select.Content>
+                  <Select.Item value="ALL">Все статусы</Select.Item>
+                  <Select.Item value="PENDING">Новые</Select.Item>
+                  <Select.Item value="RESOLVED">Решенные</Select.Item>
+                  <Select.Item value="REJECTED">Отклоненные</Select.Item>
+                </Select.Content>
+              </Select.Root>
+            </Flex>
           </Flex>
-        </Flex>
+        </Container>
+      </Section>
 
-        {loading && <Text>Загрузка...</Text>}
-        {error && <Text color="red">{error}</Text>}
-        {!loading && complaints.length === 0 && <Text color="gray">Обращений пока нет.</Text>}
+      <Container size="3" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-8)' }}>
+        <Flex direction="column" gap="4">
+          {loading && <Text>Загрузка...</Text>}
+          {error && <Text color="red">{error}</Text>}
+          {!loading && complaints.length === 0 && <Text color="gray">Обращений пока нет.</Text>}
 
-        <Flex direction="column" gap="3">
+          <Flex direction="column" gap="3">
           {complaints.map((complaint) => (
             <Card key={complaint.id}>
               <Flex direction="column" gap="2">
@@ -175,7 +189,8 @@ export default function AdminComplaintsPage() {
             </Card>
           ))}
         </Flex>
-      </Flex>
-    </Container>
+        </Flex>
+      </Container>
+    </>
   );
 }

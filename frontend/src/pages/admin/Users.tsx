@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Container, Flex, Heading, Text, Dialog, Button, TextArea } from '@radix-ui/themes';
+import { Container, Flex, Heading, Text, Dialog, Button, TextArea, Section } from '@radix-ui/themes';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
 import type { UserProfileType } from '../../components/user/UserProfileCard';
@@ -7,6 +7,7 @@ import UserProfileCard from '../../components/user/UserProfileCard';
 import { useAuthStore } from '../../shared/authStore';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { usePageTitle } from '../../shared/usePageTitle';
+import { UsersIcon } from '../../components/common/Icons';
 
 type User = UserProfileType & {
   phone?: string | null;
@@ -87,13 +88,26 @@ export default function AdminUsers() {
     navigate(`/users/${userId}`);
   }
 
-  if (loading) return <Container size="3"><Text>Загрузка...</Text></Container>;
-  if (error) return <Container size="3"><Text color="red">{error}</Text></Container>;
+  if (loading) return <Container size="3" style={{ paddingTop: 'var(--space-4)' }}><Text>Загрузка...</Text></Container>;
+  if (error) return <Container size="3" style={{ paddingTop: 'var(--space-4)' }}><Text color="red">{error}</Text></Container>;
 
   return (
-    <Container size="3">
-      <Flex direction="column" gap="4">
-        <Heading size="8" style={{margin: '10px'}}>Пользователи ({users.length})</Heading>
+    <>
+      <Section size="2" style={{
+        background: 'linear-gradient(135deg, var(--blue-2) 0%, var(--accent-soft) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
+      }}>
+        <Container size="3">
+          <Heading size="8" weight="bold">
+            <Flex align="center" gap="3">
+              <UsersIcon width={32} height={32} color="var(--blue-11)" />
+              Пользователи ({users.length})
+            </Flex>
+          </Heading>
+        </Container>
+      </Section>
+
+      <Container size="3" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-8)' }}>
         <Flex direction="column" gap="3">
           {users.map((user) => (
             <UserProfileCard
@@ -109,7 +123,7 @@ export default function AdminUsers() {
             />
           ))}
         </Flex>
-      </Flex>
+      </Container>
 
       {/* Message Dialog */}
       <Dialog.Root open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
@@ -144,6 +158,6 @@ export default function AdminUsers() {
           </div>
         </Dialog.Content>
       </Dialog.Root>
-    </Container>
+    </>
   );
 }

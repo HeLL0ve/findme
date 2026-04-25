@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Badge, Button, Dialog, Flex, Heading, Text } from '@radix-ui/themes';
+import { Avatar, Badge, Button, Dialog, Flex, Heading, Text } from '@radix-ui/themes';
 import { AlertTriangleIcon } from '../common/Icons';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../../shared/apiError';
+import { config } from '../../shared/config';
 
 export type UserProfileType = {
   id: string;
@@ -69,6 +70,16 @@ export default function UserProfileCard({
   const [complaintDescription, setComplaintDescription] = useState('');
   const [complaintSubmitting, setComplaintSubmitting] = useState(false);
 
+  function resolveAvatarSrc(avatarUrl?: string | null) {
+    if (!avatarUrl) return undefined;
+    if (avatarUrl.startsWith('http')) return avatarUrl;
+    if (!config.apiUrl) return avatarUrl;
+    return `${config.apiUrl}${avatarUrl}`;
+  }
+
+  const avatarSrc = resolveAvatarSrc(user.avatarUrl);
+  const initials = (user.name || user.email || 'U').slice(0, 1).toUpperCase();
+
   async function submitComplaint() {
     if (complaintReason.trim().length < 5) {
       setError('Причина жалобы должна быть не менее 5 символов');
@@ -129,21 +140,30 @@ export default function UserProfileCard({
       >
         {/* Header Section */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: 0 }}>
-            <Heading size="5" style={{ margin: 0 }}>
-              {user.name || user.email || 'Пользователь'}
-            </Heading>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {user.role === 'ADMIN' && (
-                <Badge color="violet" style={{ fontWeight: '600', fontSize: '11px' }}>
-                  👤 Администратор
-                </Badge>
-              )}
-              {user.isBlocked && (
-                <Badge color="red" style={{ fontWeight: '600', fontSize: '11px' }}>
-                  🚫 Заблокирован
-                </Badge>
-              )}
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
+            <Avatar 
+              src={avatarSrc} 
+              fallback={initials} 
+              radius="full" 
+              size="5"
+              style={{ flexShrink: 0 }}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: 0 }}>
+              <Heading size="5" style={{ margin: 0 }}>
+                {user.name || user.email || 'Пользователь'}
+              </Heading>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {user.role === 'ADMIN' && (
+                  <Badge color="violet" style={{ fontWeight: '600', fontSize: '11px' }}>
+                    👤 Администратор
+                  </Badge>
+                )}
+                {user.isBlocked && (
+                  <Badge color="red" style={{ fontWeight: '600', fontSize: '11px' }}>
+                    🚫 Заблокирован
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
           {user.createdAt && (

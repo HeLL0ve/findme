@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Container, Flex, Heading, ScrollArea, Text, TextArea } from '@radix-ui/themes';
+import { Button, Card, Container, Flex, Heading, ScrollArea, Text, TextArea, Section } from '@radix-ui/themes';
 import { api } from '../../api/axios';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
-import { SendIcon, AlertTriangleIcon } from '../../components/common/Icons';
+import { SendIcon, AlertTriangleIcon, MessageIcon } from '../../components/common/Icons';
 import { usePageTitle } from '../../shared/usePageTitle';
 
 type SupportMessage = {
@@ -92,13 +92,26 @@ export default function AdminSupportPage() {
     }
   }
 
-  if (loading) return <Container size="4"><Text>Загрузка...</Text></Container>;
+  if (loading) return <Container size="4" style={{ paddingTop: 'var(--space-4)' }}><Text>Загрузка...</Text></Container>;
 
   return (
-    <Container size="4" style={{ paddingTop: 'var(--space-4)', paddingBottom: 'var(--space-6)' }}>
-      <Heading size="6" mb="4">Чаты поддержки</Heading>
+    <>
+      <Section size="2" style={{
+        background: 'linear-gradient(135deg, var(--cyan-2) 0%, var(--accent-soft) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
+      }}>
+        <Container size="4">
+          <Heading size="8" weight="bold">
+            <Flex align="center" gap="3">
+              <MessageIcon width={32} height={32} color="var(--cyan-11)" />
+              Чаты поддержки
+            </Flex>
+          </Heading>
+        </Container>
+      </Section>
 
-      {error && <Text color="red" as="p" mb="3">{error}</Text>}
+      <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-8)' }}>
+        {error && <Text color="red" as="p" mb="3">{error}</Text>}
 
       {/* Mobile: show user list or chat */}
       <Flex gap="4" direction={{ initial: 'column', md: 'row' }} style={{ minHeight: '70vh' }}>
@@ -222,6 +235,7 @@ export default function AdminSupportPage() {
           )}
         </Card>
       </Flex>
-    </Container>
+      </Container>
+    </>
   );
 }

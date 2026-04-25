@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Card, Container, Dialog, Flex, Heading, Select, Text, TextArea } from '@radix-ui/themes';
+import { Badge, Button, Card, Container, Dialog, Flex, Heading, Select, Text, TextArea, Section } from '@radix-ui/themes';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
@@ -7,6 +7,7 @@ import UserAvatarLink from '../../components/user/UserAvatarLink';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { adStatusLabel, adTypeLabel } from '../../shared/labels';
 import { usePageTitle } from '../../shared/usePageTitle';
+import { PackageIcon } from '../../components/common/Icons';
 
 type Ad = {
   id: string;
@@ -99,30 +100,43 @@ export default function AdminAdsPage() {
   }
 
   return (
-    <Container size="3">
-      <Flex direction="column" gap="4">
-        <Flex justify="between" align="center" wrap="wrap" gap="2">
-          <Heading size="8">Объявления в админке</Heading>
-          <Flex align="center" gap="2">
-            <Select.Root value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'ALL' | Ad['status'])}>
-              <Select.Trigger />
-              <Select.Content>
-                <Select.Item value="ALL">Все статусы</Select.Item>
-                <Select.Item value="PENDING">На модерации</Select.Item>
-                <Select.Item value="APPROVED">Активные</Select.Item>
-                <Select.Item value="ARCHIVED">Найдены / В архиве</Select.Item>
-                <Select.Item value="REJECTED">Отклонено</Select.Item>
-              </Select.Content>
-            </Select.Root>
-            <Button variant="soft" onClick={() => void fetchAds()}>Обновить</Button>
+    <>
+      <Section size="2" style={{
+        background: 'linear-gradient(135deg, var(--green-2) 0%, var(--accent-soft) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
+      }}>
+        <Container size="3">
+          <Flex justify="between" align="center" wrap="wrap" gap="3">
+            <Heading size="8" weight="bold">
+              <Flex align="center" gap="3">
+                <PackageIcon width={32} height={32} color="var(--green-11)" />
+                Объявления
+              </Flex>
+            </Heading>
+            <Flex align="center" gap="2">
+              <Select.Root value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'ALL' | Ad['status'])}>
+                <Select.Trigger />
+                <Select.Content>
+                  <Select.Item value="ALL">Все статусы</Select.Item>
+                  <Select.Item value="PENDING">На модерации</Select.Item>
+                  <Select.Item value="APPROVED">Активные</Select.Item>
+                  <Select.Item value="ARCHIVED">Найдены / В архиве</Select.Item>
+                  <Select.Item value="REJECTED">Отклонено</Select.Item>
+                </Select.Content>
+              </Select.Root>
+              <Button variant="soft" onClick={() => void fetchAds()}>Обновить</Button>
+            </Flex>
           </Flex>
-        </Flex>
+        </Container>
+      </Section>
 
-        {loading && <Text>Загрузка...</Text>}
-        {error && <Text color="red">{error}</Text>}
-        {!loading && filteredAds.length === 0 && <Text color="gray">Ничего не найдено.</Text>}
+      <Container size="3" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-8)' }}>
+        <Flex direction="column" gap="4">
+          {loading && <Text>Загрузка...</Text>}
+          {error && <Text color="red">{error}</Text>}
+          {!loading && filteredAds.length === 0 && <Text color="gray">Ничего не найдено.</Text>}
 
-        <Flex direction="column" gap="3">
+          <Flex direction="column" gap="3">
           {filteredAds.map((ad) => (
             <Card key={ad.id}>
               <Flex direction="column" gap="2">
@@ -197,8 +211,9 @@ export default function AdminAdsPage() {
               </Flex>
             </Card>
           ))}
+          </Flex>
         </Flex>
-      </Flex>
+      </Container>
 
       <Dialog.Root open={!!rejectTarget} onOpenChange={(open) => !open && setRejectTarget(null)}>
         <Dialog.Content maxWidth="560px">
@@ -223,6 +238,6 @@ export default function AdminAdsPage() {
           </Flex>
         </Dialog.Content>
       </Dialog.Root>
-    </Container>
+    </>
   );
 }

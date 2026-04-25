@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge, Button, Card, Container, Flex, Heading, Text } from '@radix-ui/themes';
+import { Badge, Button, Card, Container, Flex, Heading, Text, Section } from '@radix-ui/themes';
 import { api } from '../api/axios';
 import { extractApiErrorMessage } from '../shared/apiError';
 import { notificationTypeLabel } from '../shared/labels';
 import { usePageTitle } from '../shared/usePageTitle';
+import { BellIcon } from '../components/common/Icons';
 
 type NotificationItem = {
   id: string;
@@ -84,28 +85,41 @@ export default function NotificationsPage() {
   }
 
   return (
-    <Container size="3">
-      <Flex direction="column" gap="4">
-        <Flex justify="between" align="center" wrap="wrap" gap="2">
-          <Heading size="8">Уведомления</Heading>
-          <Flex gap="2" align="center" wrap="wrap">
-            <Badge color={unread > 0 ? 'violet' : 'gray'}>Непрочитанные: {unread}</Badge>
-            {permission !== 'unsupported' && permission !== 'granted' && (
-              <Button variant="soft" onClick={() => void requestPushPermission()}>
-                Включить push
+    <>
+      <Section size="2" style={{
+        background: 'linear-gradient(135deg, var(--violet-2) 0%, var(--accent-soft) 100%)',
+        borderBottom: '1px solid var(--gray-a5)',
+      }}>
+        <Container size="3">
+          <Flex justify="between" align="center" wrap="wrap" gap="3">
+            <Heading size="8" weight="bold">
+              <Flex align="center" gap="3">
+                <BellIcon width={32} height={32} color="var(--violet-11)" />
+                Уведомления
+              </Flex>
+            </Heading>
+            <Flex gap="2" align="center" wrap="wrap">
+              <Badge color={unread > 0 ? 'violet' : 'gray'}>Непрочитанные: {unread}</Badge>
+              {permission !== 'unsupported' && permission !== 'granted' && (
+                <Button variant="soft" onClick={() => void requestPushPermission()}>
+                  Включить push
+                </Button>
+              )}
+              <Button variant="soft" onClick={() => void markAllRead()} disabled={unread === 0}>
+                Прочитать все
               </Button>
-            )}
-            <Button variant="soft" onClick={() => void markAllRead()} disabled={unread === 0}>
-              Прочитать все
-            </Button>
+            </Flex>
           </Flex>
-        </Flex>
+        </Container>
+      </Section>
 
-        {loading && <Text>Загрузка...</Text>}
-        {error && <Text color="red">{error}</Text>}
-        {!loading && !error && items.length === 0 && <Text color="gray">Уведомлений пока нет.</Text>}
+      <Container size="3" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-8)' }}>
+        <Flex direction="column" gap="4">
+          {loading && <Text>Загрузка...</Text>}
+          {error && <Text color="red">{error}</Text>}
+          {!loading && !error && items.length === 0 && <Text color="gray">Уведомлений пока нет.</Text>}
 
-        <Flex direction="column" gap="2">
+          <Flex direction="column" gap="2">
           {items.map((item) => (
             <Card key={item.id} style={{ border: item.isRead ? undefined : '1px solid var(--violet-8)' }}>
               <Flex justify="between" align="start" gap="2">
@@ -131,8 +145,9 @@ export default function NotificationsPage() {
               </Flex>
             </Card>
           ))}
+          </Flex>
         </Flex>
-      </Flex>
-    </Container>
+      </Container>
+    </>
   );
 }

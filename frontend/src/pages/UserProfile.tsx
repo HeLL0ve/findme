@@ -117,7 +117,7 @@ export default function UserProfilePage() {
         <Container size="4">
           <Flex gap="2" align="center">
             <UserIcon width={28} height={28} />
-            <Heading size="7" weight="bold">Профиль пользователя</Heading>
+            <Heading size="7" weight="bold" style={{margin:'0px'}}>Профиль пользователя</Heading>
           </Flex>
           <Text color="gray" size="2">Информация и объявления пользователя</Text>
         </Container>
@@ -144,7 +144,7 @@ export default function UserProfilePage() {
               <Flex direction="column" gap="4">
                 <Flex gap="2" align="center">
                   <UserIcon width={20} height={20} color="var(--violet-10)" />
-                  <Heading size="4" weight="bold">О пользователе</Heading>
+                  <Heading size="4" weight="bold" style={{margin:'0px'}}>О пользователе</Heading>
                 </Flex>
 
                 <UserAvatarLink
@@ -168,7 +168,7 @@ export default function UserProfilePage() {
                 <Flex direction="column" gap="4">
                   <Flex gap="2" align="center">
                     <PhoneIcon width={20} height={20} color="var(--green-10)" />
-                    <Heading size="4" weight="bold">Контакты</Heading>
+                    <Heading size="4" weight="bold" style={{margin:'0px'}}>Контакты</Heading>
                   </Flex>
 
                   <Flex direction="column" gap="3">
@@ -263,7 +263,7 @@ export default function UserProfilePage() {
               <Flex direction="column" gap="4">
                 <Flex gap="2" align="center">
                   <DescriptionIcon width={20} height={20} color="var(--blue-10)" />
-                  <Heading size="4" weight="bold">Объявления ({ads.length})</Heading>
+                  <Heading size="4" weight="bold" style={{margin:'0px'}}>Объявления ({ads.length})</Heading>
                 </Flex>
 
                 {ads.length === 0 ? (
@@ -274,7 +274,7 @@ export default function UserProfilePage() {
                   }}>
                     <Flex direction="column" gap="3" align="center" justify="center">
                       <DescriptionIcon width={32} height={32} color="var(--gray-9)" />
-                      <Text size="2" color="gray">Публичных объявлений пока нет</Text>
+                      <Text size="2" color="gray" style={{margin:'0px'}}>Публичных объявлений пока нет</Text>
                     </Flex>
                   </Card>
                 ) : (
