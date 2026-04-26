@@ -110,6 +110,36 @@ export default function Home() {
                   </Link>
                 </Button>
               </Flex>
+
+              {/* Telegram канал */}
+              <Flex gap="2" align="center" style={{
+                padding: 'var(--space-3)',
+                background: 'var(--blue-a2)',
+                borderRadius: 'var(--radius-2)',
+                border: '1px solid var(--blue-a5)',
+              }}>
+                <Text size="2" color="gray">
+                  Все объявления публикуются в нашем{' '}
+                  <a
+                    href="https://t.me/findme_by"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: 'var(--blue-11)',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.target as HTMLElement).style.textDecoration = 'underline';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.target as HTMLElement).style.textDecoration = 'none';
+                    }}
+                  >
+                    Telegram канале
+                  </a>
+                </Text>
+              </Flex>
             </Flex>
 
             {/* Правая часть - Статистика онлайна */}

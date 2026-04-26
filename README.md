@@ -2,6 +2,8 @@
 
 Платформа для поиска потерянных и найденных домашних животных. Пользователи могут размещать объявления, общаться в чатах, получать уведомления через браузер и Telegram.
 
+📢 **Telegram канал:** [https://t.me/findme_by](https://t.me/findme_by) — все одобренные объявления автоматически публикуются в канале.
+
 ## Стек
 
 **Backend:** Node.js, Express 5, TypeScript, Prisma ORM, PostgreSQL, Redis, WebSocket (ws), Passport.js (Google OAuth), Nodemailer, Telegram Bot API
@@ -145,3 +147,24 @@ findme/
 - [Настройка Gmail](./GMAIL_SETUP.md)
 - [Настройка Google OAuth](./GOOGLE_AUTH_SETUP.md)
 - [Cloudflare Tunnel для Telegram и Google OAuth](./CLOUDFLARED_TELEGRAM_SETUP.md)
+
+---
+
+## Переменные окружения для Telegram
+
+### TELEGRAM_CHANNEL_URL
+
+Ссылка на ваш Telegram канал, где публикуются одобренные объявления.
+
+**Пример:**
+```bash
+TELEGRAM_CHANNEL_URL=https://t.me/findme_by
+```
+
+Эта ссылка отображается на главной странице приложения и доступна пользователям для подписки на канал.
+
+**Где добавить:**
+- `backend/.env` — для бэкенда
+- `.env` — для Docker Compose (корневой файл)
+
+**Примечание:** Если переменная не указана, используется значение по умолчанию `https://t.me/findme_by`.

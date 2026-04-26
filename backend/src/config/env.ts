@@ -25,6 +25,7 @@ export const env = {
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChannelId: process.env.TELEGRAM_CHANNEL_ID || '',
   telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME || '',
+  telegramChannelUrl: process.env.TELEGRAM_CHANNEL_URL || 'https://t.me/findme_by',
 
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',

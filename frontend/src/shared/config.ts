@@ -14,4 +14,20 @@ function normalizeWsUrl(apiUrl: string | undefined) {
 export const config = {
   apiUrl: import.meta.env.VITE_API_URL,
   wsUrl: normalizeWsUrl(import.meta.env.VITE_API_URL),
+  telegramChannelUrl: 'https://t.me/findme_by', // Будет загружено с сервера
 };
+
+// Загрузка публичной конфигурации с сервера
+export async function loadPublicConfig() {
+  try {
+    const response = await fetch(`${config.apiUrl || 'http://localhost:3000'}/health/config`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.telegramChannelUrl) {
+        config.telegramChannelUrl = data.telegramChannelUrl;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load public config:', error);
+  }
+}
