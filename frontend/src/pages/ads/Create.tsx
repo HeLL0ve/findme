@@ -317,7 +317,7 @@ export default function CreateAd() {
                     <Flex direction="column" gap="2" style={{ flex: 1 }}>
                       <Text size="2" weight="bold" color="gray">Город</Text>
                       <TextField.Root
-                        placeholder="Например: Москва"
+                        placeholder="Например: Минск"
                         value={form.location.city}
                         onChange={(event) => setForm({ ...form, location: { ...form.location, city: event.target.value } })}
                       />
