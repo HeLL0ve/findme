@@ -80,6 +80,9 @@ export default function Footer() {
                   <RadixLink href="https://github.com/HeLL0ve/findme" target="_blank" underline="hover" size="2">
                     GitHub
                   </RadixLink>
+                  <RadixLink href="https://t.me/findme_by" target="_blank" underline="hover" size="2">
+                    Telegram канал
+                  </RadixLink>
                 </Flex>
               </Flex>
             </Flex>
