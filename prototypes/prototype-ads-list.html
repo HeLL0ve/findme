@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FindMe — Прототип страницы объявлений</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1a1a1a; line-height: 1.5; }
+
+    /* HEADER */
+    header { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.08); }
+    .header-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; gap: 12px; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+    .logo-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #7c3aed, #a78bfa); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 800; }
+    .logo-text strong { display: block; font-size: 15px; font-weight: 700; }
+    .logo-text span { display: block; font-size: 11px; color: #888; }
+    .header-divider { width: 1px; height: 28px; background: rgba(0,0,0,0.1); }
+    nav a { padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; text-decoration: none; color: #444; margin-right: 2px; }
+    nav a:hover { background: rgba(124,58,237,0.08); color: #7c3aed; }
+    nav a.active { background: rgba(124,58,237,0.1); color: #7c3aed; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: none; cursor: pointer; background: rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; color: #555; }
+    .badge-role { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: rgba(124,58,237,0.1); color: #7c3aed; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#7c3aed,#a78bfa); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .notif-wrap { position: relative; }
+    .notif-dot { position: absolute; right: 4px; bottom: 4px; width: 8px; height: 8px; border-radius: 50%; background: #7c3aed; }
+
+    /* PAGE HEADER */
+    .page-header { background: linear-gradient(135deg, rgba(124,58,237,0.07) 0%, rgba(124,58,237,0.03) 100%); border-bottom: 1px solid rgba(0,0,0,0.07); padding: 28px 24px; }
+    .page-header-inner { max-width: 1280px; margin: 0 auto; }
+    .page-header h1 { font-size: 28px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .page-header p { font-size: 14px; color: #777; margin-top: 4px; }
+
+    /* LAYOUT */
+    .layout { max-width: 1280px; margin: 0 auto; padding: 28px 24px 48px; display: flex; gap: 24px; }
+
+    /* SIDEBAR */
+    .sidebar { width: 280px; flex-shrink: 0; }
+    .filter-card { border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 20px; }
+    .filter-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .filter-group { margin-bottom: 16px; }
+    .filter-group label { display: block; font-size: 12px; font-weight: 700; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .filter-input { width: 100%; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.12); border-radius: 8px; font-size: 14px; color: #333; background: #fafafa; outline: none; }
+    .filter-input:focus { border-color: #7c3aed; background: #fff; }
+    .filter-select { width: 100%; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.12); border-radius: 8px; font-size: 14px; color: #333; background: #fafafa; outline: none; appearance: none; cursor: pointer; }
+    .btn-search { width: 100%; padding: 10px; border-radius: 8px; border: none; background: #7c3aed; color: white; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+    .btn-search:hover { background: #6d28d9; }
+
+    /* CONTENT */
+    .content { flex: 1; min-width: 0; }
+    .content-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .view-btns { display: flex; gap: 6px; }
+    .view-btn { padding: 6px 14px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .view-btn.active { background: #7c3aed; color: white; }
+    .view-btn:not(.active) { background: rgba(124,58,237,0.08); color: #7c3aed; }
+    .results-count { font-size: 13px; color: #888; }
+    .results-count strong { color: #1d4ed8; }
+
+    /* ADS GRID */
+    .ads-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .ad-card { border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); overflow: hidden; background: #fff; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+    .ad-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); border-color: rgba(124,58,237,0.25); }
+    .ad-img { width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; font-size: 44px; }
+    .ad-img.purple { background: linear-gradient(135deg, #ede9fe, #ddd6fe); }
+    .ad-img.blue { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+    .ad-img.green { background: linear-gradient(135deg, #dcfce7, #bbf7d0); }
+    .ad-img.orange { background: linear-gradient(135deg, #ffedd5, #fed7aa); }
+    .ad-body { padding: 14px; }
+    .ad-badges { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .badge-lost { background: rgba(239,68,68,0.1); color: #dc2626; }
+    .badge-found { background: rgba(34,197,94,0.1); color: #15803d; }
+    .badge-pending { background: rgba(217,119,6,0.08); color: #b45309; font-size: 10px; text-transform: uppercase; }
+    .badge-approved { background: rgba(59,130,246,0.08); color: #1d4ed8; font-size: 10px; text-transform: uppercase; }
+    .ad-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ad-breed { font-size: 12px; color: #888; margin-bottom: 8px; }
+    .ad-desc { font-size: 12px; color: #777; line-height: 1.4; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ad-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #aaa; }
+    .ad-overlay-btns { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+    .ad-img-wrap { position: relative; }
+    .overlay-btn { width: 26px; height: 26px; border-radius: 6px; background: rgba(0,0,0,0.45); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; }
+
+    /* PAGINATION */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 32px; }
+    .page-btn { width: 36px; height: 36px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .page-btn.active { background: #7c3aed; color: white; }
+    .page-btn:not(.active) { background: rgba(124,58,237,0.08); color: #7c3aed; }
+    .page-btn.nav { padding: 0 14px; width: auto; }
+    .page-btn:disabled { opacity: 0.4; cursor: default; }
+    .page-dots { color: #aaa; font-size: 14px; padding: 0 4px; }
+
+    /* FOOTER */
+    footer { background: rgba(0,0,0,0.03); border-top: 1px solid rgba(0,0,0,0.07); margin-top: 60px; }
+    .footer-inner { max-width: 1280px; margin: 0 auto; padding: 32px 24px 20px; }
+    .footer-top { display: flex; gap: 48px; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; }
+    .footer-brand p { font-size: 13px; color: #777; max-width: 240px; margin-top: 8px; }
+    .footer-links { display: flex; gap: 40px; flex: 1; flex-wrap: wrap; }
+    .footer-col h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+    .footer-col a { display: block; font-size: 13px; color: #666; text-decoration: none; margin-bottom: 5px; }
+    .footer-col a:hover { color: #7c3aed; }
+    .footer-divider { height: 1px; background: rgba(0,0,0,0.08); margin-bottom: 14px; }
+    .footer-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .footer-bottom span { font-size: 12px; color: #aaa; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <a href="prototype-home.html" class="logo">
+        <div class="logo-icon">F</div>
+        <div class="logo-text"><strong>FindMe</strong><span>поиск питомцев</span></div>
+      </a>
+      <div class="header-divider"></div>
+      <nav>
+        <a href="prototype-home.html">Главная</a>
+        <a href="#" class="active">Объявления</a>
+        <a href="#">Избранное</a>
+        <a href="#">Мои объявления</a>
+        <a href="#">Чаты</a>
+        <a href="#">Добавить объявление</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn">🌙</button>
+      <div class="notif-wrap">
+        <button class="icon-btn">🔔</button>
+        <div class="notif-dot"></div>
+      </div>
+      <span class="badge-role">Пользователь</span>
+      <div class="avatar">А</div>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <h1>🔍 Поиск потерянных питомцев</h1>
+    <p>Найдите потерянного или найденного питомца по типу, породе и местоположению</p>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="filter-card">
+      <h3>🔍 Фильтры</h3>
+      <div class="filter-group">
+        <label>Поиск</label>
+        <input class="filter-input" type="text" placeholder="Кличка, описание, порода" />
+      </div>
+      <div class="filter-group">
+        <label>Город</label>
+        <input class="filter-input" type="text" placeholder="Укажите город" />
+      </div>
+      <div class="filter-group">
+        <label>Тип</label>
+        <select class="filter-select">
+          <option>Все типы</option>
+          <option>Потерян</option>
+          <option>Найден</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Статус</label>
+        <select class="filter-select">
+          <option>Активные</option>
+          <option>Найдены</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Дата публикации</label>
+        <select class="filter-select">
+          <option>Любое время</option>
+          <option>За последние 7 дней</option>
+          <option>За последний месяц</option>
+        </select>
+      </div>
+      <button class="btn-search">Найти</button>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="content-toolbar">
+      <div class="view-btns">
+        <button class="view-btn active">📋 Список</button>
+        <button class="view-btn">🗺️ Карта</button>
+      </div>
+      <span class="results-count">Найдено: <strong>47</strong> объявлений</span>
+    </div>
+
+    <div class="ads-grid">
+      <div class="ad-card">
+        <div class="ad-img-wrap">
+          <div class="ad-img purple">🐕</div>
+          <div class="ad-overlay-btns">
+            <button class="overlay-btn">🔗</button>
+            <button class="overlay-btn">🤍</button>
+          </div>
+        </div>
+        <div class="ad-body">
+          <div class="ad-badges"><span class="badge badge-lost">Потерян</span><span class="badge badge-approved">опубл.</span></div>
+          <div class="ad-title">Лабрадор Макс</div>
+          <div class="ad-breed">Собака · Лабрадор · окрас: рыжий</div>
+          <div class="ad-desc">Потерялся в районе парка Горького. Рыжий окрас, ошейник синего цвета.</div>
+          <div class="ad-meta"><span>📍 Минск</span><span>🕐 2 ч. назад</span></div>
+        </div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-img-wrap">
+          <div class="ad-img blue">🐈</div>
+          <div class="ad-overlay-btns">
+            <button class="overlay-btn">🔗</button>
+            <button class="overlay-btn" style="background:rgba(239,68,68,0.85);">❤️</button>
+          </div>
+        </div>
+        <div class="ad-body">
+          <div class="ad-badges"><span class="badge badge-lost">Потеряна</span><span class="badge badge-approved">опубл.</span></div>
+          <div class="ad-title">Кошка Муся</div>
+          <div class="ad-breed">Кошка · Персидская · окрас: серый</div>
+          <div class="ad-desc">Серая полосатая кошка, пропала около дома на ул. Ленина. Очень пугливая.</div>
+          <div class="ad-meta"><span>📍 Минск</span><span>🕐 5 ч. назад</span></div>
+        </div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-img-wrap">
+          <div class="ad-img green">🐩</div>
+          <div class="ad-overlay-btns">
+            <button class="overlay-btn">🔗</button>
+            <button class="overlay-btn">🤍</button>
+          </div>
+        </div>
+        <div class="ad-body">
+          <div class="ad-badges"><span class="badge badge-found">Найден</span><span class="badge badge-approved">опубл.</span></div>
+          <div class="ad-title">Пудель белый</div>
+          <div class="ad-breed">Собака · Пудель · окрас: белый</div>
+          <div class="ad-desc">Найден белый пудель без ошейника. Ухоженный, явно домашний. Ищем хозяев.</div>
+          <div class="ad-meta"><span>📍 Минск</span><span>🕐 1 дн. назад</span></div>
+        </div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-img-wrap">
+          <div class="ad-img orange">🐕‍🦺</div>
+          <div class="ad-overlay-btns">
+            <button class="overlay-btn">🔗</button>
+            <button class="overlay-btn">🤍</button>
+          </div>
+        </div>
+        <div class="ad-body">
+          <div class="ad-badges"><span class="badge badge-lost">Потерян</span><span class="badge badge-pending">на модер.</span></div>
+          <div class="ad-title">Хаски Буран</div>
+          <div class="ad-breed">Собака · Хаски · окрас: серо-белый</div>
+          <div class="ad-desc">Голубоглазый хаски, убежал во время прогулки. Откликается на имя.</div>
+          <div class="ad-meta"><span>📍 Минск</span><span>🕐 2 дн. назад</span></div>
+        </div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-img-wrap">
+          <div class="ad-img purple">🐱</div>
+          <div class="ad-overlay-btns">
+            <button class="overlay-btn">🔗</button>
+            <button class="overlay-btn">🤍</button>
+          </div>
+        </div>
+        <div class="ad-body">
+          <div class="ad-badges"><span class="badge badge-found">Найдена</span><span class="badge badge-approved">опубл.</span></div>
+          <div class="ad-title">Кошка рыжая</div>
+          <div class="ad-breed">Кошка · Не указано · окрас: рыжий</div>
+          <div class="ad-desc">Найдена рыжая кошка около торгового центра. Очень ласковая, ищем хозяев.</div>
+          <div class="ad-meta"><span>📍 Минск</span><span>🕐 3 дн. назад</span></div>
+        </div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-img-wrap">
+          <div class="ad-img blue">🐶</div>
+          <div class="ad-overlay-btns">
+            <button class="overlay-btn">🔗</button>
+            <button class="overlay-btn">🤍</button>
+          </div>
+        </div>
+        <div class="ad-body">
+          <div class="ad-badges"><span class="badge badge-lost">Потерян</span><span class="badge badge-approved">опубл.</span></div>
+          <div class="ad-title">Шпиц Рыжик</div>
+          <div class="ad-breed">Собака · Шпиц · окрас: рыжий</div>
+          <div class="ad-desc">Маленький рыжий шпиц, очень активный. Пропал во дворе дома. Есть чип.</div>
+          <div class="ad-meta"><span>📍 Минск</span><span>🕐 4 дн. назад</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+      <button class="page-btn nav" disabled>← Назад</button>
+      <button class="page-btn active">1</button>
+      <button class="page-btn">2</button>
+      <button class="page-btn">3</button>
+      <span class="page-dots">...</span>
+      <button class="page-btn">8</button>
+      <button class="page-btn nav">Вперёд →</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="prototype-home.html" class="logo">
+          <div class="logo-icon">F</div>
+          <div class="logo-text"><strong>FindMe</strong><span>поиск питомцев</span></div>
+        </a>
+        <p>Платформа для поиска и возврата потерянных домашних животных</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Быстрые ссылки</h4>
+          <a href="prototype-home.html">Главная</a>
+          <a href="#">Поиск объявлений</a>
+          <a href="#">Создать объявление</a>
+          <a href="#">Сообщения</a>
+        </div>
+        <div class="footer-col">
+          <h4>Личное</h4>
+          <a href="#">Профиль</a>
+          <a href="#">Мои объявления</a>
+          <a href="#">Уведомления</a>
+        </div>
+        <div class="footer-col">
+          <h4>Информация</h4>
+          <a href="#">GitHub</a>
+          <a href="#">Telegram канал</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom">
+      <span>© 2026 FindMe · Дипломный проект</span>
+      <span>Помогайте животным вернуться домой</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

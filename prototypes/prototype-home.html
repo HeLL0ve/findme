@@ -1,0 +1,586 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FindMe — Прототип главной страницы</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --violet-9: #7c3aed;
+      --violet-10: #6d28d9;
+      --violet-11: #5b21b6;
+      --violet-a2: rgba(124,58,237,0.06);
+      --violet-a6: rgba(124,58,237,0.22);
+      --blue-11: #1d4ed8;
+      --blue-a2: rgba(59,130,246,0.06);
+      --blue-a5: rgba(59,130,246,0.18);
+      --green-11: #15803d;
+      --gray-a2: rgba(0,0,0,0.04);
+      --gray-a4: rgba(0,0,0,0.08);
+      --gray-a5: rgba(0,0,0,0.10);
+      --shadow-3: rgba(0,0,0,0.12);
+      --radius-2: 8px;
+      --radius-3: 12px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1a1a1a; line-height: 1.5; }
+
+    /* ===== HEADER ===== */
+    header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .header-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 24px; gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 18px; font-weight: 800; flex-shrink: 0;
+    }
+    .logo-text { line-height: 1.2; }
+    .logo-text strong { display: block; font-size: 15px; font-weight: 700; }
+    .logo-text span { display: block; font-size: 11px; color: #888; }
+    .header-divider { width: 1px; height: 28px; background: rgba(0,0,0,0.1); }
+    nav { display: flex; gap: 4px; }
+    nav a {
+      padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 500;
+      text-decoration: none; color: #444; transition: background 0.15s, color 0.15s;
+    }
+    nav a:hover { background: rgba(124,58,237,0.08); color: #7c3aed; }
+    nav a.active { background: rgba(124,58,237,0.1); color: #7c3aed; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 8px; border: none; cursor: pointer;
+      background: rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center;
+      color: #555; transition: background 0.15s;
+    }
+    .icon-btn:hover { background: rgba(124,58,237,0.1); color: #7c3aed; }
+    .badge-role {
+      padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      background: rgba(124,58,237,0.1); color: #7c3aed;
+    }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#7c3aed,#a78bfa);
+      display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; cursor: pointer;
+    }
+    .btn {
+      padding: 7px 16px; border-radius: 8px; font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: #7c3aed; color: white; }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-soft { background: rgba(124,58,237,0.1); color: #7c3aed; }
+    .btn-soft:hover { background: rgba(124,58,237,0.18); }
+    .btn-soft-green { background: rgba(21,128,61,0.1); color: #15803d; }
+    .btn-soft-green:hover { background: rgba(21,128,61,0.18); }
+    .btn-lg { padding: 10px 22px; font-size: 15px; border-radius: 10px; }
+
+    /* ===== HERO ===== */
+    .hero {
+      background: linear-gradient(135deg, rgba(124,58,237,0.07) 0%, rgba(124,58,237,0.03) 100%);
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+      padding: 56px 24px;
+    }
+    .hero-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 48px;
+      min-height: 280px;
+    }
+    .hero-content { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+    .hero-title {
+      font-size: 48px; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-subtitle { font-size: 17px; color: #666; line-height: 1.6; max-width: 500px; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-telegram {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 8px;
+      background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.18);
+      font-size: 13px; color: #555; max-width: 380px;
+    }
+    .hero-telegram a { color: #1d4ed8; font-weight: 600; text-decoration: none; }
+    .hero-telegram a:hover { text-decoration: underline; }
+    .online-card {
+      background: rgba(124,58,237,0.06); border: 2px solid rgba(124,58,237,0.22);
+      border-radius: 14px; padding: 28px 32px; min-width: 220px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .online-label { font-size: 11px; font-weight: 700; color: #888; letter-spacing: 0.08em; text-transform: uppercase; }
+    .online-count { font-size: 52px; font-weight: 800; color: #7c3aed; line-height: 1; }
+    .online-dot-row { display: flex; align-items: center; gap: 6px; }
+    .online-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.8);
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.2)} }
+    .online-text { font-size: 13px; color: #777; }
+
+    /* ===== MAIN CONTENT ===== */
+    .main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 48px; }
+
+    /* ===== HOW IT WORKS ===== */
+    .section-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .how-card {
+      padding: 24px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08);
+      transition: transform 0.25s, box-shadow 0.25s; cursor: default;
+    }
+    .how-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+    .how-card.blue { background: linear-gradient(135deg,rgba(59,130,246,0.08),rgba(59,130,246,0.03)); }
+    .how-card.green { background: linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03)); }
+    .how-card.violet { background: linear-gradient(135deg,rgba(124,58,237,0.08),rgba(124,58,237,0.03)); }
+    .how-icon { font-size: 28px; margin-bottom: 12px; }
+    .how-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .how-card p { font-size: 13px; color: #666; line-height: 1.5; }
+
+    /* ===== ADS SECTION ===== */
+    .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .section-header-left h2 { font-size: 22px; font-weight: 700; }
+    .section-header-left p { font-size: 13px; color: #888; margin-top: 4px; }
+    .ads-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .ad-card {
+      border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); overflow: hidden;
+      background: #fff; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+    }
+    .ad-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+    .ad-img {
+      width: 100%; height: 180px; object-fit: cover;
+      background: linear-gradient(135deg, #e9d5ff, #ddd6fe);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; color: #a78bfa;
+    }
+    .ad-body { padding: 14px; }
+    .ad-status {
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .ad-status.lost { background: rgba(239,68,68,0.1); color: #dc2626; }
+    .ad-status.found { background: rgba(34,197,94,0.1); color: #15803d; }
+    .ad-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .ad-desc { font-size: 12px; color: #777; line-height: 1.4; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ad-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #aaa; }
+    .ad-location { display: flex; align-items: center; gap: 3px; }
+
+    /* ===== HAPPY ENDINGS ===== */
+    .happy-section { margin-top: 56px; padding-top: 40px; border-top: 1px solid rgba(0,0,0,0.07); }
+    .happy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+    .happy-card {
+      border-radius: 12px; border: 1px solid rgba(34,197,94,0.2); overflow: hidden;
+      background: rgba(34,197,94,0.02); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+    }
+    .happy-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(34,197,94,0.12); }
+
+    /* ===== STATS ===== */
+    .stats-section { margin-top: 48px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .stat-card {
+      border-radius: 12px; padding: 20px; text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s; cursor: default;
+    }
+    .stat-card:hover { transform: translateY(-4px) scale(1.02); }
+    .stat-card.blue { background: linear-gradient(135deg,rgba(59,130,246,0.08),rgba(59,130,246,0.03)); border: 2px solid rgba(59,130,246,0.2); }
+    .stat-card.green { background: linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03)); border: 2px solid rgba(34,197,94,0.2); }
+    .stat-card.amber { background: linear-gradient(135deg,rgba(217,119,6,0.08),rgba(217,119,6,0.03)); border: 2px solid rgba(217,119,6,0.2); }
+    .stat-card.purple { background: linear-gradient(135deg,rgba(139,92,246,0.08),rgba(139,92,246,0.03)); border: 2px solid rgba(139,92,246,0.2); }
+    .stat-value { font-size: 32px; font-weight: 800; margin-bottom: 4px; }
+    .stat-value.blue { color: #1d4ed8; }
+    .stat-value.green { color: #15803d; }
+    .stat-value.amber { color: #b45309; }
+    .stat-value.purple { color: #7c3aed; }
+    .stat-label { font-size: 13px; color: #777; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: rgba(0,0,0,0.03); border-top: 1px solid rgba(0,0,0,0.07);
+      margin-top: 60px;
+    }
+    .footer-inner { max-width: 1280px; margin: 0 auto; padding: 40px 24px 24px; }
+    .footer-top { display: flex; gap: 48px; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; }
+    .footer-brand { min-width: 200px; flex: 0 0 auto; }
+    .footer-brand .logo { margin-bottom: 10px; }
+    .footer-brand p { font-size: 13px; color: #777; line-height: 1.6; max-width: 260px; margin-bottom: 8px; }
+    .footer-brand small { font-size: 12px; color: #aaa; }
+    .footer-links { display: flex; gap: 40px; flex: 1; flex-wrap: wrap; }
+    .footer-col h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+    .footer-col a { display: block; font-size: 13px; color: #666; text-decoration: none; margin-bottom: 6px; transition: color 0.15s; }
+    .footer-col a:hover { color: #7c3aed; }
+    .footer-divider { height: 1px; background: rgba(0,0,0,0.08); margin-bottom: 16px; }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .footer-bottom span { font-size: 12px; color: #aaa; }
+
+    /* ===== NOTIFICATION DOT ===== */
+    .notif-wrap { position: relative; }
+    .notif-dot {
+      position: absolute; right: 4px; bottom: 4px;
+      width: 8px; height: 8px; border-radius: 50%; background: #7c3aed;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <a href="#" class="logo">
+        <div class="logo-icon">F</div>
+        <div class="logo-text">
+          <strong>FindMe</strong>
+          <span>поиск питомцев</span>
+        </div>
+      </a>
+      <div class="header-divider"></div>
+      <nav>
+        <a href="#" class="active">Главная</a>
+        <a href="#">Объявления</a>
+        <a href="#">Избранное</a>
+        <a href="#">Мои объявления</a>
+        <a href="#">Чаты</a>
+        <a href="#">Добавить объявление</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <!-- Theme toggle -->
+      <button class="icon-btn" title="Сменить тему" onclick="toggleTheme()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M21 13.1A9 9 0 1 1 10.9 3a7 7 0 1 0 10.1 10.1Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <!-- Bell -->
+      <div class="notif-wrap">
+        <button class="icon-btn" title="Уведомления">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0a3 3 0 0 1-6 0m6 0H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="notif-dot"></div>
+      </div>
+      <!-- Role badge -->
+      <span class="badge-role">Пользователь</span>
+      <!-- Avatar -->
+      <div class="avatar" title="Профиль">А</div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <h1 class="hero-title">FindMe — найди<br>потерянного питомца</h1>
+      <p class="hero-subtitle">Помогайте животным вернуться домой. Делитесь объявлениями, общайтесь и вместе спасайте жизни.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-primary btn-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Создать объявление
+        </a>
+        <a href="#" class="btn btn-soft btn-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Начать поиск
+        </a>
+      </div>
+      <div class="hero-telegram">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21.8 2.2L1 10.3c-1.4.6-1.4 1.4-.2 1.8l5.2 1.6 2 6.3c.3.8.2 1.1.9 1.1.5 0 .8-.2 1.1-.5l3.1-3 5.2 3.8c1 .5 1.7.3 1.9-.9l3.5-16.5c.3-1.5-.6-2.2-1.9-1.8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Все объявления публикуются в нашем <a href="https://t.me/findme_by" target="_blank">Telegram канале</a>
+      </div>
+    </div>
+    <div class="online-card">
+      <span class="online-label">Активно сейчас</span>
+      <span class="online-count">24</span>
+      <div class="online-dot-row">
+        <div class="online-dot"></div>
+        <span class="online-text">пользователей онлайн</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main">
+
+  <!-- How it works -->
+  <section>
+    <h2 class="section-title">Как это работает?</h2>
+    <div class="how-grid">
+      <div class="how-card blue">
+        <div class="how-icon">🔍</div>
+        <h3>Поиск</h3>
+        <p>Ищите потерянных питомцев по типу, породе и местоположению</p>
+      </div>
+      <div class="how-card green">
+        <div class="how-icon">📋</div>
+        <h3>Объявления</h3>
+        <p>Размещайте информацию о найденных животных с фото и контактами</p>
+      </div>
+      <div class="how-card violet">
+        <div class="how-icon">💬</div>
+        <h3>Общение</h3>
+        <p>Общайтесь с другими пользователями и помогайте друг другу</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Latest ads -->
+  <section style="margin-top: 48px;">
+    <div class="section-header">
+      <div class="section-header-left">
+        <h2>Последние объявления</h2>
+        <p>Помогите вернуть домой потерянных питомцев</p>
+      </div>
+      <a href="#" class="btn btn-soft">Смотреть все →</a>
+    </div>
+    <div class="ads-grid">
+      <!-- Card 1 -->
+      <div class="ad-card">
+        <div class="ad-img">🐕</div>
+        <div class="ad-body">
+          <span class="ad-status lost">Потерян</span>
+          <div class="ad-title">Лабрадор Макс, 3 года</div>
+          <div class="ad-desc">Потерялся в районе парка Горького. Рыжий окрас, ошейник синего цвета. Очень дружелюбный.</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск, Центральный р-н</span>
+            <span>2 часа назад</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="ad-card">
+        <div class="ad-img">🐈</div>
+        <div class="ad-body">
+          <span class="ad-status lost">Потеряна</span>
+          <div class="ad-title">Кошка Муся, 2 года</div>
+          <div class="ad-desc">Серая полосатая кошка, пропала около дома на ул. Ленина. Очень пугливая, не подходит к чужим.</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск, Советский р-н</span>
+            <span>5 часов назад</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="ad-card">
+        <div class="ad-img">🐩</div>
+        <div class="ad-body">
+          <span class="ad-status found">Найден</span>
+          <div class="ad-title">Пудель белый, взрослый</div>
+          <div class="ad-desc">Найден белый пудель без ошейника. Ухоженный, явно домашний. Ищем хозяев.</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск, Фрунзенский р-н</span>
+            <span>1 день назад</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 4 -->
+      <div class="ad-card">
+        <div class="ad-img">🐕‍🦺</div>
+        <div class="ad-body">
+          <span class="ad-status lost">Потерян</span>
+          <div class="ad-title">Хаски Буран, 5 лет</div>
+          <div class="ad-desc">Голубоглазый хаски, серо-белый окрас. Убежал во время прогулки. Откликается на имя.</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск, Московский р-н</span>
+            <span>2 дня назад</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 5 -->
+      <div class="ad-card">
+        <div class="ad-img">🐱</div>
+        <div class="ad-body">
+          <span class="ad-status found">Найдена</span>
+          <div class="ad-title">Кошка рыжая, молодая</div>
+          <div class="ad-desc">Найдена рыжая кошка около торгового центра. Очень ласковая, ищем хозяев.</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск, Заводской р-н</span>
+            <span>3 дня назад</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 6 -->
+      <div class="ad-card">
+        <div class="ad-img">🐶</div>
+        <div class="ad-body">
+          <span class="ad-status lost">Потерян</span>
+          <div class="ad-title">Шпиц Рыжик, 1 год</div>
+          <div class="ad-desc">Маленький рыжий шпиц, очень активный. Пропал во дворе дома. Есть чип.</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск, Партизанский р-н</span>
+            <span>4 дня назад</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Happy endings -->
+  <section class="happy-section">
+    <div class="section-header">
+      <div class="section-header-left">
+        <h2>🎉 Питомцы нашлись!</h2>
+        <p>Счастливые истории — питомцы вернулись домой</p>
+      </div>
+      <a href="#" class="btn btn-soft-green">Смотреть все →</a>
+    </div>
+    <div class="happy-grid">
+      <div class="ad-card happy-card">
+        <div class="ad-img" style="background: linear-gradient(135deg,#bbf7d0,#86efac);">🐕</div>
+        <div class="ad-body">
+          <span class="ad-status found">Нашёлся ✓</span>
+          <div class="ad-title">Джек Рассел Бобик</div>
+          <div class="ad-desc">Пропадал 3 дня, нашёлся благодаря объявлению на FindMe. Спасибо всем!</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск</span>
+            <span>Счастливый конец</span>
+          </div>
+        </div>
+      </div>
+      <div class="ad-card happy-card">
+        <div class="ad-img" style="background: linear-gradient(135deg,#bbf7d0,#86efac);">🐈</div>
+        <div class="ad-body">
+          <span class="ad-status found">Нашлась ✓</span>
+          <div class="ad-title">Персидская кошка Снежка</div>
+          <div class="ad-desc">Неделю искали, нашли через чат с соседом. Платформа очень помогла!</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск</span>
+            <span>Счастливый конец</span>
+          </div>
+        </div>
+      </div>
+      <div class="ad-card happy-card">
+        <div class="ad-img" style="background: linear-gradient(135deg,#bbf7d0,#86efac);">🐩</div>
+        <div class="ad-body">
+          <span class="ad-status found">Нашёлся ✓</span>
+          <div class="ad-title">Той-терьер Малыш</div>
+          <div class="ad-desc">Хозяева нашлись через 2 часа после публикации объявления. Невероятно быстро!</div>
+          <div class="ad-meta">
+            <span class="ad-location">📍 Минск</span>
+            <span>Счастливый конец</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statistics -->
+  <section class="stats-section">
+    <h2 class="section-title">Статистика платформы</h2>
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-value blue">1 248</div>
+        <div class="stat-label">Пользователей</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-value green">3 571</div>
+        <div class="stat-label">Объявлений размещено</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-value amber">892</div>
+        <div class="stat-label">Питомцев вернулись домой</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-value purple">2 104</div>
+        <div class="stat-label">Активных чатов</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="logo" style="margin-bottom:10px; display:inline-flex;">
+          <div class="logo-icon">F</div>
+          <div class="logo-text">
+            <strong>FindMe</strong>
+            <span>поиск питомцев</span>
+          </div>
+        </a>
+        <p>Платформа для поиска и возврата потерянных домашних животных</p>
+        <small>Вместе мы помогаем питомцам вернуться домой</small>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Быстрые ссылки</h4>
+          <a href="#">Главная</a>
+          <a href="#">Поиск объявлений</a>
+          <a href="#">Создать объявление</a>
+          <a href="#">Сообщения</a>
+        </div>
+        <div class="footer-col">
+          <h4>Личное</h4>
+          <a href="#">Профиль</a>
+          <a href="#">Мои объявления</a>
+          <a href="#">Уведомления</a>
+        </div>
+        <div class="footer-col">
+          <h4>Информация</h4>
+          <a href="https://github.com/HeLL0ve/findme" target="_blank">GitHub</a>
+          <a href="https://t.me/findme_by" target="_blank">Telegram канал</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom">
+      <span>© 2026 FindMe · Дипломный проект</span>
+      <span>Помогайте животным вернуться домой</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Theme toggle demo
+  let dark = false;
+  function toggleTheme() {
+    dark = !dark;
+    document.body.style.background = dark ? '#111' : '#fff';
+    document.body.style.color = dark ? '#f0f0f0' : '#1a1a1a';
+    document.querySelector('header').style.background = dark
+      ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.92)';
+    document.querySelectorAll('.ad-card').forEach(c => {
+      c.style.background = dark ? '#1e1e1e' : '#fff';
+      c.style.borderColor = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)';
+    });
+    document.querySelector('footer').style.background = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)';
+  }
+
+  // Animate stats counter on scroll
+  const statValues = document.querySelectorAll('.stat-value');
+  const targets = [1248, 3571, 892, 2104];
+  let animated = false;
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !animated) {
+      animated = true;
+      statValues.forEach((el, i) => {
+        let start = 0;
+        const end = targets[i];
+        const duration = 1200;
+        const step = end / (duration / 16);
+        const timer = setInterval(() => {
+          start += step;
+          if (start >= end) { start = end; clearInterval(timer); }
+          el.textContent = Math.floor(start).toLocaleString('ru-RU');
+        }, 16);
+      });
+    }
+  }, { threshold: 0.3 });
+  if (document.querySelector('.stats-grid')) {
+    observer.observe(document.querySelector('.stats-grid'));
+  }
+</script>
+</body>
+</html>

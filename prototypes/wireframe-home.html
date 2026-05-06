@@ -1,0 +1,507 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FindMe — Wireframe главной страницы</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #333;
+      font-size: 13px;
+    }
+
+    /* ── утилиты ── */
+    .box {
+      border: 1px solid #999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #555;
+      font-size: 12px;
+      background: #fff;
+    }
+    .box-gray { background: #e8e8e8; }
+    .box-dark { background: #bbb; }
+    .label {
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+    }
+    .arrow-label {
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    /* ── страница ── */
+    .page { max-width: 1040px; margin: 0 auto; padding: 20px; }
+
+    /* ── HEADER ── */
+    .wf-header {
+      border: 1px solid #999;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 0;
+    }
+    .wf-logo { width: 200px; height: 52px; }
+    .wf-header-right { display: flex; align-items: center; gap: 8px; }
+    .wf-icon-btn { width: 32px; height: 32px; border-radius: 4px; }
+    .wf-icon-btn-round { width: 32px; height: 32px; border-radius: 50%; }
+    .wf-badge { width: 80px; height: 22px; border-radius: 2px; }
+    .wf-contacts { width: 220px; height: 52px; }
+
+    /* ── NAV ── */
+    .wf-nav-wrap {
+      border: 1px solid #999;
+      border-top: none;
+      padding: 8px 16px 10px;
+    }
+    .wf-nav-label {
+      font-size: 11px; color: #666;
+      margin-bottom: 6px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .wf-nav-items { display: flex; gap: 8px; }
+    .wf-nav-item { width: 110px; height: 32px; }
+
+    /* ── HERO / SLIDER ── */
+    .wf-hero {
+      border: 1px solid #999;
+      border-top: none;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 32px;
+      gap: 24px;
+      background: #f5f5f5;
+      position: relative;
+    }
+    .wf-hero-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .wf-line { height: 14px; background: #bbb; border-radius: 2px; }
+    .wf-line-lg { height: 20px; background: #aaa; border-radius: 2px; }
+    .wf-btn-row { display: flex; gap: 10px; margin-top: 4px; }
+    .wf-btn { width: 140px; height: 36px; }
+    .wf-btn-sm { width: 100px; height: 28px; }
+    .wf-tg-bar { height: 32px; border-radius: 2px; }
+    .wf-online-card {
+      width: 200px; min-height: 120px;
+      border: 1px solid #999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 8px; background: #ececec; flex-shrink: 0;
+    }
+    .wf-online-num { width: 60px; height: 40px; background: #bbb; border-radius: 2px; }
+    .wf-online-dot-row { display: flex; align-items: center; gap: 6px; }
+    .wf-dot { width: 10px; height: 10px; border-radius: 50%; background: #999; }
+    .wf-hero-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px; border: 1px solid #999;
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #666; border-radius: 50%;
+    }
+    .wf-hero-arrow.left { left: 8px; }
+    .wf-hero-arrow.right { right: 8px; }
+    .wf-dots-row {
+      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 6px;
+    }
+    .wf-dot-sm { width: 8px; height: 8px; border-radius: 50%; background: #aaa; }
+    .wf-dot-sm.active { background: #666; }
+
+    /* ── SECTION HEADER ── */
+    .wf-section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .wf-section-title { height: 18px; width: 220px; background: #bbb; border-radius: 2px; }
+    .wf-section-sub { height: 12px; width: 280px; background: #ddd; border-radius: 2px; margin-top: 5px; }
+
+    /* ── HOW IT WORKS ── */
+    .wf-how-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .wf-how-card { border: 1px solid #999; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+    .wf-how-icon { width: 36px; height: 36px; background: #ccc; border-radius: 4px; }
+    .wf-how-title { height: 14px; width: 70%; background: #bbb; border-radius: 2px; }
+    .wf-how-text { height: 10px; background: #ddd; border-radius: 2px; }
+    .wf-how-text.short { width: 80%; }
+
+    /* ── ADS GRID ── */
+    .wf-ads-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .wf-ad-card { border: 1px solid #999; }
+    .wf-ad-img { height: 140px; background: #d5d5d5; display: flex; align-items: center; justify-content: center; }
+    .wf-ad-img-icon { width: 48px; height: 48px; background: #bbb; border-radius: 4px; }
+    .wf-ad-body { padding: 12px; display: flex; flex-direction: column; gap: 7px; }
+    .wf-ad-status { width: 70px; height: 18px; background: #ccc; border-radius: 2px; }
+    .wf-ad-title { height: 14px; background: #bbb; border-radius: 2px; }
+    .wf-ad-desc { display: flex; flex-direction: column; gap: 4px; }
+    .wf-ad-meta { display: flex; justify-content: space-between; }
+    .wf-ad-loc { height: 10px; width: 55%; background: #ddd; border-radius: 2px; }
+    .wf-ad-time { height: 10px; width: 30%; background: #ddd; border-radius: 2px; }
+
+    /* ── STATS ── */
+    .wf-stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+    .wf-stat-card { border: 1px solid #999; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; background: #f5f5f5; }
+    .wf-stat-num { width: 70px; height: 32px; background: #bbb; border-radius: 2px; }
+    .wf-stat-label { height: 11px; width: 90%; background: #ddd; border-radius: 2px; }
+
+    /* ── FOOTER ── */
+    .wf-footer { border: 1px solid #999; margin-top: 40px; background: #f0f0f0; }
+    .wf-footer-top {
+      padding: 24px 20px 16px;
+      display: flex; gap: 32px; justify-content: space-between;
+      border-bottom: 1px solid #ccc;
+    }
+    .wf-footer-brand { display: flex; flex-direction: column; gap: 8px; min-width: 180px; }
+    .wf-footer-logo { width: 120px; height: 36px; background: #ccc; border-radius: 2px; }
+    .wf-footer-desc { display: flex; flex-direction: column; gap: 4px; }
+    .wf-footer-links { display: flex; gap: 32px; flex: 1; }
+    .wf-footer-col { display: flex; flex-direction: column; gap: 6px; min-width: 120px; }
+    .wf-footer-col-title { height: 14px; width: 80%; background: #bbb; border-radius: 2px; margin-bottom: 4px; }
+    .wf-footer-link { height: 11px; background: #ccc; border-radius: 2px; }
+    .wf-footer-bottom {
+      padding: 12px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* ── SECTION SPACING ── */
+    .wf-section { margin-top: 36px; }
+
+    /* ── ANNOTATION ── */
+    .annotation {
+      font-size: 10px; color: #888; font-style: italic;
+      text-align: center; margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="wf-header">
+    <div class="box wf-logo">Логотип</div>
+    <div class="wf-header-right">
+      <div class="box wf-icon-btn">☀</div>
+      <div class="box wf-icon-btn">🔔</div>
+      <div class="box wf-badge">Роль</div>
+      <div class="box wf-icon-btn-round">А</div>
+    </div>
+    <div class="box wf-contacts">Контактные данные / Вход &amp; Регистрация</div>
+  </div>
+
+  <!-- NAV -->
+  <div class="wf-nav-wrap">
+    <div class="wf-nav-label">↓ Навигационное меню ↓</div>
+    <div class="wf-nav-items">
+      <div class="box wf-nav-item">Главная</div>
+      <div class="box wf-nav-item">Объявления</div>
+      <div class="box wf-nav-item">Избранное</div>
+      <div class="box wf-nav-item">Мои объявления</div>
+      <div class="box wf-nav-item">Чаты</div>
+      <div class="box wf-nav-item">+ Объявление</div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="wf-hero">
+    <div class="wf-hero-arrow left">&larr;</div>
+    <div class="wf-hero-content">
+      <div class="wf-line-lg" style="width:75%"></div>
+      <div class="wf-line" style="width:55%"></div>
+      <div class="wf-line" style="width:65%"></div>
+      <div class="wf-line" style="width:50%"></div>
+      <div class="wf-btn-row">
+        <div class="box wf-btn">Создать объявление</div>
+        <div class="box wf-btn">Начать поиск</div>
+      </div>
+      <div class="box wf-tg-bar" style="width:320px">Telegram-канал</div>
+    </div>
+    <div class="wf-online-card">
+      <div class="label" style="font-size:10px">АКТИВНО СЕЙЧАС</div>
+      <div class="wf-online-num"></div>
+      <div class="wf-online-dot-row">
+        <div class="wf-dot"></div>
+        <div class="label">онлайн</div>
+      </div>
+    </div>
+    <div class="wf-hero-arrow right">&rarr;</div>
+    <div class="wf-dots-row">
+      <div class="wf-dot-sm active"></div>
+      <div class="wf-dot-sm"></div>
+      <div class="wf-dot-sm"></div>
+      <div class="wf-dot-sm"></div>
+    </div>
+  </div>
+  <div class="annotation">Hero-секция / Слайдер</div>
+
+  <!-- HOW IT WORKS -->
+  <div class="wf-section">
+    <div class="wf-section-header">
+      <div>
+        <div class="wf-section-title"></div>
+        <div class="annotation" style="text-align:left;margin-top:2px">Как это работает?</div>
+      </div>
+    </div>
+    <div class="wf-how-grid">
+      <div class="wf-how-card">
+        <div class="wf-how-icon"></div>
+        <div class="wf-how-title"></div>
+        <div class="wf-how-text"></div>
+        <div class="wf-how-text short"></div>
+        <div class="annotation">Поиск</div>
+      </div>
+      <div class="wf-how-card">
+        <div class="wf-how-icon"></div>
+        <div class="wf-how-title"></div>
+        <div class="wf-how-text"></div>
+        <div class="wf-how-text short"></div>
+        <div class="annotation">Объявления</div>
+      </div>
+      <div class="wf-how-card">
+        <div class="wf-how-icon"></div>
+        <div class="wf-how-title"></div>
+        <div class="wf-how-text"></div>
+        <div class="wf-how-text short"></div>
+        <div class="annotation">Общение</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAST ADS -->
+  <div class="wf-section">
+    <div class="wf-section-header">
+      <div>
+        <div class="wf-section-title"></div>
+        <div class="wf-section-sub" style="margin-top:5px"></div>
+        <div class="annotation" style="text-align:left;margin-top:2px">Последние объявления</div>
+      </div>
+      <div class="box wf-btn-sm">Смотреть все</div>
+    </div>
+    <div class="wf-ads-grid">
+      <!-- 6 ad cards -->
+      <div class="wf-ad-card">
+        <div class="wf-ad-img"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc">
+            <div class="wf-how-text"></div>
+            <div class="wf-how-text short"></div>
+          </div>
+          <div class="wf-ad-meta">
+            <div class="wf-ad-loc"></div>
+            <div class="wf-ad-time"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-ad-card">
+        <div class="wf-ad-img"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc">
+            <div class="wf-how-text"></div>
+            <div class="wf-how-text short"></div>
+          </div>
+          <div class="wf-ad-meta">
+            <div class="wf-ad-loc"></div>
+            <div class="wf-ad-time"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-ad-card">
+        <div class="wf-ad-img"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc">
+            <div class="wf-how-text"></div>
+            <div class="wf-how-text short"></div>
+          </div>
+          <div class="wf-ad-meta">
+            <div class="wf-ad-loc"></div>
+            <div class="wf-ad-time"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-ad-card">
+        <div class="wf-ad-img"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc">
+            <div class="wf-how-text"></div>
+            <div class="wf-how-text short"></div>
+          </div>
+          <div class="wf-ad-meta">
+            <div class="wf-ad-loc"></div>
+            <div class="wf-ad-time"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-ad-card">
+        <div class="wf-ad-img"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc">
+            <div class="wf-how-text"></div>
+            <div class="wf-how-text short"></div>
+          </div>
+          <div class="wf-ad-meta">
+            <div class="wf-ad-loc"></div>
+            <div class="wf-ad-time"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-ad-card">
+        <div class="wf-ad-img"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc">
+            <div class="wf-how-text"></div>
+            <div class="wf-how-text short"></div>
+          </div>
+          <div class="wf-ad-meta">
+            <div class="wf-ad-loc"></div>
+            <div class="wf-ad-time"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">Сетка объявлений (3 колонки)</div>
+  </div>
+
+  <!-- HAPPY ENDINGS -->
+  <div class="wf-section" style="margin-top:48px; padding-top:32px; border-top:1px solid #ccc;">
+    <div class="wf-section-header">
+      <div>
+        <div class="wf-section-title"></div>
+        <div class="wf-section-sub" style="margin-top:5px"></div>
+        <div class="annotation" style="text-align:left;margin-top:2px">Питомцы нашлись (архив)</div>
+      </div>
+      <div class="box wf-btn-sm">Смотреть все</div>
+    </div>
+    <div class="wf-ads-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="wf-ad-card">
+        <div class="wf-ad-img" style="background:#d0d0d0"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc"><div class="wf-how-text"></div><div class="wf-how-text short"></div></div>
+          <div class="wf-ad-meta"><div class="wf-ad-loc"></div><div class="wf-ad-time"></div></div>
+        </div>
+      </div>
+      <div class="wf-ad-card">
+        <div class="wf-ad-img" style="background:#d0d0d0"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc"><div class="wf-how-text"></div><div class="wf-how-text short"></div></div>
+          <div class="wf-ad-meta"><div class="wf-ad-loc"></div><div class="wf-ad-time"></div></div>
+        </div>
+      </div>
+      <div class="wf-ad-card">
+        <div class="wf-ad-img" style="background:#d0d0d0"><div class="wf-ad-img-icon"></div></div>
+        <div class="wf-ad-body">
+          <div class="wf-ad-status"></div>
+          <div class="wf-ad-title"></div>
+          <div class="wf-ad-desc"><div class="wf-how-text"></div><div class="wf-how-text short"></div></div>
+          <div class="wf-ad-meta"><div class="wf-ad-loc"></div><div class="wf-ad-time"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">Найденные питомцы (3 колонки)</div>
+  </div>
+
+  <!-- STATISTICS -->
+  <div class="wf-section">
+    <div class="wf-section-header">
+      <div>
+        <div class="wf-section-title"></div>
+        <div class="annotation" style="text-align:left;margin-top:2px">Статистика платформы</div>
+      </div>
+    </div>
+    <div class="wf-stats-grid">
+      <div class="wf-stat-card">
+        <div class="wf-stat-num"></div>
+        <div class="wf-stat-label"></div>
+        <div class="annotation">Пользователей</div>
+      </div>
+      <div class="wf-stat-card">
+        <div class="wf-stat-num"></div>
+        <div class="wf-stat-label"></div>
+        <div class="annotation">Объявлений</div>
+      </div>
+      <div class="wf-stat-card">
+        <div class="wf-stat-num"></div>
+        <div class="wf-stat-label"></div>
+        <div class="annotation">Нашлись</div>
+      </div>
+      <div class="wf-stat-card">
+        <div class="wf-stat-num"></div>
+        <div class="wf-stat-label"></div>
+        <div class="annotation">Чатов</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="wf-footer">
+    <div class="wf-footer-top">
+      <div class="wf-footer-brand">
+        <div class="wf-footer-logo box">Логотип</div>
+        <div class="wf-footer-desc">
+          <div class="wf-how-text"></div>
+          <div class="wf-how-text short"></div>
+          <div class="wf-how-text" style="width:60%"></div>
+        </div>
+        <div class="annotation">О платформе</div>
+      </div>
+      <div class="wf-footer-links">
+        <div class="wf-footer-col">
+          <div class="wf-footer-col-title"></div>
+          <div class="wf-footer-link"></div>
+          <div class="wf-footer-link" style="width:85%"></div>
+          <div class="wf-footer-link" style="width:90%"></div>
+          <div class="wf-footer-link" style="width:70%"></div>
+          <div class="annotation">Быстрые ссылки</div>
+        </div>
+        <div class="wf-footer-col">
+          <div class="wf-footer-col-title"></div>
+          <div class="wf-footer-link"></div>
+          <div class="wf-footer-link" style="width:80%"></div>
+          <div class="wf-footer-link" style="width:75%"></div>
+          <div class="annotation">Личное</div>
+        </div>
+        <div class="wf-footer-col">
+          <div class="wf-footer-col-title"></div>
+          <div class="wf-footer-link" style="width:50%"></div>
+          <div class="wf-footer-link" style="width:65%"></div>
+          <div class="annotation">Информация</div>
+        </div>
+      </div>
+    </div>
+    <div class="wf-footer-bottom">
+      <div class="box" style="width:200px;height:16px;border:none;background:#ccc;border-radius:2px"></div>
+      <div class="box" style="width:220px;height:16px;border:none;background:#ccc;border-radius:2px"></div>
+    </div>
+    <div class="annotation" style="padding-bottom:8px">Футер</div>
+  </div>
+
+</div>
+</body>
+</html>
