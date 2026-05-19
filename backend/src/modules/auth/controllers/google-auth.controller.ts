@@ -70,7 +70,7 @@ export async function googleAuthCallbackController(req: Request, res: Response, 
 
     try {
       const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.jwtAccessSecret, {
-        expiresIn: '15m',
+        expiresIn: '1h',
       });
 
       const refreshToken = jwt.sign({ userId: user.id }, env.jwtRefreshSecret, {

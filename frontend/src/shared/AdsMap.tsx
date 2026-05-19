@@ -76,6 +76,68 @@ function buildPopupHtml(point: {
   `.trim();
 }
 
+function MapLegend() {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        backgroundColor: 'white',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        zIndex: 400,
+        fontFamily: 'inherit',
+        fontSize: '13px',
+      }}
+    >
+      <div style={{ marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Условные обозначения:</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              backgroundColor: '#e5484d',
+              border: '2px solid #b91c1c',
+              flexShrink: 0,
+            }}
+          />
+          <span>Потеряно</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              backgroundColor: '#30a46c',
+              border: '2px solid #15803d',
+              flexShrink: 0,
+            }}
+          />
+          <span>Найдено</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              backgroundColor: '#6e56cf',
+              border: '2px solid #5b21b6',
+              flexShrink: 0,
+            }}
+          />
+          <span>Без типа</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdsMap({ ads, height }: { ads: MapAd[]; height?: string | number }) {
   const points = ads
     .filter(
@@ -125,7 +187,7 @@ export default function AdsMap({ ads, height }: { ads: MapAd[]; height?: string 
   const center = (geo.status === 'ready' ? geo.center : null) ?? fallbackMinsk;
 
   return (
-    <div style={{ height: mapHeight, width: '100%' }}>
+    <div style={{ height: mapHeight, width: '100%', position: 'relative' }}>
       <MapContainer
         center={center}
         zoom={10}
@@ -141,6 +203,7 @@ export default function AdsMap({ ads, height }: { ads: MapAd[]; height?: string 
         </LayersControl>
         <MarkerClusterGroup markers={markers} />
       </MapContainer>
+      <MapLegend />
     </div>
   );
 }
