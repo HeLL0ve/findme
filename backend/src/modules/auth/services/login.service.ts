@@ -36,6 +36,10 @@ export async function loginService(data: LoginInput) {
     throw new AuthError('EMAIL_NOT_VERIFIED', 'Подтвердите email перед входом в систему', 403);
   }
 
+  if (!user.passwordHash) {
+    throw AuthError.invalidCredentials();
+  }
+
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
     throw AuthError.invalidCredentials();
