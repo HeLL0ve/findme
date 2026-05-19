@@ -18,6 +18,7 @@ type BaseTemplateInput = {
   intro: string;
   actionLabel: string;
   actionUrl: string;
+  code?: string;
   note?: string;
   previewText?: string;
   footer?: string;
@@ -76,6 +77,7 @@ function buildTextTemplate(input: BaseTemplateInput) {
     '',
     input.intro,
     '',
+    input.code ? `Код подтверждения: ${input.code}` : '',
     `${input.actionLabel}: ${input.actionUrl}`,
     input.note ? `\n${input.note}` : '',
     input.supportEmail ? `\nSupport: ${input.supportEmail}` : '',
@@ -137,6 +139,11 @@ function buildHtmlTemplate(input: BaseTemplateInput) {
             <tr>
               <td style="padding:34px 32px 30px 32px;">
                 <div style="font-size:16px;line-height:1.72;color:#344054;">${intro}</div>
+                ${input.code ? `<div style="margin-top:24px;padding:20px;background:#ffffff;border:1px solid rgba(109,74,255,0.12);border-radius:16px;box-shadow:0 10px 24px rgba(109,74,255,0.08);">
+                  <div style="font-size:14px;font-weight:700;color:#101828;margin-bottom:10px;">Код подтверждения</div>
+                  <div style="font-size:32px;letter-spacing:0.32em;font-weight:800;color:#4b35cc;">${escapeHtml(input.code)}</div>
+                  <div style="margin-top:12px;font-size:14px;line-height:1.7;color:#475467;">Введите эту комбинацию на странице подтверждения email.</div>
+                </div>` : ''}
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 22px 0;">
                   <tr>
                     <td align="center" bgcolor="${input.theme.buttonColor}" style="border-radius:14px;box-shadow:0 10px 24px rgba(91,52,230,0.25);">
@@ -147,14 +154,14 @@ function buildHtmlTemplate(input: BaseTemplateInput) {
                   </tr>
                 </table>
                 <div style="padding:18px 18px;background:${input.theme.accentSoftBg};border:1px solid ${input.theme.accentSoftBorder};border-radius:14px;">
-                  <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${input.theme.accentStrongText};">Manual Link</div>
+                  <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${input.theme.accentStrongText};">Ссылка</div>
                   <div style="margin-top:10px;font-size:14px;line-height:1.68;color:#344054;word-break:break-word;">
-                    If the button does not work, open this link:<br />
+                    Если кнопка не работает, откройте эту ссылку:<br />
                     <a href="${actionUrl}" style="color:${input.theme.accentStrongText};text-decoration:underline;">${actionUrl}</a>
                   </div>
                 </div>
                 ${note ? `<div style="margin-top:20px;font-size:14px;line-height:1.68;color:#475467;">${note}</div>` : ''}
-                ${supportEmail ? `<div style="margin-top:8px;font-size:13px;color:#667085;">Need help? Contact <a href="mailto:${supportEmail}" style="color:${input.theme.accentStrongText};text-decoration:underline;">${supportEmail}</a></div>` : ''}
+                ${supportEmail ? `<div style="margin-top:8px;font-size:13px;color:#667085;">Нужна помощь? Напишите на <a href="mailto:${supportEmail}" style="color:${input.theme.accentStrongText};text-decoration:underline;">${supportEmail}</a></div>` : ''}
               </td>
             </tr>
             <tr>
@@ -180,6 +187,7 @@ function buildMail(input: BaseTemplateInput) {
 
 type VerificationTemplateParams = {
   actionUrl: string;
+  code: string;
   brand?: BrandConfig;
   supportEmail?: string;
 };
@@ -192,12 +200,13 @@ type ResetTemplateParams = {
 
 export function buildEmailVerificationMail(params: VerificationTemplateParams) {
   const input: BaseTemplateInput = {
-    title: 'Confirm your email in FindMe',
-    intro: 'Thanks for signing up. Confirm your email to activate your account and unlock all FindMe features.',
-    actionLabel: 'Confirm Email',
+    title: 'Подтвердите email в FindMe',
+    intro: 'Спасибо за регистрацию. Мы отправили вам 6-значный код для подтверждения email. Введите его на странице верификации.',
+    actionLabel: 'Перейти к подтверждению',
     actionUrl: params.actionUrl,
-    note: 'For security reasons, this confirmation link expires in 24 hours.',
-    previewText: 'Confirm your email and finish creating your FindMe account.',
+    code: params.code,
+    note: 'Код действителен 24 часа. Если код не пришёл, запросите отправку повторно.',
+    previewText: 'Код подтверждения email для вашего аккаунта FindMe.',
     theme: VERIFY_THEME,
     ...(params.supportEmail ? { supportEmail: params.supportEmail } : {}),
     ...(params.brand ? { brand: params.brand } : {}),

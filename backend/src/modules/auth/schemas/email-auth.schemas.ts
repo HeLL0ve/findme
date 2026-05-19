@@ -1,8 +1,14 @@
 import { z } from 'zod';
 
-export const verifyEmailSchema = z.object({
-  token: z.string().trim().min(20, 'Токен подтверждения обязателен'),
-});
+export const verifyEmailSchema = z.union([
+  z.object({
+    token: z.string().trim().min(20, 'Токен подтверждения обязателен'),
+  }),
+  z.object({
+    email: z.string().email('Некорректный email'),
+    code: z.string().trim().length(6, 'Код подтверждения должен содержать 6 цифр'),
+  }),
+]);
 
 export const resendVerificationSchema = z.object({
   email: z.string().email('Некорректный email'),

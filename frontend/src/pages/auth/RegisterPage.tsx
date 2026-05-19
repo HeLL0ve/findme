@@ -54,7 +54,7 @@ export default function RegisterPage() {
         password: form.password,
         acceptTerms: form.acceptTerms,
       });
-      navigate(`/login?registered=1&email=${encodeURIComponent(form.email.trim())}`);
+      navigate(`/verify-email?email=${encodeURIComponent(form.email.trim())}`);
     } catch (err) {
       const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code;
       const message = extractApiErrorMessage(err, 'Ошибка регистрации');
@@ -71,7 +71,7 @@ export default function RegisterPage() {
   return (
     <AuthShell
       title="Создать аккаунт"
-      subtitle="Регистрация займет минуту. После — подтвердите email."
+      subtitle="Регистрация займет минуту. После на почту придёт 6-значный код для подтверждения."
       kicker="Регистрация"
       tone="green"
     >

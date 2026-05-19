@@ -54,7 +54,7 @@ export default function LoginPage() {
       const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code;
       if (code === 'EMAIL_NOT_VERIFIED') {
         setNeedsVerification(true);
-        setError('Подтвердите email перед входом. Отправить письмо повторно ?');
+        setError('Подтвердите email кодом. Отправить код повторно?');
       } else if (code === 'INVALID_CREDENTIALS') {
         setError('Неверный email или пароль');
       } else {
@@ -77,7 +77,7 @@ export default function LoginPage() {
     setResendMessage(null);
     try {
       await api.post('/auth/resend-verification', { email: form.email });
-      setResendMessage('Письмо отправлено повторно. Проверьте почту.');
+      setResendMessage('Код отправлен повторно. Проверьте почту.');
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось отправить письмо повторно'));
     } finally {
@@ -147,7 +147,7 @@ export default function LoginPage() {
               disabled={resending}
               style={{ fontWeight: 700 }}
             >
-              {resending ? 'Отправка...' : 'Отправить письмо подтверждения еще раз'}
+              {resending ? 'Отправка...' : 'Отправить код подтверждения еще раз'}
             </Button>
           )}
 

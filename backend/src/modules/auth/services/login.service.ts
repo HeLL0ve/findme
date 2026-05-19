@@ -1,5 +1,5 @@
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 import { prisma } from '../../../config/prisma';
 import { env } from '../../../config/env';
 import { AuthError } from '../auth.errors';
@@ -10,8 +10,41 @@ type LoginInput = {
   password: string;
 };
 
+type AuthUser = {
+  id: string;
+  email: string;
+  role: 'USER' | 'ADMIN';
+  name?: string | null;
+  avatarUrl?: string | null;
+};
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
+}
+
+export async function createAuthSession(user: AuthUser) {
+  const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.jwtAccessSecret, {
+    expiresIn: '1h',
+  });
+
+  const refreshToken = jwt.sign({ userId: user.id }, env.jwtRefreshSecret, {
+    expiresIn: '7d',
+  });
+
+  const ttlSeconds = 7 * 24 * 60 * 60;
+  await tokenService.saveRefreshToken(refreshToken, user.id, ttlSeconds);
+
+  return {
+    accessToken,
+    refreshToken,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name ?? null,
+      avatarUrl: user.avatarUrl ?? null,
+    },
+  };
 }
 
 export async function loginService(data: LoginInput) {
@@ -45,26 +78,11 @@ export async function loginService(data: LoginInput) {
     throw AuthError.invalidCredentials();
   }
 
-  const accessToken = jwt.sign({ userId: user.id, role: user.role }, env.jwtAccessSecret, {
-    expiresIn: '1h',
+  return createAuthSession({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    avatarUrl: user.avatarUrl,
   });
-
-  const refreshToken = jwt.sign({ userId: user.id }, env.jwtRefreshSecret, {
-    expiresIn: '7d',
-  });
-
-  const ttlSeconds = 7 * 24 * 60 * 60;
-  await tokenService.saveRefreshToken(refreshToken, user.id, ttlSeconds);
-
-  return {
-    accessToken,
-    refreshToken,
-    user: {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-      avatarUrl: user.avatarUrl,
-    },
-  };
 }
