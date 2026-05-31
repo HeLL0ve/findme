@@ -258,6 +258,6 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
           ))}
         </Card>
       )}
-    </Box>
+    </div>
   );
 }
