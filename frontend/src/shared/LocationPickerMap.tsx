@@ -7,8 +7,44 @@ import { defaultIcon } from './mapIcons';
 
 type LatLng = { lat: number; lng: number };
 
+type ReverseLocation = {
+  address: string;
+  city: string;
+};
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function normalizeCity(address: Record<string, any>): string {
+  return (
+    address.city ||
+    address.town ||
+    address.village ||
+    address.hamlet ||
+    address.suburb ||
+    address.county ||
+    address.state ||
+    ''
+  );
+}
+
+function buildAddressFromReverse(data: any): ReverseLocation {
+  const address = data.address || {};
+  const shortAddress = [
+    address.road,
+    address.house_number,
+    address.pedestrian,
+    address.neighbourhood,
+    address.suburb,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+  return {
+    address: shortAddress || data.display_name || '',
+    city: normalizeCity(address),
+  };
 }
 
 function ClickToSetMarker({ onPick }: { onPick: (point: LatLng) => void }) {
@@ -33,6 +69,7 @@ function RecenterOnGeo(props: { enabled: boolean; center: LatLng | null }) {
 export function LocationPickerMap(props: {
   value?: { latitude?: number | null; longitude?: number | null } | null;
   onChange: (next: { latitude: number; longitude: number } | null) => void;
+  onAddressChange?: (next: { address: string; city: string }) => void;
   height?: number;
 }) {
   const height = props.height ?? 360;
@@ -68,7 +105,26 @@ export function LocationPickerMap(props: {
           </LayersControl>
 
           <RecenterOnGeo enabled={!picked} center={geo.status === 'ready' ? geo.center : null} />
-          <ClickToSetMarker onPick={(point) => props.onChange({ latitude: point.lat, longitude: point.lng })} />
+          <ClickToSetMarker onPick={(point) => {
+            props.onChange({ latitude: point.lat, longitude: point.lng });
+            if (!props.onAddressChange) return;
+            fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&accept-language=ru&lat=${encodeURIComponent(
+                point.lat,
+              )}&lon=${encodeURIComponent(point.lng)}`,
+            )
+              .then(async (response) => {
+                if (!response.ok) throw new Error('Reverse geocode failed');
+                return response.json();
+              })
+              .then((data) => {
+                const next = buildAddressFromReverse(data);
+                props.onAddressChange?.(next);
+              })
+              .catch(() => {
+                // fail silently if reverse geocoding is unavailable
+              });
+          }} />
           {picked && <Marker position={[picked.lat, picked.lng]} icon={defaultIcon} />}
         </MapContainer>
       </Box>

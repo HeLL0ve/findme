@@ -6,6 +6,7 @@ import AdPhotoPicker from '../../components/ads/AdPhotoPicker';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import { extractApiErrorMessage } from '../../shared/apiError';
 import { config } from '../../shared/config';
+import { AddressGeocoder } from '../../shared/AddressGeocoder';
 import { LocationPickerMap } from '../../shared/LocationPickerMap';
 import { usePageTitle } from '../../shared/usePageTitle';
 import { PawIcon, ListIcon, AddIcon } from '../../components/common/Icons';
@@ -348,6 +349,16 @@ export default function EditAd() {
                       },
                     }))
                   }
+                  onAddressChange={(location) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      location: {
+                        ...prev.location,
+                        address: location.address,
+                        city: location.city || prev.location.city,
+                      },
+                    }))
+                  }
                   height={320}
                 />
                 <Flex gap="3" direction={{ initial: 'column', md: 'row' }}>
@@ -356,15 +367,39 @@ export default function EditAd() {
                     <TextField.Root
                       placeholder="Например: Минск"
                       value={form.location.city}
+                      style={{ minHeight: 52 }}
                       onChange={(e) => setForm({ ...form, location: { ...form.location, city: e.target.value } })}
                     />
                   </Flex>
                   <Flex direction="column" gap="2" style={{ flex: 1 }}>
                     <Text size="2" weight="bold" color="gray">Адрес</Text>
-                    <TextField.Root
-                      placeholder="Например: ул. Пушкина, дом 10"
+                    <AddressGeocoder
                       value={form.location.address}
-                      onChange={(e) => setForm({ ...form, location: { ...form.location, address: e.target.value } })}
+                      city={form.location.city}
+                      placeholder="Начните вводить адрес..."
+                      onChange={(address) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          location: {
+                            ...prev.location,
+                            address,
+                            latitude: '',
+                            longitude: '',
+                          },
+                        }))
+                      }
+                      onSelect={(location) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          location: {
+                            ...prev.location,
+                            address: location.address,
+                            city: location.city || prev.location.city,
+                            latitude: String(location.latitude),
+                            longitude: String(location.longitude),
+                          },
+                        }))
+                      }
                     />
                   </Flex>
                 </Flex>
