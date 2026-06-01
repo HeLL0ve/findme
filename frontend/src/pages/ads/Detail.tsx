@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Badge, Button, Card, Container, Dialog, Flex, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
+import { Badge, Button, Card, Container, Dialog, Flex, Grid, Heading, Text, TextArea, TextField } from '@radix-ui/themes';
 import { MessageIcon, AlertTriangleIcon, PawIcon, DescriptionIcon, LocationIcon, UserIcon, PrintIcon, ShareIcon, PhoneIcon, MailIcon, HeartFilledIcon, HeartIcon, EyeIcon } from '../../components/common/Icons';
+import AdCard, { type AdCardData } from '../../components/ads/AdCard';
 import { api } from '../../api/axios';
 import ConfirmActionDialog from '../../components/common/ConfirmActionDialog';
 import UserAvatarLink from '../../components/user/UserAvatarLink';
@@ -66,6 +67,10 @@ export default function AdDetail() {
   const [complaintDescription, setComplaintDescription] = useState('');
   const [complaintSubmitting, setComplaintSubmitting] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [similarAds, setSimilarAds] = useState<AdCardData[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const [similarError, setSimilarError] = useState<string | null>(null);
+  const [similarLoaded, setSimilarLoaded] = useState(false);
 
   usePageTitle(ad ? (ad.petName || (ad.type === 'LOST' ? 'Потерян питомец' : 'Найден питомец')) : 'Объявление');
 
@@ -385,6 +390,22 @@ export default function AdDetail() {
       setAd((prev) => (prev ? { ...prev, status: 'ARCHIVED' } : prev));
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось изменить статус'));
+    }
+  }
+
+  async function loadSimilarAds() {
+    if (!id) return;
+    setSimilarLoading(true);
+    setSimilarError(null);
+    try {
+      const response = await api.get<AdCardData[]>(`/ads/${id}/similar`, { params: { take: 6 } });
+      setSimilarAds(response.data || []);
+      setSimilarLoaded(true);
+    } catch (err) {
+      setSimilarError('Не удалось загрузить похожие объявления');
+      console.error(err);
+    } finally {
+      setSimilarLoading(false);
     }
   }
 
@@ -844,6 +865,22 @@ export default function AdDetail() {
                 </Button>
               </Flex>
 
+              {isOwner && (
+                <Button
+                  variant="soft"
+                  color="violet"
+                  onClick={() => void loadSimilarAds()}
+                  size="2"
+                  style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
+                  disabled={similarLoading}
+                >
+                  <Flex align="center" gap="2">
+                    <PawIcon width={16} height={16} />
+                    {similarLoading ? 'Поиск похожих...' : 'Найти похожие объявления'}
+                  </Flex>
+                </Button>
+              )}
+
               {isOwner && ad.status !== 'ARCHIVED' && (
                 <ConfirmActionDialog
                   title="Питомец найден?"
@@ -901,6 +938,30 @@ export default function AdDetail() {
           </Flex>
         </Flex>
       </Container>
+
+      {similarLoaded && (
+        <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+          <Card style={{ borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a5)', background: 'var(--gray-a1)' }}>
+            <Flex direction="column" gap="4">
+              <Flex justify="between" align="center">
+                <Heading size="5" weight="bold">Похожие объявления</Heading>
+                <Text size="2" color="gray">Результаты автоматически подобраны по описанию, породе и месту</Text>
+              </Flex>
+              {similarError && <Text color="red">{similarError}</Text>}
+              {!similarError && similarAds.length === 0 && (
+                <Text color="gray">Похожие объявления не найдены.</Text>
+              )}
+              {similarAds.length > 0 && (
+                <Grid columns={{ initial: '1', sm: '1', md: '2' }} gap="3">
+                  {similarAds.map((similarAd) => (
+                    <AdCard key={similarAd.id} ad={similarAd} />
+                  ))}
+                </Grid>
+              )}
+            </Flex>
+          </Card>
+        </Container>
+      )}
 
       <Dialog.Root open={!!complaintTarget} onOpenChange={(open) => !open && setComplaintTarget(null)}>
         <Dialog.Content maxWidth="560px">

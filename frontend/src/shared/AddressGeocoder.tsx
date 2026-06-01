@@ -50,29 +50,13 @@ function buildShortAddress(item: any): string {
   return item.display_name || '';
 }
 
-function getDropdownStyle(rect: DOMRect | null) {
-  if (!rect) {
-    return {
-      position: 'absolute' as const,
-      zIndex: 2000,
-      width: '100%',
-      top: 'calc(100% + 8px)',
-      left: 0,
-      maxHeight: 340,
-      overflowY: 'auto' as const,
-      padding: 'var(--space-2)',
-      borderRadius: 'var(--radius-4)',
-      boxShadow: '0 18px 40px rgba(0,0,0,0.14)',
-      background: 'white',
-    };
-  }
-
+function getDropdownStyle() {
   return {
-    position: 'fixed' as const,
-    zIndex: 2000,
-    width: `${rect.width}px`,
-    top: `${rect.bottom + 8}px`,
-    left: `${rect.left}px`,
+    position: 'absolute' as const,
+    zIndex: 10000,
+    width: '100%',
+    top: 'calc(100% + 8px)',
+    left: 0,
     maxHeight: 340,
     overflowY: 'auto' as const,
     padding: 'var(--space-2)',
@@ -88,49 +72,44 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [inputRect, setInputRect] = useState<DOMRect | null>(null);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const blurTimeout = useRef<number | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setQuery(value || '');
   }, [value]);
 
   useEffect(() => {
-    if (!open) return;
-    const handleResize = () => {
-      if (wrapperRef.current) {
-        setInputRect(wrapperRef.current.getBoundingClientRect());
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleResize, true);
-    handleResize();
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleResize, true);
-    };
-  }, [open]);
-
-  useEffect(() => {
     if (query.trim().length < MIN_QUERY_LENGTH) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
       setSuggestions([]);
       setLoading(false);
       setError(null);
+      setOpen(false);
       return;
     }
 
+    setOpen(true);
+    setLoading(true);
+    setError(null);
+    setSuggestions([]);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     const timeoutId = window.setTimeout(() => {
-      setLoading(true);
-      setError(null);
       fetch(
         `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&accept-language=ru&q=${encodeURIComponent(
           query,
         )}`,
         {
           headers: {
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
+          signal: controller.signal,
         },
       )
         .then(async (response) => {
@@ -152,15 +131,21 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
             : [];
           setSuggestions(next);
         })
-        .catch(() => {
+        .catch((error) => {
+          if (error.name === 'AbortError') return;
           setError('Не удалось получить подсказки адреса');
           setSuggestions([]);
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setLoading(false);
+          }
+        });
     }, DEBOUNCE_MS);
 
     return () => {
       window.clearTimeout(timeoutId);
+      controller.abort();
     };
   }, [query]);
 
@@ -177,21 +162,24 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
   }
 
   return (
-    <div ref={wrapperRef} style={{ position: 'relative', zIndex: 1000 }}>
+    <div style={{ position: 'relative', zIndex: 1000 }}>
       <TextField.Root
+        type="text"
         placeholder={placeholder}
         value={query}
+        autoComplete="off"
         style={{ minHeight: 52 }}
         onChange={(event) => {
           const next = event.target.value;
           setQuery(next);
           onChange(next);
-          setOpen(true);
-          if (wrapperRef.current) {
-            setInputRect(wrapperRef.current.getBoundingClientRect());
+          setOpen(next.trim().length >= MIN_QUERY_LENGTH);
+        }}
+        onFocus={() => {
+          if (query.trim().length >= MIN_QUERY_LENGTH) {
+            setOpen(true);
           }
         }}
-        onFocus={() => setOpen(true)}
         onBlur={() => {
           blurTimeout.current = window.setTimeout(() => {
             setOpen(false);
@@ -201,7 +189,8 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
 
       {open && (suggestions.length > 0 || loading || error) && (
         <Card
-          style={getDropdownStyle(inputRect)}
+          variant="surface"
+          style={getDropdownStyle()}
           onMouseDown={(event) => {
             event.preventDefault();
             if (blurTimeout.current) {
@@ -231,7 +220,7 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
           {!loading && suggestions.map((item) => (
             <Card
               key={item.id}
-              variant="plain"
+              variant="surface"
               style={{
                 cursor: 'pointer',
                 padding: 'var(--space-2)',

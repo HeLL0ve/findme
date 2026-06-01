@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Prisma } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../../../config/prisma';
@@ -37,6 +38,37 @@ function parseBool(value: unknown) {
 function normalizeNullable(value: string) {
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+function getPhotoHash(photoUrl: string) {
+  return crypto.createHash('sha256').update(photoUrl).digest('hex');
+}
+
+function mapPhotoCreateData(photoUrls: string[]) {
+  return photoUrls.map((photoUrl) => ({
+    photoUrl,
+    photoHash: getPhotoHash(photoUrl),
+  }));
+}
+
+function normalizeText(value?: string | null) {
+  return value?.trim().toLowerCase() ?? '';
+}
+
+function extractKeywords(text: string) {
+  return Array.from(
+    new Set(
+      text
+        .toLowerCase()
+        .split(/[^а-яa-z0-9]+/gi)
+        .filter((word) => word.length >= 3),
+    ),
+  );
+}
+
+function countSharedKeywords(source: string[], target: string[]) {
+  const set = new Set(target);
+  return source.reduce((count, word) => (set.has(word) ? count + 1 : count), 0);
 }
 
 export async function listAdsController(
@@ -186,6 +218,106 @@ export async function getAdController(req: Request<AdParams>, res: Response, nex
   }
 }
 
+export async function getSimilarAdsController(
+  req: Request<AdParams, unknown, unknown, { take?: string | string[] }>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { id } = req.params;
+    const take = Number(getSingleQueryValue(req.query.take) ?? 6);
+    const takeNum = Number.isFinite(take) ? Math.min(Math.max(take, 1), 20) : 6;
+
+    const ad = await prisma.ad.findUnique({
+      where: { id },
+      include: { photos: true, location: true },
+    });
+
+    if (!ad) return next(ApiError.notFound('Объявление не найдено'));
+
+    const isOwner = req.user?.userId === ad.userId;
+    const isAdmin = req.user?.role === 'ADMIN';
+    if (!isOwner && !isAdmin) return next(ApiError.forbidden('Недостаточно прав'));
+
+    const oppositeType = ad.type === 'LOST' ? 'FOUND' : 'LOST';
+    const sourceCity = normalizeText(ad.location?.city);
+    const sourceBreed = normalizeText(ad.breed);
+    const sourceType = normalizeText(ad.animalType);
+    const sourceColor = normalizeText(ad.color);
+    const sourceAddress = normalizeText(ad.location?.address);
+    const sourceDescription = normalizeText(ad.description);
+    const sourceDescriptionKeywords = extractKeywords(sourceDescription);
+
+    const textCandidates: Prisma.AdWhereInput[] = [];
+    if (ad.petName) textCandidates.push({ petName: { contains: ad.petName, mode: 'insensitive' } });
+    if (ad.animalType) textCandidates.push({ animalType: { contains: ad.animalType, mode: 'insensitive' } });
+    if (ad.breed) textCandidates.push({ breed: { contains: ad.breed, mode: 'insensitive' } });
+    if (ad.color) textCandidates.push({ color: { contains: ad.color, mode: 'insensitive' } });
+    if (ad.location?.city) textCandidates.push({ location: { city: { contains: ad.location.city, mode: 'insensitive' } } });
+    if (ad.location?.address) textCandidates.push({ location: { address: { contains: ad.location.address, mode: 'insensitive' } } });
+    if (ad.description) textCandidates.push({ description: { contains: ad.description, mode: 'insensitive' } });
+
+    const candidates = await prisma.ad.findMany({
+      where: {
+        type: oppositeType,
+        status: 'APPROVED',
+        id: { not: id },
+        ...(textCandidates.length > 0 ? { OR: textCandidates } : {}),
+      },
+      include: { photos: true, location: true },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+
+    const scoredAds = candidates
+      .map((candidate) => {
+        let score = 0;
+        const candidateCity = normalizeText(candidate.location?.city);
+        const candidateBreed = normalizeText(candidate.breed);
+        const candidateType = normalizeText(candidate.animalType);
+        const candidateColor = normalizeText(candidate.color);
+        const candidateAddress = normalizeText(candidate.location?.address);
+        const candidateDescription = normalizeText(candidate.description);
+        const candidateDescriptionKeywords = extractKeywords(candidateDescription);
+
+        if (sourceType && candidateType && sourceType === candidateType) score += 20;
+        if (sourceBreed && candidateBreed && sourceBreed === candidateBreed) score += 20;
+        if (sourceColor && candidateColor && sourceColor === candidateColor) score += 10;
+        if (sourceCity && candidateCity && sourceCity === candidateCity) score += 25;
+        if (sourceAddress && candidateAddress && sourceAddress === candidateAddress) score += 15;
+        if (sourceAddress && candidateAddress && (sourceAddress.includes(candidateAddress) || candidateAddress.includes(sourceAddress))) score += 10;
+
+        if (ad.photos.length > 0 && candidate.photos.length > 0) {
+          const sourceHashes = new Set(ad.photos.map((photo) => photo.photoHash).filter(Boolean));
+          const candidateHashes = new Set(candidate.photos.map((photo) => photo.photoHash).filter(Boolean));
+          const sharedHashes = Array.from(sourceHashes).filter((hash) => hash && candidateHashes.has(hash));
+          if (sharedHashes.length > 0) score += 40;
+        }
+
+        const sharedWords = countSharedKeywords(sourceDescriptionKeywords, candidateDescriptionKeywords);
+        score += Math.min(sharedWords, 8) * 5;
+
+        const nameMatch = ad.petName && candidate.petName && normalizeText(ad.petName) === normalizeText(candidate.petName);
+        if (nameMatch) score += 8;
+
+        if (sourceCity && candidateCity && sourceCity !== candidateCity) {
+          // still keep candidates from other cities with a smaller bonus when other fields match
+          score += 0;
+        }
+
+        return { ad: candidate, score };
+      })
+      .filter((item) => item.score > 0)
+      .sort((left, right) => right.score - left.score)
+      .slice(0, takeNum)
+      .map((item) => ({ ...item.ad, similarityScore: item.score }));
+
+    return res.json(scoredAds);
+  } catch (err) {
+    return next(err);
+  }
+}
+
 export async function createAdController(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
@@ -218,7 +350,7 @@ export async function createAdController(req: Request, res: Response, next: Next
     }
 
     if (data.photos && data.photos.length > 0) {
-      createData.photos = { create: data.photos.map((photoUrl) => ({ photoUrl })) };
+      createData.photos = { create: mapPhotoCreateData(data.photos) };
     }
 
     const ad = await prisma.ad.create({
@@ -300,7 +432,7 @@ export async function updateAdController(req: Request<AdParams>, res: Response, 
     if (data.photos) {
       updateData.photos = {
         deleteMany: {},
-        create: data.photos.map((photoUrl) => ({ photoUrl })),
+        create: mapPhotoCreateData(data.photos),
       };
     }
 

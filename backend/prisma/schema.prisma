@@ -13,7 +13,7 @@ model User {
   passwordHash    String?
   emailVerifiedAt DateTime?
 
-  googleId         String?   @unique
+  googleId String? @unique
 
   name             String?
   phone            String?
@@ -131,6 +131,7 @@ model AdPhoto {
   ad   Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
 
   photoUrl  String
+  photoHash String?
   createdAt DateTime @default(now())
 }
 
