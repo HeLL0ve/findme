@@ -29,6 +29,17 @@ services:
       timeout: 3s
       retries: 5
 
+  clip-service:
+    build:
+      context: ./clip-service
+    container_name: clip-service
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+
 volumes:
   postgres-data:
   redis-data:

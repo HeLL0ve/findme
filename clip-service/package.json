@@ -1,0 +1,14 @@
+{
+  "name": "clip-service",
+  "version": "1.0.0",
+  "description": "Local image similarity microservice for FindMe",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jimp": "^0.22.10"
+  }
+}

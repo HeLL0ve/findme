@@ -24,7 +24,6 @@
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "jimp": "^0.22.10",
     "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^6.9.7",

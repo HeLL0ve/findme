@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import Jimp from 'jimp';
 import { Prisma } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../../../config/prisma';
@@ -11,9 +10,6 @@ import { sendAdApprovedToTelegram } from '../services/telegram.service';
 
 const PUBLIC_STATUSES = new Set(['APPROVED', 'ARCHIVED']);
 
-const PHASH_CACHE = new Map<string, string | null>();
-const HEX_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
-
 function normalizePhotoUrl(photoUrl: string) {
   if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) return photoUrl;
   const baseUrl = env.publicApiUrl.replace(/\/+$/, '');
@@ -21,92 +17,33 @@ function normalizePhotoUrl(photoUrl: string) {
   return `${baseUrl}/${photoUrl}`;
 }
 
-async function computePhotoPHash(photoUrl: string) {
-  const normalizedUrl = normalizePhotoUrl(photoUrl);
-  if (PHASH_CACHE.has(normalizedUrl)) return PHASH_CACHE.get(normalizedUrl) ?? null;
+async function fetchClipSimilarity(
+  source: {
+    petName?: string | null;
+    animalType?: string | null;
+    breed?: string | null;
+    color?: string | null;
+    description?: string | null;
+    location?: { city?: string | null; address?: string | null } | null;
+    photos?: Array<{ photoUrl: string }>;
+  },
+  candidates: Array<{ id: string; photoUrls: string[]; description?: string | null; breed?: string | null; color?: string | null; animalType?: string | null; location?: { city?: string | null; address?: string | null } | null }>,
+) {
   try {
-    const image = await Jimp.read(normalizedUrl);
-    const hash = image.hash();
-    PHASH_CACHE.set(normalizedUrl, hash);
-    return hash;
+    const response = await fetch(`${env.clipServiceUrl.replace(/\/+$/, '')}/similar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source, candidates }),
+    });
+
+    if (!response.ok) return null;
+
+    const result = await response.json();
+    if (!Array.isArray(result)) return null;
+    return result as Array<{ id: string; clipScore?: number; phashDistance?: number }>;
   } catch {
-    PHASH_CACHE.set(normalizedUrl, null);
     return null;
   }
-}
-
-function hammingDistance(hashA: string, hashB: string) {
-  if (!hashA || !hashB || hashA.length !== hashB.length) return Number.MAX_SAFE_INTEGER;
-  let distance = 0;
-  for (let i = 0; i < hashA.length; i += 1) {
-    const valueA = parseInt(hashA[i], 16);
-    const valueB = parseInt(hashB[i], 16);
-    distance += HEX_BIT_COUNTS[valueA ^ valueB];
-  }
-  return distance;
-}
-
-function buildSearchText(ad: {
-  petName?: string | null;
-  animalType?: string | null;
-  breed?: string | null;
-  color?: string | null;
-  description: string;
-  location?: { city?: string | null; address?: string | null } | null;
-}) {
-  return [
-    ad.petName,
-    ad.animalType,
-    ad.breed,
-    ad.color,
-    ad.location?.city,
-    ad.location?.address,
-    ad.description,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
-}
-
-function computeTextSimilarity(source: string, target: string) {
-  const sourceKeywords = extractKeywords(source);
-  const targetKeywords = extractKeywords(target);
-  if (sourceKeywords.length === 0 || targetKeywords.length === 0) return 0;
-  const shared = countSharedKeywords(sourceKeywords, targetKeywords);
-  const unionSize = new Set([...sourceKeywords, ...targetKeywords]).size || 1;
-  return shared / unionSize;
-}
-
-async function calculatePhotoSimilarity(sourceUrls: string[], candidateUrls: string[]) {
-  const sourceHashes = await Promise.all(sourceUrls.map((url) => computePhotoPHash(url)));
-  const candidateHashes = await Promise.all(candidateUrls.map((url) => computePhotoPHash(url)));
-  let bestDistance: number | null = null;
-
-  sourceHashes.forEach((sourceHash) => {
-    if (!sourceHash) return;
-    candidateHashes.forEach((candidateHash) => {
-      if (!candidateHash) return;
-      const distance = hammingDistance(sourceHash, candidateHash);
-      if (bestDistance === null || distance < bestDistance) {
-        bestDistance = distance;
-      }
-    });
-  });
-
-  return bestDistance;
-}
-
-async function computeImageSimilarity(ad: { photos: Array<{ photoUrl: string; photoHash?: string | null }> }, candidate: { photos: Array<{ photoUrl: string; photoHash?: string | null }> }) {
-  if (ad.photos.length === 0 || candidate.photos.length === 0) return { exactMatch: false, phashDistance: null };
-
-  const sourceHashes = new Set(ad.photos.map((photo) => photo.photoHash).filter(Boolean));
-  const candidateHashSet = new Set(candidate.photos.map((photo) => photo.photoHash).filter(Boolean));
-  const exactMatch = Array.from(sourceHashes).some((hash) => hash && candidateHashSet.has(hash));
-
-  const sourceUrls = ad.photos.map((photo) => photo.photoUrl);
-  const candidateUrls = candidate.photos.map((photo) => photo.photoUrl);
-  const phashDistance = await calculatePhotoSimilarity(sourceUrls, candidateUrls);
-  return { exactMatch, phashDistance };
 }
 
 type AdParams = { id: string };
@@ -400,8 +337,32 @@ export async function getSimilarAdsController(
       take: 200,
     });
 
-    const sourceText = buildSearchText(ad);
-    const sourcePHashUrls = ad.photos.map((photo) => photo.photoUrl);
+    const clipCandidates = candidates.map((candidate) => ({
+      id: candidate.id,
+      animalType: candidate.animalType,
+      breed: candidate.breed,
+      color: candidate.color,
+      description: candidate.description,
+      location: { city: candidate.location?.city, address: candidate.location?.address },
+      photoUrls: candidate.photos.map((photo) => normalizePhotoUrl(photo.photoUrl)),
+    }));
+
+    const clipScores = await fetchClipSimilarity(
+      {
+        petName: ad.petName,
+        animalType: ad.animalType,
+        breed: ad.breed,
+        color: ad.color,
+        description: ad.description,
+        location: { city: ad.location?.city, address: ad.location?.address },
+        photos: ad.photos.map((photo) => ({ photoUrl: normalizePhotoUrl(photo.photoUrl) })),
+      },
+      clipCandidates,
+    );
+
+    const clipScoreMap = new Map<string, { clipScore?: number; phashDistance?: number }>(
+      clipScores?.map((item) => [item.id, { clipScore: item.clipScore, phashDistance: item.phashDistance }]) ?? [],
+    );
 
     const scoredAds = await Promise.all(
       candidates.map(async (candidate) => {
@@ -434,18 +395,9 @@ export async function getSimilarAdsController(
         const nameMatch = ad.petName && candidate.petName && normalizeText(ad.petName) === normalizeText(candidate.petName);
         if (nameMatch) score += 10;
 
-        const candidateText = buildSearchText(candidate);
-        const textSimilarity = computeTextSimilarity(sourceText, candidateText);
-        score += Math.round(textSimilarity * 35);
-
-        const { exactMatch, phashDistance } = await computeImageSimilarity(ad, candidate);
-        if (exactMatch) score += 30;
-        if (phashDistance !== null) {
-          if (phashDistance <= 10) score += 24;
-          else if (phashDistance <= 18) score += 16;
-          else if (phashDistance <= 28) score += 10;
-          else if (phashDistance <= 40) score += 6;
-        }
+        const external = clipScoreMap.get(candidate.id);
+        if (external?.phashDistance !== undefined && external.phashDistance <= 12) score += 18;
+        if (external?.clipScore !== undefined) score += Math.round(external.clipScore * 30 + 4);
 
         return { ad: candidate, score };
       }),

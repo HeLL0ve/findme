@@ -8,19 +8,21 @@
 
 **Backend:** Node.js, Express 5, TypeScript, Prisma ORM, PostgreSQL, Redis, WebSocket (ws), Passport.js (Google OAuth), Nodemailer, Telegram Bot API
 
+**Дополнительный сервис:** Node.js `clip-service` для обработки изображений и поиска похожих объявлений по фото
+
 **Frontend:** React 19, TypeScript, Vite, Radix UI, Zustand, React Router, Leaflet, Recharts, Axios
 
-**Инфраструктура:** Docker (только базы данных), Docker Compose
+**Инфраструктура:** Docker (базы данных и микросервис), Docker Compose
 
 ---
 
 ## Переменные окружения
 
-| Файл | Когда нужен |
-|------|-------------|
-| `backend/.env` | Всегда — переменные бэкенда |
+| Файл            | Когда нужен                                          |
+| --------------- | ---------------------------------------------------- |
+| `backend/.env`  | Всегда — переменные бэкенда                          |
 | `frontend/.env` | Опционально — только если API не на `localhost:3000` |
-| `.env` | Только для Docker Compose (содержит `POSTGRES_*`) |
+| `.env`          | Только для Docker Compose (содержит `POSTGRES_*`)    |
 
 ```bash
 cp backend/.env.example backend/.env
@@ -40,13 +42,13 @@ cp .env.example .env
 npm install
 ```
 
-### 2. Запустить базы данных через Docker
+### 2. Запустить базы данных и clip-service через Docker
 
 ```bash
 docker-compose up -d
 ```
 
-Поднимает PostgreSQL (порт 5432) и Redis (порт 6379).
+Поднимает PostgreSQL (порт 5432), Redis (порт 6379) и `clip-service` (порт 8000).
 
 ### 3. Применить миграции
 
@@ -88,6 +90,7 @@ npx prisma migrate dev --name название_миграции
 ```
 
 ### Применяет все еще не выполненные миграции
+
 ```bash
 cd backend
 npx prisma migrate deploy
@@ -108,6 +111,10 @@ findme/
 │   │   └── app.ts
 │   ├── uploads/            # Загруженные файлы (не в git)
 │   └── .env.example
+├── clip-service/           # Локальный микросервис для обработки фото и поиска похожих объявлений
+│   ├── app.js
+│   ├── package.json
+│   └── .dockerignore
 ├── frontend/               # React приложение
 │   ├── public/
 │   ├── src/
@@ -117,7 +124,7 @@ findme/
 │   │   └── shared/         # Хуки, стор, утилиты
 │   └── .env.example
 ├── .env.example            # Переменные для Docker Compose
-├── docker-compose.yml      # Только PostgreSQL и Redis
+├── docker-compose.yml      # PostgreSQL, Redis и clip-service
 └── README.md
 ```
 
@@ -157,6 +164,7 @@ findme/
 Ссылка на ваш Telegram канал, где публикуются одобренные объявления.
 
 **Пример:**
+
 ```bash
 TELEGRAM_CHANNEL_URL=https://t.me/findme_by
 ```
@@ -164,6 +172,7 @@ TELEGRAM_CHANNEL_URL=https://t.me/findme_by
 Эта ссылка отображается на главной странице приложения и доступна пользователям для подписки на канал.
 
 **Где добавить:**
+
 - `backend/.env` — для бэкенда
 - `.env` — для Docker Compose (корневой файл)
 
