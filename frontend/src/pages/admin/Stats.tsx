@@ -239,7 +239,7 @@ export default function AdminStatsPage() {
           <Flex direction="column" gap="3">
             <Heading size="5" weight="bold">Распределение статусов объявлений</Heading>
             <Card style={{ padding: 'var(--space-4)' }}>
-              <Flex direction={{ initial: 'column', sm: 'row' }} align="center" gap="6">
+              <Flex direction={{ initial: 'column', md: 'row' }} align="center"  justify="center" gap="5">
                 <div style={{ width: '100%', maxWidth: 320, height: 280 }}>
                   <ResponsiveContainer>
                     <PieChart>
@@ -273,7 +273,7 @@ export default function AdminStatsPage() {
                 </div>
 
                 {/* Legend */}
-                <Flex direction="column" gap="3" style={{ flex: 1 }}>
+                <Flex direction="column" gap="3" style={{ minWidth: 220, flexShrink: 0}}>
                   {statusData.map((entry) => {
                     const color = statusColors[entry.name as keyof typeof statusColors] || '#7c3aed';
                     const total = statusData.reduce((sum, d) => sum + d.value, 0);
