@@ -19,7 +19,7 @@ const router = Router();
 router.get('/', optionalAuthMiddleware, listAdsController);
 router.get('/my', authMiddleware, listMyAdsController);
 router.get('/pending', authMiddleware, adminOnly, listPendingAdsController);
-router.get('/:id/similar', authMiddleware, getSimilarAdsController);
+router.get('/:id/similar', optionalAuthMiddleware, getSimilarAdsController);
 router.get('/:id', optionalAuthMiddleware, getAdController);
 
 router.post('/', authMiddleware, createAdController);

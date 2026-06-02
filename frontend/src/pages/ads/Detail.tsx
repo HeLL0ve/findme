@@ -71,6 +71,7 @@ export default function AdDetail() {
   const [similarLoading, setSimilarLoading] = useState(false);
   const [similarError, setSimilarError] = useState<string | null>(null);
   const [similarLoaded, setSimilarLoaded] = useState(false);
+  const [similarDialogOpen, setSimilarDialogOpen] = useState(false);
 
   usePageTitle(ad ? (ad.petName || (ad.type === 'LOST' ? 'Потерян питомец' : 'Найден питомец')) : 'Объявление');
 
@@ -92,6 +93,21 @@ export default function AdDetail() {
       mounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setSimilarLoaded(false);
+    setSimilarAds([]);
+    setSimilarError(null);
+    setSimilarDialogOpen(false);
+  }, [id]);
+
+  useEffect(() => {
+    if (similarDialogOpen && !similarLoaded && !similarLoading) {
+      void loadSimilarAds();
+    }
+  }, [similarDialogOpen]);
 
   const photos = useMemo(
     () => (ad?.photos || []).map((photo) => resolvePhotoSrc(photo.photoUrl)),
@@ -865,18 +881,17 @@ export default function AdDetail() {
                 </Button>
               </Flex>
 
-              {isOwner && (
+              {(ad.status !== 'ARCHIVED') && (
                 <Button
                   variant="soft"
                   color="violet"
-                  onClick={() => void loadSimilarAds()}
+                  onClick={() => setSimilarDialogOpen(true)}
                   size="2"
                   style={{ width: '100%', fontWeight: 600, cursor: 'pointer' }}
-                  disabled={similarLoading}
                 >
                   <Flex align="center" gap="2">
                     <PawIcon width={16} height={16} />
-                    {similarLoading ? 'Поиск похожих...' : 'Найти похожие объявления'}
+                    {similarLoading ? 'Загрузка похожих...' : 'Посмотреть похожие объявления'}
                   </Flex>
                 </Button>
               )}
@@ -939,29 +954,34 @@ export default function AdDetail() {
         </Flex>
       </Container>
 
-      {similarLoaded && (
-        <Container size="4" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
-          <Card style={{ borderRadius: 'var(--radius-3)', border: '1px solid var(--gray-a5)', background: 'var(--gray-a1)' }}>
-            <Flex direction="column" gap="4">
-              <Flex justify="between" align="center">
-                <Heading size="5" weight="bold">Похожие объявления</Heading>
-                <Text size="2" color="gray">Результаты автоматически подобраны по описанию, породе и месту</Text>
-              </Flex>
-              {similarError && <Text color="red">{similarError}</Text>}
-              {!similarError && similarAds.length === 0 && (
-                <Text color="gray">Похожие объявления не найдены.</Text>
-              )}
-              {similarAds.length > 0 && (
-                <Grid columns={{ initial: '1', sm: '1', md: '2' }} gap="3">
-                  {similarAds.map((similarAd) => (
-                    <AdCard key={similarAd.id} ad={similarAd} />
-                  ))}
-                </Grid>
-              )}
-            </Flex>
-          </Card>
-        </Container>
-      )}
+      <Dialog.Root open={similarDialogOpen} onOpenChange={(open) => setSimilarDialogOpen(open)}>
+        <Dialog.Content maxWidth="900px">
+          <Dialog.Title>Похожие объявления</Dialog.Title>
+          <Dialog.Description size="2" mb="3">
+            Результаты подобраны по фото, описанию и характеристикам питомца.
+          </Dialog.Description>
+
+          {similarError && <Text color="red">{similarError}</Text>}
+          {similarLoading && <Text>Загрузка похожих объявлений...</Text>}
+          {!similarLoading && !similarError && similarAds.length === 0 && (
+            <Text color="gray">Похожие объявления не найдены.</Text>
+          )}
+
+          {similarAds.length > 0 && (
+            <Grid columns={{ initial: '1', sm: '2', md: '3' }} gap="3">
+              {similarAds.map((similarAd) => (
+                <AdCard key={similarAd.id} ad={similarAd} />
+              ))}
+            </Grid>
+          )}
+
+          <Dialog.Close asChild>
+            <Button variant="soft" size="2" style={{ marginTop: 'var(--space-4)', width: '100%', fontWeight: 600 }}>
+              Закрыть
+            </Button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Root>
 
       <Dialog.Root open={!!complaintTarget} onOpenChange={(open) => !open && setComplaintTarget(null)}>
         <Dialog.Content maxWidth="560px">
