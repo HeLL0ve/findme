@@ -245,7 +245,7 @@ const [dropdownPosition, setDropdownPosition] = useState({
     >
       <div style={{ padding: 'var(--space-2)' }}>
         {loading && (
-          <Flex align="center" gap="2" style={{ padding: 'var(--space-2)' }}>
+          <Flex align="center" gap="2" style={{ padding: '10px' }}>
             <Text size="2" color="gray">
               Поиск адресов...
             </Text>
