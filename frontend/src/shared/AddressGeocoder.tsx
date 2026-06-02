@@ -53,23 +53,6 @@ function buildShortAddress(item: any): string {
   return item.display_name || '';
 }
 
-function getDropdownStyle() {
-  return {
-    position: 'absolute' as const,
-    zIndex: 10000,
-    width: '100%',
-    top: 'calc(100% + 8px)',
-    left: 0,
-    maxHeight: 340,
-    overflowY: 'auto' as const,
-    padding: 'var(--space-2)',
-    borderRadius: 'var(--radius-4)',
-    boxShadow: '0 18px 40px rgba(0,0,0,0.14)',
-    background: 'white',
-  };
-}
-
-
 export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }: Props) {
   const [query, setQuery] = useState(value || '');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -160,6 +143,20 @@ const [dropdownPosition, setDropdownPosition] = useState({
     };
   }, [query]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+
+    updateDropdownPosition();
+    const handleResize = () => updateDropdownPosition();
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize, true);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleResize, true);
+    };
+  }, [open]);
+
   function handleSelect(item: Suggestion) {
     setQuery(item.shortLabel || item.label);
     setSuggestions([]);
@@ -173,24 +170,20 @@ const [dropdownPosition, setDropdownPosition] = useState({
   }
 
   function updateDropdownPosition() {
-  if (!containerRef.current) return;
+    if (!containerRef.current) return;
 
-  const rect = containerRef.current.getBoundingClientRect();
+    const rect = containerRef.current.getBoundingClientRect();
 
-  setDropdownPosition({
-    top: rect.bottom + window.scrollY + 8,
-    left: rect.left + window.scrollX,
-    width: rect.width,
-  });
-}
+    setDropdownPosition({
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+    });
+  }
 
   return (
-    <div
-  ref={containerRef}
-  style={{
-    position: 'relative',
-  }}
->
+    <div ref={containerRef} style={{ position: 'relative' }}>
+
       <TextField.Root
         type="text"
         placeholder={placeholder}
@@ -225,21 +218,21 @@ const [dropdownPosition, setDropdownPosition] = useState({
       {open &&
   (suggestions.length > 0 || loading || error) &&
   createPortal(
-    
     <Card
       variant="surface"
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: dropdownPosition.top,
         left: dropdownPosition.left,
         width: dropdownPosition.width,
-        maxHeight: 340,
-        overflowY: 'auto',
+        maxHeight: 360,
+        overflow: 'hidden',
         zIndex: 999999,
-        padding: 'var(--space-2)',
-        borderRadius: 'var(--radius-4)',
-        boxShadow: '0 18px 40px rgba(0,0,0,0.14)',
-        background: 'white',
+        padding: 5,
+        borderRadius: '22px',
+        border: '1px solid var(--card-border)',
+        boxShadow: 'var(--card-shadow)',
+        background: 'var(--surface)',
       }}
       onMouseDown={(event) => {
         event.preventDefault();
@@ -250,51 +243,77 @@ const [dropdownPosition, setDropdownPosition] = useState({
         }
       }}
     >
-      {loading && (
-        <Flex align="center" gap="2" style={{ padding: 'var(--space-2)' }}>
-          <Text size="2" color="gray">
-            Поиск адресов...
+      <div style={{ padding: 'var(--space-2)' }}>
+        {loading && (
+          <Flex align="center" gap="2" style={{ padding: 'var(--space-2)' }}>
+            <Text size="2" color="gray">
+              Поиск адресов...
+            </Text>
+          </Flex>
+        )}
+
+        {error && !loading && (
+          <Text size="2" color="red" style={{ padding: 'var(--space-2)', display: 'block' }}>
+            {error}
           </Text>
-        </Flex>
-      )}
+        )}
 
-      {error && !loading && (
-        <Text size="2" color="red" style={{ padding: 'var(--space-2)' }}>
-          {error}
-        </Text>
-      )}
+        {!loading && !error && suggestions.length === 0 && (
+          <Text size="2" color="gray" style={{ padding: 'var(--space-2)', display: 'block' }}>
+            Ничего не найдено
+          </Text>
+        )}
+      </div>
 
-      {!loading &&
-        !error &&
-        suggestions.map((item) => (
+      <div
+        style={{
+          maxHeight: 280,
+          overflowY: 'auto',
+          scrollBehavior: 'smooth',
+          padding: 'var(--space-1) 0',
+        }}
+      >
+        {!loading &&
+          !error &&
+          suggestions.map((item) => (
           <Card
             key={item.id}
             variant="surface"
             style={{
               cursor: 'pointer',
-              padding: 'var(--space-2)',
-              marginBottom: '4px',
+              padding: '5px',
+              margin: '0 var(--space-2) 6px',
+              transition: 'background 0.2s ease',
+              borderRadius: '16px',
+              background: 'transparent',
             }}
             onMouseDown={(event) => {
               event.preventDefault();
               handleSelect(item);
             }}
+            onMouseEnter={(event) => {
+              (event.currentTarget as HTMLElement).style.background = 'var(--gray-2)';
+            }}
+            onMouseLeave={(event) => {
+              (event.currentTarget as HTMLElement).style.background = 'transparent';
+            }}
           >
-            <Text size="2" weight="medium">
+            <Text size="2" weight="medium" style={{ lineHeight: 1.4, color: 'var(--text)' }}>
               {item.shortLabel || item.label}
             </Text>
 
-            <Text size="1" color="gray" as="div">
+            <Text size="1" color="gray" as="div" style={{ marginTop: '6px', lineHeight: 1.4, color: 'var(--muted)' }}>
               {item.label}
             </Text>
 
             {item.city && (
-              <Text size="1" color="gray">
+              <Text size="1" color="gray" style={{ marginTop: '6px', color: 'var(--muted)' }}>
                 {item.city}
               </Text>
             )}
           </Card>
         ))}
+      </div>
     </Card>,
     document.body,
   )}
