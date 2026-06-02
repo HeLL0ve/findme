@@ -40,6 +40,14 @@ services:
       - postgres
       - redis
 
+  text-service:
+    build:
+      context: ./text-service
+    container_name: text-service
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+
 volumes:
   postgres-data:
   redis-data:

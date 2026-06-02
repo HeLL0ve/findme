@@ -46,6 +46,41 @@ async function fetchClipSimilarity(
   }
 }
 
+async function fetchTextSimilarity(
+  source: {
+    petName?: string | null;
+    animalType?: string | null;
+    breed?: string | null;
+    color?: string | null;
+    description?: string | null;
+    location?: { city?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null } | null;
+  },
+  candidates: Array<{
+    id: string;
+    animalType?: string | null;
+    breed?: string | null;
+    color?: string | null;
+    description?: string | null;
+    location?: { city?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null } | null;
+  }>,
+) {
+  try {
+    const response = await fetch(`${env.textServiceUrl.replace(/\/+$/, '')}/semantic`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source, candidates }),
+    });
+
+    if (!response.ok) return null;
+
+    const result = await response.json();
+    if (!Array.isArray(result)) return null;
+    return result as Array<{ id: string; semanticScore?: number; distanceKm?: number }>;
+  } catch {
+    return null;
+  }
+}
+
 type AdParams = { id: string };
 type ListAdsQuery = {
   type?: string | string[];
@@ -106,35 +141,6 @@ function extractKeywords(text: string) {
 function countSharedKeywords(source: string[], target: string[]) {
   const set = new Set(target);
   return source.reduce((count, word) => (set.has(word) ? count + 1 : count), 0);
-}
-
-async function fetchClipSimilarity(
-  source: {
-    petName?: string | null;
-    animalType?: string | null;
-    breed?: string | null;
-    color?: string | null;
-    description?: string | null;
-    location?: { city?: string | null; address?: string | null } | null;
-    photos?: Array<{ photoUrl: string }>;
-  },
-  candidates: Array<{ id: string; photoUrls: string[]; description?: string | null; breed?: string | null; color?: string | null; animalType?: string | null; location?: { city?: string | null; address?: string | null } | null }>,
-) {
-  try {
-    const response = await fetch(`${env.clipServiceUrl.replace(/\/+$/, '')}/similar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source, candidates }),
-    });
-
-    if (!response.ok) return null;
-
-    const result = await response.json();
-    if (!Array.isArray(result)) return null;
-    return result as Array<{ id: string; clipScore?: number; phashDistance?: number }>; 
-  } catch {
-    return null;
-  }
 }
 
 export async function listAdsController(
@@ -316,21 +322,21 @@ export async function getSimilarAdsController(
     const sourceDescription = normalizeText(ad.description);
     const sourceDescriptionKeywords = extractKeywords(sourceDescription);
 
-    const textCandidates: Prisma.AdWhereInput[] = [];
-    if (ad.petName) textCandidates.push({ petName: { contains: ad.petName, mode: 'insensitive' } });
-    if (ad.animalType) textCandidates.push({ animalType: { contains: ad.animalType, mode: 'insensitive' } });
-    if (ad.breed) textCandidates.push({ breed: { contains: ad.breed, mode: 'insensitive' } });
-    if (ad.color) textCandidates.push({ color: { contains: ad.color, mode: 'insensitive' } });
-    if (ad.location?.city) textCandidates.push({ location: { city: { contains: ad.location.city, mode: 'insensitive' } } });
-    if (ad.location?.address) textCandidates.push({ location: { address: { contains: ad.location.address, mode: 'insensitive' } } });
-    if (ad.description) textCandidates.push({ description: { contains: ad.description, mode: 'insensitive' } });
+    const searchFilters: Prisma.AdWhereInput[] = [];
+    if (ad.petName) searchFilters.push({ petName: { contains: ad.petName, mode: 'insensitive' } });
+    if (ad.animalType) searchFilters.push({ animalType: { contains: ad.animalType, mode: 'insensitive' } });
+    if (ad.breed) searchFilters.push({ breed: { contains: ad.breed, mode: 'insensitive' } });
+    if (ad.color) searchFilters.push({ color: { contains: ad.color, mode: 'insensitive' } });
+    if (ad.location?.city) searchFilters.push({ location: { city: { contains: ad.location.city, mode: 'insensitive' } } });
+    if (ad.location?.address) searchFilters.push({ location: { address: { contains: ad.location.address, mode: 'insensitive' } } });
+    if (ad.description) searchFilters.push({ description: { contains: ad.description, mode: 'insensitive' } });
 
     const candidates = await prisma.ad.findMany({
       where: {
         type: oppositeType,
         status: 'APPROVED',
         id: { not: id },
-        ...(textCandidates.length > 0 ? { OR: textCandidates } : {}),
+        ...(searchFilters.length > 0 ? { OR: searchFilters } : {}),
       },
       include: { photos: true, location: true },
       orderBy: { createdAt: 'desc' },
@@ -362,6 +368,41 @@ export async function getSimilarAdsController(
 
     const clipScoreMap = new Map<string, { clipScore?: number; phashDistance?: number }>(
       clipScores?.map((item) => [item.id, { clipScore: item.clipScore, phashDistance: item.phashDistance }]) ?? [],
+    );
+
+    const textCandidates = candidates.map((candidate) => ({
+      id: candidate.id,
+      animalType: candidate.animalType,
+      breed: candidate.breed,
+      color: candidate.color,
+      description: candidate.description,
+      location: {
+        city: candidate.location?.city,
+        address: candidate.location?.address,
+        latitude: candidate.location?.latitude ?? null,
+        longitude: candidate.location?.longitude ?? null,
+      },
+    }));
+
+    const textScores = await fetchTextSimilarity(
+      {
+        petName: ad.petName,
+        animalType: ad.animalType,
+        breed: ad.breed,
+        color: ad.color,
+        description: ad.description,
+        location: {
+          city: ad.location?.city,
+          address: ad.location?.address,
+          latitude: ad.location?.latitude ?? null,
+          longitude: ad.location?.longitude ?? null,
+        },
+      },
+      textCandidates,
+    );
+
+    const textScoreMap = new Map<string, { semanticScore?: number; distanceKm?: number }>(
+      textScores?.map((item) => [item.id, { semanticScore: item.semanticScore, distanceKm: item.distanceKm }]) ?? [],
     );
 
     const scoredAds = await Promise.all(
@@ -396,8 +437,11 @@ export async function getSimilarAdsController(
         if (nameMatch) score += 10;
 
         const external = clipScoreMap.get(candidate.id);
+        const semantic = textScoreMap.get(candidate.id);
         if (external?.phashDistance !== undefined && external.phashDistance <= 12) score += 18;
         if (external?.clipScore !== undefined) score += Math.round(external.clipScore * 30 + 4);
+        if (semantic?.semanticScore !== undefined) score += Math.round(semantic.semanticScore * 30 + 5);
+        if (semantic?.distanceKm !== undefined) score += Math.max(0, 12 - Math.round(semantic.distanceKm / 5));
 
         return { ad: candidate, score };
       }),

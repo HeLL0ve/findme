@@ -8,7 +8,10 @@
 
 **Backend:** Node.js, Express 5, TypeScript, Prisma ORM, PostgreSQL, Redis, WebSocket (ws), Passport.js (Google OAuth), Nodemailer, Telegram Bot API
 
-**Дополнительный сервис:** Node.js `clip-service` для обработки изображений и поиска похожих объявлений по фото
+**Дополнительные сервисы:**
+
+- Node.js `clip-service` для обработки изображений и поиска похожих объявлений по фото
+- Node.js `text-service` для семантического анализа текста, координат и более точного отбора похожих объявлений
 
 **Frontend:** React 19, TypeScript, Vite, Radix UI, Zustand, React Router, Leaflet, Recharts, Axios
 
@@ -42,13 +45,13 @@ cp .env.example .env
 npm install
 ```
 
-### 2. Запустить базы данных и clip-service через Docker
+### 2. Запустить базы данных и сервисы через Docker
 
 ```bash
 docker-compose up -d
 ```
 
-Поднимает PostgreSQL (порт 5432), Redis (порт 6379) и `clip-service` (порт 8000).
+Поднимает PostgreSQL (порт 5432), Redis (порт 6379), `clip-service` (порт 8000) и `text-service` (порт 9000).
 
 ### 3. Применить миграции
 
@@ -115,6 +118,10 @@ findme/
 │   ├── app.js
 │   ├── package.json
 │   └── .dockerignore
+├── text-service/           # Локальный микросервис для семантического анализа текста и координат
+│   ├── app.js
+│   ├── package.json
+│   └── .dockerignore
 ├── frontend/               # React приложение
 │   ├── public/
 │   ├── src/
@@ -124,7 +131,7 @@ findme/
 │   │   └── shared/         # Хуки, стор, утилиты
 │   └── .env.example
 ├── .env.example            # Переменные для Docker Compose
-├── docker-compose.yml      # PostgreSQL, Redis и clip-service
+├── docker-compose.yml      # PostgreSQL, Redis, clip-service и text-service
 └── README.md
 ```
 
