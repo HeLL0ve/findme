@@ -359,7 +359,7 @@ export default function EditAd() {
                       },
                     }))
                   }
-                  height={320}
+                  height={420}
                 />
                 <Flex gap="3" direction={{ initial: 'column', md: 'row' }}>
                   <Flex direction="column" gap="2" style={{ flex: 1 }}>

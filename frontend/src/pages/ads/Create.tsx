@@ -321,7 +321,7 @@ export default function CreateAd() {
                         },
                       }))
                     }
-                    height={360}
+                    height={420}
                   />
 
                   <Flex gap="3" direction={{ initial: 'column', md: 'row' }}>

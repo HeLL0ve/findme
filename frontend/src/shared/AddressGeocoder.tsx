@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card, Flex, Text, TextField } from '@radix-ui/themes';
+import { createPortal } from 'react-dom';
 
 type Suggestion = {
   id: string;
@@ -9,6 +10,8 @@ type Suggestion = {
   longitude: number;
   city?: string;
 };
+
+
 
 type Props = {
   value: string;
@@ -66,6 +69,7 @@ function getDropdownStyle() {
   };
 }
 
+
 export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }: Props) {
   const [query, setQuery] = useState(value || '');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -74,6 +78,13 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
   const [open, setOpen] = useState(false);
   const blurTimeout = useRef<number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+const [dropdownPosition, setDropdownPosition] = useState({
+  top: 0,
+  left: 0,
+  width: 0,
+});
 
   useEffect(() => {
     setQuery(value || '');
@@ -161,8 +172,25 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
     });
   }
 
+  function updateDropdownPosition() {
+  if (!containerRef.current) return;
+
+  const rect = containerRef.current.getBoundingClientRect();
+
+  setDropdownPosition({
+    top: rect.bottom + window.scrollY + 8,
+    left: rect.left + window.scrollX,
+    width: rect.width,
+  });
+}
+
   return (
-    <div style={{ position: 'relative', zIndex: 1000 }}>
+    <div
+  ref={containerRef}
+  style={{
+    position: 'relative',
+  }}
+>
       <TextField.Root
         type="text"
         placeholder={placeholder}
@@ -170,16 +198,23 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
         autoComplete="off"
         style={{ minHeight: 52 }}
         onChange={(event) => {
-          const next = event.target.value;
-          setQuery(next);
-          onChange(next);
-          setOpen(next.trim().length >= MIN_QUERY_LENGTH);
-        }}
+  const next = event.target.value;
+  setQuery(next);
+  onChange(next);
+
+  if (next.trim().length >= MIN_QUERY_LENGTH) {
+    updateDropdownPosition();
+    setOpen(true);
+  } else {
+    setOpen(false);
+  }
+}}
         onFocus={() => {
-          if (query.trim().length >= MIN_QUERY_LENGTH) {
-            setOpen(true);
-          }
-        }}
+  if (query.trim().length >= MIN_QUERY_LENGTH) {
+    updateDropdownPosition();
+    setOpen(true);
+  }
+}}
         onBlur={() => {
           blurTimeout.current = window.setTimeout(() => {
             setOpen(false);
@@ -187,66 +222,82 @@ export function AddressGeocoder({ value, city, placeholder, onChange, onSelect }
         }}
       />
 
-      {open && (suggestions.length > 0 || loading || error) && (
-        <Card
-          variant="surface"
-          style={getDropdownStyle()}
-          onMouseDown={(event) => {
-            event.preventDefault();
-            if (blurTimeout.current) {
-              window.clearTimeout(blurTimeout.current);
-              blurTimeout.current = null;
-            }
-          }}
-        >
-          {loading && (
-            <Flex align="center" gap="2" style={{ padding: 'var(--space-2)' }}>
-              <Text size="2" color="gray">Поиск адресов...</Text>
-            </Flex>
-          )}
+      {open &&
+  (suggestions.length > 0 || loading || error) &&
+  createPortal(
+    
+    <Card
+      variant="surface"
+      style={{
+        position: 'absolute',
+        top: dropdownPosition.top,
+        left: dropdownPosition.left,
+        width: dropdownPosition.width,
+        maxHeight: 340,
+        overflowY: 'auto',
+        zIndex: 999999,
+        padding: 'var(--space-2)',
+        borderRadius: 'var(--radius-4)',
+        boxShadow: '0 18px 40px rgba(0,0,0,0.14)',
+        background: 'white',
+      }}
+      onMouseDown={(event) => {
+        event.preventDefault();
 
-          {error && !loading && (
-            <Text size="2" color="red" style={{ padding: 'var(--space-2)' }}>
-              {error}
-            </Text>
-          )}
-
-          {!loading && !error && suggestions.length === 0 && query.trim().length >= MIN_QUERY_LENGTH && (
-            <Text size="2" color="gray" style={{ padding: 'var(--space-2)' }}>
-              Ничего не найдено
-            </Text>
-          )}
-
-          {!loading && suggestions.map((item) => (
-            <Card
-              key={item.id}
-              variant="surface"
-              style={{
-                cursor: 'pointer',
-                padding: 'var(--space-2)',
-                marginBottom: '4px',
-                transition: 'background 0.2s ease',
-              }}
-              onMouseDown={(event) => {
-                event.preventDefault();
-                handleSelect(item);
-              }}
-              onMouseEnter={(event) => {
-                (event.currentTarget as HTMLElement).style.background = 'var(--gray-2)';
-              }}
-              onMouseLeave={(event) => {
-                (event.currentTarget as HTMLElement).style.background = 'transparent';
-              }}
-            >
-              <Text size="2" weight="medium">{item.shortLabel || item.label}</Text>
-              <Text size="1" color="gray" as="div">
-                {item.label}
-              </Text>
-              {item.city && <Text size="1" color="gray">{item.city}</Text>}
-            </Card>
-          ))}
-        </Card>
+        if (blurTimeout.current) {
+          window.clearTimeout(blurTimeout.current);
+          blurTimeout.current = null;
+        }
+      }}
+    >
+      {loading && (
+        <Flex align="center" gap="2" style={{ padding: 'var(--space-2)' }}>
+          <Text size="2" color="gray">
+            Поиск адресов...
+          </Text>
+        </Flex>
       )}
+
+      {error && !loading && (
+        <Text size="2" color="red" style={{ padding: 'var(--space-2)' }}>
+          {error}
+        </Text>
+      )}
+
+      {!loading &&
+        !error &&
+        suggestions.map((item) => (
+          <Card
+            key={item.id}
+            variant="surface"
+            style={{
+              cursor: 'pointer',
+              padding: 'var(--space-2)',
+              marginBottom: '4px',
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault();
+              handleSelect(item);
+            }}
+          >
+            <Text size="2" weight="medium">
+              {item.shortLabel || item.label}
+            </Text>
+
+            <Text size="1" color="gray" as="div">
+              {item.label}
+            </Text>
+
+            {item.city && (
+              <Text size="1" color="gray">
+                {item.city}
+              </Text>
+            )}
+          </Card>
+        ))}
+    </Card>,
+    document.body,
+  )}
     </div>
   );
 }
