@@ -12,6 +12,34 @@ function normalizeText(text) {
   return (text || '').toString().trim().toLowerCase();
 }
 
+function normalizeAnimalType(type) {
+  if (!type) return '';
+  const normalized = String(type).toLowerCase().trim();
+
+  const dogTerms = ['собак', 'dog', 'пес', 'щен', 'puppy'];
+  const catTerms = ['кошк', 'кот', 'cat', 'котен', 'kitten'];
+
+  for (const term of dogTerms) {
+    if (normalized.includes(term)) return 'dog';
+  }
+  for (const term of catTerms) {
+    if (normalized.includes(term)) return 'cat';
+  }
+
+  return normalized;
+}
+
+function areObviouslyDifferent(sourceType, candidateType) {
+  const source = normalizeAnimalType(sourceType);
+  const candidate = normalizeAnimalType(candidateType);
+
+  if (!source || !candidate) return false;
+  if (source === 'dog' && candidate === 'cat') return true;
+  if (source === 'cat' && candidate === 'dog') return true;
+
+  return false;
+}
+
 function buildSearchText(item) {
   return [
     item.petName,
@@ -63,7 +91,12 @@ function flattenEmbedding(embedding) {
 let semanticPipelinePromise = null;
 async function getSemanticPipeline() {
   if (!semanticPipelinePromise) {
-    semanticPipelinePromise = pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    // Используем LaBSE - лучшую мультиязычную модель для sentence embeddings
+    // Поддерживает 109 языков включая русский
+    // Специально обучена для cross-lingual similarity
+    console.error('[TEXT] Loading model: sentence-transformers/LaBSE...');
+    semanticPipelinePromise = pipeline('feature-extraction', 'Xenova/LaBSE');
+    console.error('[TEXT] Model loaded successfully!');
   }
   return semanticPipelinePromise;
 }
@@ -84,6 +117,10 @@ app.post('/semantic', async (req, res) => {
     const candidateEmbeddings = await Promise.all(candidateTexts.map((text) => embedText(text || '')));
 
     const results = candidates.map((candidate, index) => {
+      if (areObviouslyDifferent(source.animalType, candidate.animalType)) {
+        return { id: candidate.id, semanticScore: 0, distanceKm: undefined };
+      }
+
       const candidateEmbedding = candidateEmbeddings[index];
       const semanticScore = sourceEmbedding.length > 0 && candidateEmbedding.length > 0
         ? cosineSimilarity(sourceEmbedding, candidateEmbedding)
@@ -109,6 +146,7 @@ app.post('/semantic', async (req, res) => {
     results.sort((a, b) => (b.semanticScore ?? 0) - (a.semanticScore ?? 0));
     res.json(results);
   } catch (error) {
+    console.error('[TEXT] Error:', error);
     res.status(500).json({ message: 'Ошибка text-service', error: error?.message || String(error) });
   }
 });

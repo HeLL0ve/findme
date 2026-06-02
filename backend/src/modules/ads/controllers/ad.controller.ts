@@ -337,6 +337,8 @@ export async function getSimilarAdsController(
         status: 'APPROVED',
         id: { not: id },
         ...(searchFilters.length > 0 ? { OR: searchFilters } : {}),
+        // Если у источника указан тип животного — берём только тех же
+        ...(ad.animalType ? { animalType: { equals: ad.animalType, mode: 'insensitive' } } : {}),
       },
       include: { photos: true, location: true },
       orderBy: { createdAt: 'desc' },
@@ -443,11 +445,20 @@ export async function getSimilarAdsController(
         if (semantic?.semanticScore !== undefined) score += Math.round(semantic.semanticScore * 30 + 5);
         if (semantic?.distanceKm !== undefined) score += Math.max(0, 12 - Math.round(semantic.distanceKm / 5));
 
+        console.log(`[BACKEND] Ad ${candidate.id}:`, {
+          sourceType,
+          candidateType,
+          baseScore: score - (external?.clipScore ? Math.round(external.clipScore * 30 + 4) : 0) - (semantic?.semanticScore ? Math.round(semantic.semanticScore * 30 + 5) : 0),
+          clipScore: external?.clipScore,
+          semanticScore: semantic?.semanticScore,
+          finalScore: score
+        });
+
         return { ad: candidate, score };
       }),
     );
 
-    const filteredAds = scoredAds.filter((item) => item.score > 15);
+    const filteredAds = scoredAds.filter((item) => item.score > 5);
 
     const result = filteredAds
       .sort((left, right) => right.score - left.score)
